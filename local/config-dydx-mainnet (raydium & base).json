@@ -19,24 +19,8 @@
     "coinmarketcap": { "api_key": "" },
     "raydium": [
       {
-        "endpoint": "https://solana-rpc.rhino-apis.com",
-        "node_key": ""
-      },
-      {
-        "endpoint": "https://solana.polkachu.com:443",
-        "node_key": ""
-      },
-      {
-        "endpoint": "https://dydx.helius-rpc.com",
-        "node_key": ""
-      },
-      {
-        "endpoint": "https://connect-solana.kingnodes.com",
-        "node_key": ""
-      },
-      {
-        "endpoint": "https://solana.lavenderfive.com:443",
-        "node_key": ""
+        "endpoint": "https://solana-mainnet.g.alchemy.com/v2/xTYYXFnid3W8lnhyOHWpC2iyuHZQUwG8",
+        "node_key": "xTYYXFnid3W8lnhyOHWpC2iyuHZQUwG8"
       }
     ],
     "gecko_network_dex_pairs": [
@@ -49,103 +33,117 @@
       "binance_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "bitfinex_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "bitstamp_api": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": true,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "bybit_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": true,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "coinbase_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "crypto_dot_com_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": true,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "gate_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "huobi_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "kraken_api": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "kucoin_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "okx_ws": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 100 },
         "ignore_liquidity": false,
-        "ignore_volume": false
+        "ignore_volume": false,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 10000
       },
       "raydium_api": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 50 },
-        "ignore_liquidity": true,
+        "ignore_liquidity": false,
         "ignore_volume": false,
-        "is_defi": true
+        "is_defi": true,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 2500000
       },
       "uniswapv3_api-base": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 50 },
-        "ignore_liquidity": true,
+        "ignore_liquidity": false,
         "ignore_volume": false,
-        "is_defi": true
+        "is_defi": true,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 2500000
       },
       "uniswapv3_api-ethereum": {
         "isSupplemental": false,
         "require_aggregate_ids": false,
-        "filters": { "top_markets": 50 },
-        "ignore_liquidity": true,
+        "ignore_liquidity": false,
         "ignore_volume": false,
-        "is_defi": true
+        "is_defi": true,
+        "min_provider_volume": 100000,
+        "min_provider_liquidity": 2500000
       }
     },
     "quotes": {

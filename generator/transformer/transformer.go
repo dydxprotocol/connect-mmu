@@ -27,8 +27,10 @@ func New(logger *zap.Logger) Transformer {
 		logger: logger.With(zap.String("service", "transformer")),
 		feedTransforms: []TransformFeed{
 			InvertOrDrop(), // must invert before normalize
-			PruneByLiquidity(),
-			PruneByQuoteVolume(),
+			// PruneByLiquidity(),
+			// PruneByQuoteVolume(),
+			PruneByProviderLiquidity(),
+			PruneByProviderVolume(),
 			ResolveNamingAliases(),
 			NormalizeBy(),
 			DropFeedsWithoutAggregatorIDs(),
