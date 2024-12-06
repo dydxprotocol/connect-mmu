@@ -19,8 +19,24 @@
     "coinmarketcap": { "api_key": "" },
     "raydium": [
       {
-        "endpoint": "https://solana-mainnet.g.alchemy.com/v2/xTYYXFnid3W8lnhyOHWpC2iyuHZQUwG8",
-        "node_key": "xTYYXFnid3W8lnhyOHWpC2iyuHZQUwG8"
+        "endpoint": "https://solana-rpc.rhino-apis.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://solana.polkachu.com:443",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://dydx.helius-rpc.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://connect-solana.kingnodes.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://solana.lavenderfive.com:443",
+        "node_key": ""
       }
     ],
     "gecko_network_dex_pairs": [
