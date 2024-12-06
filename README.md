@@ -153,4 +153,4 @@ go run ./cmd/mmu generate --config ./local/config-dydx-mainnet.json
 go run ./cmd/mmu override --config ./local/config-dydx-mainnet.json
 go run ./cmd/mmu upserts --config ./local/config-dydx-mainnet.json
 go run ./cmd/mmu dispatch --config ./local/config-dydx-mainnet.json
-```
+``` 
