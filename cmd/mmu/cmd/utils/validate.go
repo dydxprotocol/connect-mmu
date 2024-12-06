@@ -74,7 +74,6 @@ func ValidateCmd() *cobra.Command {
 			if flags.cmcAPIKey != "" {
 				cmd.Println("reference price checking enabled")
 			} else {
-
 				cmd.Println("reference price checking disabled")
 			}
 
