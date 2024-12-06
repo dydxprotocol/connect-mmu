@@ -2,7 +2,9 @@ package indexer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
@@ -30,6 +32,15 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 	cmcCryptoData, err := idx.cmcIndexer.CryptoIDMap(ctx)
 	if err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
+	jsonData, err := json.MarshalIndent(cmcCryptoData, "", "  ")
+	if err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to marshal CMC crypto data: %w", err)
+	}
+	err = os.WriteFile("tmp/cmc_crypto_data.json", jsonData, 0644)
+	if err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to write CMC crypto data file: %w", err)
 	}
 
 	// Get CMC fiat map data
@@ -95,6 +106,15 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 	}
 
 	idx.logger.Info("committing aggregate info tx to db...")
+
+	jsonData, err = json.MarshalIndent(cmcMarketPairs, "", "  ")
+	if err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to marshal CMC crypto data: %w", err)
+	}
+	err = os.WriteFile("tmp/cmc_market_pairs.json", jsonData, 0644)
+	if err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to write CMC crypto data file: %w", err)
+	}
 
 	return cmcMarketPairs, nil
 }
