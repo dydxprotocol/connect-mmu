@@ -457,7 +457,7 @@ func TopFeedsForProvider() TransformFeed {
 // PruneByProviderLiquidity removes feeds that don't meet provider-specific liquidity thresholds.
 // Each provider can specify a min_provider_liquidity threshold in the config.
 func PruneByProviderLiquidity() TransformFeed {
-	return func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.RemovalReasons, error) {
+	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.RemovalReasons, error) {
 		logger.Info("pruning by provider liquidity", zap.Int("feeds", len(feeds)))
 
 		out := make([]types.Feed, 0, len(feeds))
@@ -501,7 +501,7 @@ func PruneByProviderLiquidity() TransformFeed {
 // PruneByProviderVolume removes feeds that don't meet provider-specific volume thresholds.
 // Each provider can specify a min_provider_volume threshold in the config.
 func PruneByProviderVolume() TransformFeed {
-	return func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.RemovalReasons, error) {
+	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.RemovalReasons, error) {
 		logger.Info("pruning by provider volume", zap.Int("feeds", len(feeds)))
 
 		out := make([]types.Feed, 0, len(feeds))
