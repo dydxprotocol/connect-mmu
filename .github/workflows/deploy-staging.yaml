@@ -1,4 +1,4 @@
-name: Deploy Staging
+name: Deploy Staging image to ECR
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   deploy_staging:
-    name: Deploy Staging
+    name: Deploy Staging image to ECR
     uses: ./.github/workflows/deploy.yml
     with:
       env: "staging"

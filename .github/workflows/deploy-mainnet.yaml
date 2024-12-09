@@ -1,4 +1,4 @@
-name: Deploy Mainnet
+name: Deploy Mainnet image to ECR
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   deploy_mainnet:
-    name: Deploy Mainnet
+    name: Deploy Mainnet image to ECR
     uses: ./.github/workflows/deploy.yml
     with:
       env: "mainnet"
