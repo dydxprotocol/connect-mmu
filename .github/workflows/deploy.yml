@@ -39,6 +39,9 @@ jobs:
         aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
         aws-region: ap-northeast-1
 
+    - name: Docker login to ECR
+      run: aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 677285201534.dkr.ecr.ap-northeast-1.amazonaws.com
+
     - name: Docker build and tag 
       run: |
         docker build -f contrib/images/mmu.Dockerfile -t ${{ inputs.env }}-market-map-updater .
