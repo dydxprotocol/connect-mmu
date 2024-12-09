@@ -1,4 +1,4 @@
-name: Deploy image to ECR
+name: Deploy
 
 on:
   workflow_call:

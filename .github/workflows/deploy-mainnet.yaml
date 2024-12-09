@@ -1,4 +1,4 @@
-name: Deploy Mainnet image to ECR
+name: Deploy Mainnet
 
 on:
   push:
