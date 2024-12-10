@@ -44,7 +44,7 @@ jobs:
 
     - name: Set environment variables
       run: |
-        echo "GOOS=darwin" >> $GITHUB_ENV
+        echo "GOOS=linux" >> $GITHUB_ENV
         echo "GOARCH=arm64" >> $GITHUB_ENV
 
     - name: Docker login to ECR
