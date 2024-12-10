@@ -1,0 +1,14 @@
+{
+    "title": "Test: Upgrade ETHFI from isolated to cross",
+    "messages": [
+        {
+            "@type": "/dydxprotocol.listing.MsgUpgradeIsolatedPerpetualToCross",
+            "authority": "dydx10d07y265gmmuvt4z0w9aw880jnsr700jnmapky",
+            "params": {
+                "perpetual_id": 65
+            }
+        }
+    ],
+    "deposit": "5000000000000000000adv4tnt",
+    "summary": "Test: Upgrade ETHFI from isolated to cross"
+}
