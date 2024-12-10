@@ -42,11 +42,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
         aws-region: ap-northeast-1
 
-    - name: Set environment variables
-      run: |
-        echo "GOOS=linux" >> $GITHUB_ENV
-        echo "GOARCH=arm64" >> $GITHUB_ENV
-
     - name: Docker login to ECR
       run: aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin ${{ inputs.ecr_url }}
 
