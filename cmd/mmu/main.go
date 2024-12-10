@@ -15,6 +15,7 @@ import (
 	"github.com/skip-mev/connect-mmu/signing/local"
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"go.uber.org/zap"
 )
@@ -22,6 +23,10 @@ import (
 type LambdaEvent struct {
 	Command   string `json:"command"`
 	Timestamp string `json:"timestamp,omitempty"`
+}
+
+type LambdaResponse struct {
+	Timestamp string `json:"timestamp"`
 }
 
 func createSigningRegistry() *signing.Registry {
@@ -72,7 +77,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcApiKe
 	return args, nil
 }
 
-func lambdaHandler(ctx context.Context, event json.RawMessage) error {
+func lambdaHandler(ctx context.Context, event json.RawMessage) (resp events.APIGatewayProxyResponse, err error) {
 	logger := logging.Logger(ctx)
 
 	// Fetch CMC API Key from Secrets Manager and set it as env var
@@ -83,7 +88,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) error {
 	args, err := getArgsFromLambdaEvent(ctx, event, cmcApiKey)
 	if err != nil {
 		logger.Error("failed to get args from Lambda event", zap.Error(err))
-		return err
+		return resp, err
 	}
 
 	r := createSigningRegistry()
@@ -91,10 +96,21 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) error {
 	rootCmd.SetArgs(args)
 	if err := rootCmd.Execute(); err != nil {
 		logger.Error("failed to execute command", zap.Strings("command", args), zap.Error(err))
-		return err
+		return resp, err
 	}
 
-	return nil
+	respBody, err := json.Marshal(LambdaResponse{
+		Timestamp: os.Getenv("TIMESTAMP"),
+	})
+	if err != nil {
+		logger.Error("failed to marshal response body", zap.Error(err))
+		return resp, err
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       string(respBody),
+	}, nil
 }
 
 func main() {
