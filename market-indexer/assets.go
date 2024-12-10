@@ -22,25 +22,20 @@ const (
 
 // SetupAssets setup up the Indexer database with AssetInfo for all assets it can scrape.
 // These assets are later referenced when ProviderMarkets are indexed as they consist of a pair of two assets.
-func (idx *Indexer) SetupAssets(ctx context.Context) (coinmarketcap.ProviderMarketPairs, error) {
+func (idx *Indexer) SetupAssets(ctx context.Context, writeIntermediate bool) (coinmarketcap.ProviderMarketPairs, error) {
 	// index everything since we have no assets in the db
-	return idx.IndexKnownAssetInfo(ctx)
+	return idx.IndexKnownAssetInfo(ctx, writeIntermediate)
 }
 
-func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.ProviderMarketPairs, error) {
+func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, writeIntermediate bool) (coinmarketcap.ProviderMarketPairs, error) {
 	// Get CMC crypto map data
 	cmcCryptoData, err := idx.cmcIndexer.CryptoIDMap(ctx)
 	if err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
-	jsonData, err := json.MarshalIndent(cmcCryptoData, "", "  ")
-	if err != nil {
-		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to marshal CMC crypto data: %w", err)
-	}
-	err = os.WriteFile("tmp/cmc_crypto_data.json", jsonData, 0644)
-	if err != nil {
-		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to write CMC crypto data file: %w", err)
+	if err := writeIntermediateFile(cmcCryptoData, "cmc_crypto_data.json", writeIntermediate); err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
 	// Get CMC fiat map data
@@ -107,16 +102,30 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 
 	idx.logger.Info("committing aggregate info tx to db...")
 
-	jsonData, err = json.MarshalIndent(cmcMarketPairs, "", "  ")
-	if err != nil {
-		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to marshal CMC crypto data: %w", err)
-	}
-	err = os.WriteFile("tmp/cmc_market_pairs.json", jsonData, 0644)
-	if err != nil {
-		return coinmarketcap.ProviderMarketPairs{}, fmt.Errorf("failed to write CMC crypto data file: %w", err)
+	if err := writeIntermediateFile(cmcMarketPairs, "cmc_market_pairs.json", writeIntermediate); err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
 	return cmcMarketPairs, nil
+}
+
+// writeIntermediateFile writes data to a JSON file in the tmp directory if writeIntermediate is true
+func writeIntermediateFile(data interface{}, filename string, writeIntermediate bool) error {
+	if !writeIntermediate {
+		return nil
+	}
+
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal data for %s: %w", filename, err)
+	}
+
+	err = os.WriteFile(fmt.Sprintf("tmp/%s", filename), jsonData, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write file %s: %w", filename, err)
+	}
+
+	return nil
 }
 
 // FiatAssetInfoFromData creates a fiat asset from coinmarketcap data.

@@ -42,7 +42,7 @@ func IndexCmd() *cobra.Command {
 				return err
 			}
 
-			if err := idx.Index(ctx); err != nil {
+			if err := idx.Index(ctx, flags.writeIntermediate); err != nil {
 				return err
 			}
 
@@ -64,10 +64,11 @@ func IndexCmd() *cobra.Command {
 type indexCmdFlags struct {
 	configPath          string
 	providerDataOutPath string
+	writeIntermediate   bool
 }
 
 func indexCmdConfigureFlags(cmd *cobra.Command, flags *indexCmdFlags) {
-	cmd.Flags().StringVar(&flags.configPath, ConfigPathFlag, ConfigPathDefault, ConfigPathDescription)
-
-	cmd.Flags().StringVar(&flags.providerDataOutPath, ProviderDataOutPathFlag, ProviderDataOutPathDefault, ProviderDataOutPathDescription)
+	cmd.Flags().StringVar(&flags.configPath, "config", "config.json", "Path to mmu config file")
+	cmd.Flags().StringVar(&flags.providerDataOutPath, "provider-data-out", "", "Path to write provider data to")
+	cmd.Flags().BoolVar(&flags.writeIntermediate, "write-intermediate", false, "Write intermediate files during indexing")
 }

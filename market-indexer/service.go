@@ -102,8 +102,8 @@ func NewIndexer(cfg config.MarketConfig, logger *zap.Logger, writer provider.Sto
 
 // Index collects market data for each ingester and returns the combined data.
 // TODO: parallelize and optimize.
-func (idx *Indexer) Index(ctx context.Context) error {
-	cmcMarketPairs, err := idx.SetupAssets(ctx)
+func (idx *Indexer) Index(ctx context.Context, writeIntermediate bool) error {
+	cmcMarketPairs, err := idx.SetupAssets(ctx, writeIntermediate)
 	if err != nil {
 		idx.logger.Error("error setting up known assets", zap.Error(err))
 		return err
