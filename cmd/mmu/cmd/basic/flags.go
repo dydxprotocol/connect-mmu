@@ -55,9 +55,12 @@ const (
 // Outputs
 const (
 	// index
-	ProviderDataOutPathFlag        = "provider-data-out"
-	ProviderDataOutPathDefault     = ProviderDataPathDefault
-	ProviderDataOutPathDescription = "path to output indexed markets and providers"
+	ProviderDataOutPathFlag            = "provider-data-out"
+	ProviderDataOutPathDefault         = ProviderDataPathDefault
+	ProviderDataOutPathDescription     = "path to output indexed markets and providers"
+	ArchiveIntemediateStepsFlag        = "archive-intermediate-steps"
+	ArchiveIntemediateStepsDefault     = false
+	ArchiveIntemediateStepsDescription = "should archive intermediate steps (write CMC data to files)"
 
 	// generate
 	MarketMapOutPathGeneratedFlag         = "generated-market-map-out"

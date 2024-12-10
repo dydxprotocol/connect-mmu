@@ -22,19 +22,19 @@ const (
 
 // SetupAssets setup up the Indexer database with AssetInfo for all assets it can scrape.
 // These assets are later referenced when ProviderMarkets are indexed as they consist of a pair of two assets.
-func (idx *Indexer) SetupAssets(ctx context.Context, writeIntermediate bool) (coinmarketcap.ProviderMarketPairs, error) {
+func (idx *Indexer) SetupAssets(ctx context.Context, archiveIntermediateSteps bool) (coinmarketcap.ProviderMarketPairs, error) {
 	// index everything since we have no assets in the db
-	return idx.IndexKnownAssetInfo(ctx, writeIntermediate)
+	return idx.IndexKnownAssetInfo(ctx, archiveIntermediateSteps)
 }
 
-func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, writeIntermediate bool) (coinmarketcap.ProviderMarketPairs, error) {
+func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, archiveIntermediateSteps bool) (coinmarketcap.ProviderMarketPairs, error) {
 	// Get CMC crypto map data
 	cmcCryptoData, err := idx.cmcIndexer.CryptoIDMap(ctx)
 	if err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
-	if err := writeIntermediateFile(cmcCryptoData, "cmc_crypto_data.json", writeIntermediate); err != nil {
+	if err := writeIntermediateFile(cmcCryptoData, "cmc_crypto_data.json", archiveIntermediateSteps); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
@@ -102,7 +102,7 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, writeIntermediate b
 
 	idx.logger.Info("committing aggregate info tx to db...")
 
-	if err := writeIntermediateFile(cmcMarketPairs, "cmc_market_pairs.json", writeIntermediate); err != nil {
+	if err := writeIntermediateFile(cmcMarketPairs, "cmc_market_pairs.json", archiveIntermediateSteps); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
@@ -110,8 +110,8 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, writeIntermediate b
 }
 
 // writeIntermediateFile writes data to a JSON file in the tmp directory if writeIntermediate is true
-func writeIntermediateFile(data interface{}, filename string, writeIntermediate bool) error {
-	if !writeIntermediate {
+func writeIntermediateFile(data interface{}, filename string, archiveIntermediateSteps bool) error {
+	if !archiveIntermediateSteps {
 		return nil
 	}
 
