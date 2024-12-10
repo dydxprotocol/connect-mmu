@@ -15,7 +15,6 @@ import (
 	"github.com/skip-mev/connect-mmu/signing/local"
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"go.uber.org/zap"
 )
@@ -77,7 +76,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcApiKe
 	return args, nil
 }
 
-func lambdaHandler(ctx context.Context, event json.RawMessage) (resp events.APIGatewayProxyResponse, err error) {
+func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaResponse, err error) {
 	logger := logging.Logger(ctx)
 
 	// Fetch CMC API Key from Secrets Manager and set it as env var
@@ -99,17 +98,18 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp events.APIG
 		return resp, err
 	}
 
-	respBody, err := json.Marshal(LambdaResponse{
-		Timestamp: os.Getenv("TIMESTAMP"),
-	})
-	if err != nil {
-		logger.Error("failed to marshal response body", zap.Error(err))
-		return resp, err
-	}
+	/*
+		respBody, err := json.Marshal(LambdaResponse{
+			Timestamp: os.Getenv("TIMESTAMP"),
+		})
+		if err != nil {
+			logger.Error("failed to marshal response body", zap.Error(err))
+			return resp, err
+		}
+	*/
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       string(respBody),
+	return LambdaResponse{
+		Timestamp: os.Getenv("TIMESTAMP"),
 	}, nil
 }
 
