@@ -9,11 +9,12 @@ permissions:
 
 jobs:
   deploy_mainnet:
-    name: Deploy Mainnet image to ECR
+    name: Deploy Mainnet
     uses: ./.github/workflows/deploy.yml
     with:
       env: "mainnet"
       ecr_url: ""
+      ecr_repo_name: "mainnet-market-map-updater"
     secrets:
       aws_access_key_id: ${{ secrets['MAINNET_MARKET_MAP_UPDATER_AWS_ACCESS_KEY_ID'] }}
       aws_secret_access_key: ${{ secrets['MAINNET_MARKET_MAP_UPDATER_AWS_SECRET_ACCESS_KEY'] }}
