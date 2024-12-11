@@ -47,7 +47,7 @@ jobs:
 
     - name: Docker build and tag 
       run: |
-        docker build -f contrib/images/mmu.Dockerfile -t ${{ inputs.ecr_repo_name }} .
+        docker build -f contrib/images/mmu-lambda.Dockerfile -t ${{ inputs.ecr_repo_name }} .
         docker tag ${{ inputs.ecr_repo_name }}:latest ${{ inputs.ecr_url }}/${{ inputs.ecr_repo_name }}:latest
 
     - name: Docker push
