@@ -98,16 +98,6 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 		return resp, err
 	}
 
-	/*
-		respBody, err := json.Marshal(LambdaResponse{
-			Timestamp: os.Getenv("TIMESTAMP"),
-		})
-		if err != nil {
-			logger.Error("failed to marshal response body", zap.Error(err))
-			return resp, err
-		}
-	*/
-
 	return LambdaResponse{
 		Timestamp: os.Getenv("TIMESTAMP"),
 	}, nil
