@@ -15,7 +15,9 @@ import (
 	"github.com/skip-mev/connect-mmu/signing/local"
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 
+	ddlambda "github.com/DataDog/datadog-lambda-go"
 	"github.com/aws/aws-lambda-go/lambda"
+
 	"go.uber.org/zap"
 )
 
@@ -106,7 +108,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 func main() {
 	if aws.IsLambda() {
 		// Running in AWS Lambda
-		lambda.Start(lambdaHandler)
+		lambda.Start(ddlambda.WrapFunction(lambdaHandler, nil))
 	} else {
 		// Running locally
 		r := createSigningRegistry()
