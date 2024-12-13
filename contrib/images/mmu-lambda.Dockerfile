@@ -25,7 +25,7 @@ COPY --from=builder /usr/local/bin/connect /usr/local/bin/
 # Copy config files
 COPY --from=builder /src/connect-mmu/local/* /usr/local/bin/local/
 # Copy DataDog Lambda extension
-COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /opt/
+COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /usr/local/bin/
 # symlink slinky -> connect-1.0.12
 RUN ln -s /usr/local/bin/slinky /usr/local/bin/connect-1.0.12
 
