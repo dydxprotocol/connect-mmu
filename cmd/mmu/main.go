@@ -88,6 +88,13 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	cmcApiKey, err := aws.GetSecret(ctx, "market-map-updater-cmc-api-key")
 	os.Setenv("CMC_API_KEY", cmcApiKey)
 
+	ddApiKeySecretArn := os.Getenv("DD_API_KEY_SECRET_ARN")
+	ddApiKey, err := aws.GetSecret(context.TODO(), ddApiKeySecretArn)
+	if err != nil {
+		return resp, err
+	}
+	os.Setenv("DD_API_KEY", ddApiKey)
+
 	args, err := getArgsFromLambdaEvent(ctx, event, cmcApiKey)
 	if err != nil {
 		logger.Error("failed to get args from Lambda event", zap.Error(err))
