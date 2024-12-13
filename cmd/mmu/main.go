@@ -81,7 +81,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcApiKe
 func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaResponse, err error) {
 	logger := logging.Logger(ctx)
 	logger.Error("DATADOG LOGGER")
-	defer logger.Sync()
+	// defer logger.Sync()
 
 	// Fetch CMC API Key from Secrets Manager and set it as env var
 	// so it can be used by the Indexer HTTP client
@@ -89,11 +89,17 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	os.Setenv("CMC_API_KEY", cmcApiKey)
 
 	ddApiKeySecretArn := os.Getenv("DD_API_KEY_SECRET_ARN")
-	ddApiKey, err := aws.GetSecret(context.TODO(), ddApiKeySecretArn)
+	ddApiKey, err := aws.GetSecret(ctx, ddApiKeySecretArn)
 	if err != nil {
 		return resp, err
 	}
 	os.Setenv("DD_API_KEY", ddApiKey)
+
+	// Submit a custom metric
+	ddlambda.Metric(
+		"market-map-updater.test-metric", // Metric name
+		12.45,                            // Metric value
+	)
 
 	args, err := getArgsFromLambdaEvent(ctx, event, cmcApiKey)
 	if err != nil {
