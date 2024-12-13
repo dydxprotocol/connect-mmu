@@ -15,6 +15,7 @@ require (
 	cosmossdk.io/api v0.7.6
 	cosmossdk.io/math v1.4.0
 	cosmossdk.io/x/tx v0.13.5
+	github.com/DataDog/datadog-lambda-go v1.20.0
 	github.com/avast/retry-go/v4 v4.6.0
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go-v2 v1.32.6
@@ -70,7 +71,6 @@ require (
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.50.2 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/datadog-go/v5 v5.5.0 // indirect
-	github.com/DataDog/datadog-lambda-go v1.20.0 // indirect
 	github.com/DataDog/go-libddwaf/v3 v3.2.1 // indirect
 	github.com/DataDog/go-sqllexer v0.0.10 // indirect
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
