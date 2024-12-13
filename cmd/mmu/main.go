@@ -84,7 +84,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	cmcAPIKey, err := aws.GetSecret(ctx, "market-map-updater-cmc-api-key")
 	if err != nil {
 		logger.Error("failed to get CMC API key from Secrets Manager", zap.Error(err))
-		return err
+		return resp, err
 	}
 	os.Setenv("CMC_API_KEY", cmcAPIKey)
 
