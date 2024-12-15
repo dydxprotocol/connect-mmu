@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -81,7 +82,8 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaResponse, err error) {
 	logger := logging.Logger(ctx)
 	logger.Error("DATADOG LOGGER")
-	fmt.Println("DATADOG FMT PRINTLN LOGGER")
+	fmt.Println("DATADOG FMT PRINTLN LOGGERRR")
+	log.Printf("DATADOG LOG PRINTF LOGGERRR")
 	// defer logger.Sync()
 
 	// Fetch CMC API Key from Secrets Manager and set it as env var
