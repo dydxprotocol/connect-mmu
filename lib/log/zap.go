@@ -22,7 +22,8 @@ func NewDefaultZapConfig() ZapConfig {
 }
 
 func NewZapLogger(config ZapConfig) *zap.Logger {
-	encoderCfg := zap.NewProductionEncoderConfig()
+	//encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg := zap.NewDevelopmentEncoderConfig()
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 
 	// set up the primary output to always include os.Stderr.

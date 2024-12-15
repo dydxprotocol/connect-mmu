@@ -20,6 +20,7 @@ func RootCmd(registry *signing.Registry) *cobra.Command {
 		},
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			logging.ConfigureLogger(logLevel)
+			// TODO look at this
 			cmd.SetContext(logging.LoggerContext(cmd.Context()))
 		},
 	}
