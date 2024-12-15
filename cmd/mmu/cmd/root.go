@@ -6,6 +6,7 @@ import (
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/basic"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/composite"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/utils"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/signing"
 )
 
@@ -18,8 +19,8 @@ func RootCmd(registry *signing.Registry) *cobra.Command {
 			return cmd.Help()
 		},
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
-			//logging.ConfigureLogger(logLevel)
-			//cmd.SetContext(logging.LoggerContext(cmd.Context()))
+			logging.ConfigureLogger(logLevel)
+			cmd.SetContext(logging.LoggerContext(cmd.Context()))
 		},
 	}
 
