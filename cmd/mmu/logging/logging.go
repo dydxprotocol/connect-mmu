@@ -35,6 +35,8 @@ func ConfigureLogger(level string) {
 }
 
 func Logger(ctx context.Context) *zap.Logger {
+	// TODO try .sugared()?
+	// And log to see if ok in condition below?
 	logger, ok := ctx.Value(loggerKey{}).(*zap.Logger)
 	if !ok {
 		return zap.L()
@@ -43,5 +45,7 @@ func Logger(ctx context.Context) *zap.Logger {
 }
 
 func LoggerContext(ctx context.Context) context.Context {
+	// Why is this returning zap.L()? Are we actually using the configured logger?
+	// Probably because we call zap.ReplaceGlobals above
 	return context.WithValue(ctx, loggerKey{}, zap.L())
 }
