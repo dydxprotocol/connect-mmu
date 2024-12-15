@@ -16,22 +16,22 @@ COPY scripts/install_all_connects.sh /tmp/
 RUN chmod +x /tmp/install_all_connects.sh && /tmp/install_all_connects.sh
 
 FROM public.ecr.aws/lambda/provided:al2
-COPY --from=builder /src/connect-mmu/build/mmu .
-COPY --from=builder /usr/local/bin/slinky .
-COPY --from=builder /go/bin/sentry .
+COPY --from=builder /src/connect-mmu/build/mmu /usr/local/bin/
+COPY --from=builder /usr/local/bin/slinky /usr/local/bin/
+COPY --from=builder /go/bin/sentry /usr/local/bin/
 # Copy all connect binaries
-COPY --from=builder /usr/local/bin/connect-* .
-COPY --from=builder /usr/local/bin/connect .
+COPY --from=builder /usr/local/bin/connect-* /usr/local/bin/
+COPY --from=builder /usr/local/bin/connect /usr/local/bin/
 # Copy config files
-COPY --from=builder /src/connect-mmu/local/* ./local/
+COPY --from=builder /src/connect-mmu/local/* /usr/local/bin/local/
 # Copy DataDog Lambda extension
-COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. ./opt/
+COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /usr/local/bin/opt/
 # symlink slinky -> connect-1.0.12
-RUN ln -s /usr/local/bin/slinky ./connect-1.0.12
+RUN ln -s /usr/local/bin/slinky /usr/local/bin/connect-1.0.12
 
 EXPOSE 8002
 
-WORKDIR .
+WORKDIR /usr/local/bin/
 
 RUN yum update && yum install ca-certificates -y
 
