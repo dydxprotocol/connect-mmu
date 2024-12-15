@@ -33,6 +33,6 @@ EXPOSE 8002
 
 WORKDIR /usr/local/bin/
 
-RUN apt-get update && apt-get install ca-certificates -y
+RUN yum update && yum install ca-certificates -y
 
 ENTRYPOINT ["mmu"]
