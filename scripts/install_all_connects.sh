@@ -6,7 +6,7 @@ CONNECT_RELEASES_URL="https://api.github.com/repos/skip-mev/connect/releases?per
 
 # Determine the system architecture
 ARCH=arm64
-OS=darwin
+OS=linux
 
 # Fetch all releases information
 echo "Fetching releases information..."

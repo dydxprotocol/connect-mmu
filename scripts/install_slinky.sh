@@ -6,7 +6,7 @@ SLINKY_RELEASES="https://api.github.com/repos/skip-mev/connect/releases/17483299
 
 # Determine the system architecture
 ARCH=arm64
-OS=darwin
+OS=linux
 
 echo "Fetching release information..."
 RELEASE_INFO=$(curl -Ls ${SLINKY_RELEASES})
