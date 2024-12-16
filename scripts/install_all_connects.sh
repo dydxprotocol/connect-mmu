@@ -5,8 +5,8 @@ set -e
 CONNECT_RELEASES_URL="https://api.github.com/repos/skip-mev/connect/releases?per_page=100"
 
 # Determine the system architecture
-ARCH=$(uname -m)
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+OS=$1
+ARCH=$2
 
 # Fetch all releases information
 echo "Fetching releases information..."
