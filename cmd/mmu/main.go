@@ -69,7 +69,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 
 	switch command := lambdaEvent.Command; command {
 	case "validate":
-		args = append(args, "--market-map", "generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--enable-all")
+		args = append(args, "--market-map", timestamp+"-generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--start-delay", "10s", "--duration", "1m", "--enable-all")
 	case "upserts":
 		args = append(args, "--warn-on-invalid-market-map")
 	}
