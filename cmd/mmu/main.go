@@ -11,6 +11,7 @@ import (
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/lib/aws"
+	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/signing"
 	"github.com/skip-mev/connect-mmu/signing/local"
 	"github.com/skip-mev/connect-mmu/signing/simulate"
@@ -70,7 +71,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 	case "upserts":
 		args = append(args, "--warn-on-invalid-market-map")
 	case "diff":
-		args = append(args, "--market-map", "generated-market-map.json", "--network", "dydx-mainnet", "--slinky-api")
+		args = append(args, "--market-map", "generated-market-map.json", "--network", "dydx-mainnet", "--output", "diff.json", "--slinky-api")
 	}
 
 	logger.Info("received Lambda command", zap.Strings("args", args))
@@ -105,6 +106,14 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 		if args[0] != "validate" {
 			return resp, err
 		}
+	}
+
+	if args[0] == "diff" {
+		diff, err := file.ReadBytesFromFile("diff.json")
+		if err != nil {
+			logger.Error("failed to read diff.json from S3", zap.Error(err))
+		}
+		logger.Info("market map diff", zap.Bool("report", true), zap.String("diff", string(diff[:])))
 	}
 
 	return LambdaResponse{
