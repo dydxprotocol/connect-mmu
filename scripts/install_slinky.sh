@@ -7,7 +7,6 @@ SLINKY_RELEASES="https://api.github.com/repos/skip-mev/connect/releases/17483299
 # Determine the system OS + architecture, or get target OS + arch from params
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-echo "$#"
 if [ "$#" -eq 2 ]; then
     OS=$1
     ARCH=$2
