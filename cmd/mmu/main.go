@@ -70,7 +70,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 	case "upserts":
 		args = append(args, "--warn-on-invalid-market-map")
 	case "diff":
-		args = append(args, "--market-map", "generated-market-map.json", "--network", "dydx-mainnet")
+		args = append(args, "--market-map", "generated-market-map.json", "--network", "dydx-mainnet", "--slinky-api")
 	}
 
 	logger.Info("received Lambda command", zap.Strings("args", args))
