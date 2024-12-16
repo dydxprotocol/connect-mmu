@@ -5,7 +5,7 @@ set -e
 CONNECT_RELEASES_URL="https://api.github.com/repos/skip-mev/connect/releases?per_page=100"
 
 # Determine the system architecture
-ARCH=arm64
+ARCH=x86_64
 OS=linux
 
 # Fetch all releases information
