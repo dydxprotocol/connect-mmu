@@ -66,9 +66,11 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 
 	switch command := lambdaEvent.Command; command {
 	case "validate":
-		args = append(args, "--market-map", "generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--enable-all")
+		args = append(args, "--market-map", "generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--start-delay", "10s", "--duration", "1m", "--enable-all")
 	case "upserts":
 		args = append(args, "--warn-on-invalid-market-map")
+	case "diff":
+		args = append(args, "--market-map", "generated-market-map.json", "--network", "dydx-mainnet")
 	}
 
 	logger.Info("received Lambda command", zap.Strings("args", args))
@@ -97,7 +99,9 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	r := createSigningRegistry()
 	rootCmd := cmd.RootCmd(r)
 	rootCmd.SetArgs(args)
-	if err := rootCmd.Execute(); err != nil {
+	err = rootCmd.Execute()
+	// Return errors for all commands other than "validate"
+	if err != nil && args[0] != "validate" {
 		logger.Error("failed to execute command", zap.Strings("command", args), zap.Error(err))
 		return resp, err
 	}
