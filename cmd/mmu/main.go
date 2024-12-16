@@ -24,6 +24,10 @@ type LambdaEvent struct {
 	Timestamp string `json:"timestamp,omitempty"`
 }
 
+type LambdaResponse struct {
+	Timestamp string `json:"timestamp"`
+}
+
 func createSigningRegistry() *signing.Registry {
 	r := signing.NewRegistry()
 	err := errors.Join(
@@ -36,7 +40,7 @@ func createSigningRegistry() *signing.Registry {
 	return r
 }
 
-func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcApiKey string) ([]string, error) {
+func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKey string) ([]string, error) {
 	logger := logging.Logger(ctx)
 
 	var lambdaEvent LambdaEvent
@@ -62,7 +66,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcApiKe
 
 	switch command := lambdaEvent.Command; command {
 	case "validate":
-		args = append(args, "--market-map", "generated-market-map.json", "--cmc-api-key", cmcApiKey, "--enable-all")
+		args = append(args, "--market-map", "generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--enable-all")
 	case "upserts":
 		args = append(args, "--warn-on-invalid-market-map")
 	}
@@ -72,18 +76,22 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcApiKe
 	return args, nil
 }
 
-func lambdaHandler(ctx context.Context, event json.RawMessage) error {
+func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaResponse, err error) {
 	logger := logging.Logger(ctx)
 
 	// Fetch CMC API Key from Secrets Manager and set it as env var
 	// so it can be used by the Indexer HTTP client
-	cmcApiKey, err := aws.GetSecret(ctx, "market-map-updater-cmc-api-key")
-	os.Setenv("CMC_API_KEY", cmcApiKey)
+	cmcAPIKey, err := aws.GetSecret(ctx, "market-map-updater-cmc-api-key")
+	if err != nil {
+		logger.Error("failed to get CMC API key from Secrets Manager", zap.Error(err))
+		return resp, err
+	}
+	os.Setenv("CMC_API_KEY", cmcAPIKey)
 
-	args, err := getArgsFromLambdaEvent(ctx, event, cmcApiKey)
+	args, err := getArgsFromLambdaEvent(ctx, event, cmcAPIKey)
 	if err != nil {
 		logger.Error("failed to get args from Lambda event", zap.Error(err))
-		return err
+		return resp, err
 	}
 
 	r := createSigningRegistry()
@@ -91,10 +99,12 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) error {
 	rootCmd.SetArgs(args)
 	if err := rootCmd.Execute(); err != nil {
 		logger.Error("failed to execute command", zap.Strings("command", args), zap.Error(err))
-		return err
+		return resp, err
 	}
 
-	return nil
+	return LambdaResponse{
+		Timestamp: os.Getenv("TIMESTAMP"),
+	}, nil
 }
 
 func main() {
