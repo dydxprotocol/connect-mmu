@@ -5,7 +5,7 @@ set -e
 SLINKY_RELEASES="https://api.github.com/repos/skip-mev/connect/releases/174832995/assets"
 
 # Determine the system architecture
-ARCH=$(uname -m)
+ARCH=arm64
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
 echo "Fetching release information..."
