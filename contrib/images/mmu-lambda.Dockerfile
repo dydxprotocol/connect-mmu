@@ -4,7 +4,7 @@ WORKDIR /src/connect-mmu
 RUN apt-get update && apt-get install -y curl && apt-get install jq -y
 COPY . .
 
-RUN env GOARCH=amd64 go build -tags lambda.norpc -o build/ ./...
+RUN env GOARCH=amd64 go build -o build/ ./...
 RUN make install-sentry
 
 # install slinky v1.0.12
