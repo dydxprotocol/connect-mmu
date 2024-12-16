@@ -35,8 +35,7 @@ func NewZapLogger(config ZapConfig) *zap.Logger {
 	// set up the primary output to always include os.Stderr
 	stdCore := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderCfg),
-		// Try stdout instead of stderr?
-		zapcore.Lock(os.Stdout),
+		zapcore.Lock(os.Stderr),
 		logLevel,
 	)
 
