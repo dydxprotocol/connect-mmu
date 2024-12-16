@@ -99,11 +99,12 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	r := createSigningRegistry()
 	rootCmd := cmd.RootCmd(r)
 	rootCmd.SetArgs(args)
-	err = rootCmd.Execute()
-	// Return errors for all commands other than "validate"
-	if err != nil && args[0] != "validate" {
-		logger.Error("failed to execute command", zap.Strings("command", args), zap.Error(err))
-		return resp, err
+	if err := rootCmd.Execute(); err != nil {
+		logger.Error("command returned errors", zap.Strings("command", args), zap.Error(err))
+		// Return errors for all commands other than "validate"
+		if args[0] != "validate" {
+			return resp, err
+		}
 	}
 
 	return LambdaResponse{
