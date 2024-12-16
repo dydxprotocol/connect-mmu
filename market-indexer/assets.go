@@ -2,13 +2,12 @@ package indexer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 
+	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
 	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/utils"
@@ -41,6 +40,10 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, archiveIntermediate
 	// Get CMC fiat map data
 	cmcFiatData, err := idx.cmcIndexer.FiatIDMap(ctx)
 	if err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
+	if err := writeIntermediateFile(cmcFiatData, "cmc_fiat_data.json", archiveIntermediateSteps); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
@@ -115,17 +118,8 @@ func writeIntermediateFile(data interface{}, filename string, archiveIntermediat
 		return nil
 	}
 
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal data for %s: %w", filename, err)
-	}
-
-	err = os.WriteFile(fmt.Sprintf("tmp/%s", filename), jsonData, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write file %s: %w", filename, err)
-	}
-
-	return nil
+	filepath := fmt.Sprintf("tmp/%s", filename)
+	return file.CreateAndWriteJSONToFile(filepath, data)
 }
 
 // FiatAssetInfoFromData creates a fiat asset from coinmarketcap data.
