@@ -15,7 +15,7 @@ RUN chmod +x /tmp/install_slinky.sh && /tmp/install_slinky.sh
 COPY scripts/install_all_connects.sh /tmp/
 RUN chmod +x /tmp/install_all_connects.sh && /tmp/install_all_connects.sh
 
-FROM public.ecr.aws/lambda/provided:al2
+FROM ubuntu:rolling
 COPY --from=builder /src/connect-mmu/build/mmu /usr/local/bin/
 COPY --from=builder /usr/local/bin/slinky /usr/local/bin/
 COPY --from=builder /go/bin/sentry /usr/local/bin/
@@ -33,6 +33,6 @@ EXPOSE 8002
 
 WORKDIR /usr/local/bin/
 
-RUN yum update && yum install ca-certificates -y
+RUN apt-get update && apt-get install ca-certificates -y
 
 ENTRYPOINT ["mmu"]
