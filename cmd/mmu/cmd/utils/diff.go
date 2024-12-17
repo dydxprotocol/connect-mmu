@@ -141,7 +141,7 @@ func DiffCmd() *cobra.Command {
 				fmt.Println(newMarketsString)
 
 				logger := logging.Logger(cmd.Context())
-				logger.Info("new markets", zap.Strings("new_markets", newMarketsTickers))
+				logger.Info("new markets", zap.Bool("slack_report", true), zap.Strings("markets", newMarketsTickers))
 			} else {
 				fmt.Printf("\n\n=== NO NEW MARKETS ADDED ===\n\n")
 			}
