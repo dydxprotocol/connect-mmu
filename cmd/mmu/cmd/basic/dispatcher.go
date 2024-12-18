@@ -52,6 +52,7 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to convert upserts to messages: %w", err)
 			}
+			file.WriteJSONToFile("msgs.json", msgs)
 
 			logger.Info("creating signer", zap.String("signer_type", cfg.Dispatch.SigningConfig.Type))
 
@@ -87,7 +88,8 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 				return nil
 			}
 
-			return dp.SubmitTransactions(cmd.Context(), txs)
+			return nil
+			// return dp.SubmitTransactions(cmd.Context(), txs)
 		},
 	}
 
