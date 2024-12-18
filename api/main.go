@@ -11,8 +11,9 @@ import (
 
 var FILENAME = "latest-mmu-tx.json"
 
-func lambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	txJson, err := aws.ReadFromS3("latest-mmu-tx.json")
+//nolint:unused
+func lambdaHandler(_ context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	txJSON, err := aws.ReadFromS3("latest-mmu-tx.json")
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
@@ -22,10 +23,11 @@ func lambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       string(txJson),
+		Body:       string(txJSON),
 	}, nil
 }
 
+//nolint:unused
 func main() {
 	lambda.Start(lambdaHandler)
 }
