@@ -3,6 +3,7 @@ package local
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -119,6 +120,17 @@ func (s *SigningAgent) Sign(ctx context.Context, txb client.TxBuilder) (types.Tx
 		return nil, fmt.Errorf("unexpected tx type %T", txb.GetTx())
 	}
 	txData := signingTx.GetSigningTxData()
+
+	slog.Error("SLOG")
+	slog.Error(txData.AuthInfo.String())
+	slog.Error(txData.AuthInfo.GetFee().GetGranter())
+	slog.Error(txData.AuthInfo.GetFee().GetPayer())
+
+	fmt.Println("SLOG")
+	fmt.Println(txData.AuthInfo.String())
+	fmt.Println(txData.AuthInfo.GetFee().GetGranter())
+	fmt.Println(txData.AuthInfo.GetFee().GetPayer())
+	fmt.Println(txData.AuthInfo)
 
 	// sign the tx
 	protoOpts := proto.MarshalOptions{

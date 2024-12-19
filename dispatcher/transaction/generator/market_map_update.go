@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	signingtypes "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/signing"
 )
@@ -106,6 +107,7 @@ func (s *SigningTransactionGenerator) GenerateTransactions(
 	s.logger.Info("derived signing address", zap.String("address", address))
 
 	txs := make([]cmttypes.Tx, 0)
+	txx := make([]signingtypes.Tx, 0)
 	simSequence := baseAcc.GetSequence()
 
 	for _, msg := range msgs {
@@ -143,6 +145,8 @@ func (s *SigningTransactionGenerator) GenerateTransactions(
 			return nil, err
 		}
 
+		txx = append(txx, txb.GetTx())
+
 		tx, err := s.signingAgent.Sign(ctx, txb)
 		if err != nil {
 			s.logger.Error("failed to sign tx", zap.Error(err))
@@ -157,6 +161,31 @@ func (s *SigningTransactionGenerator) GenerateTransactions(
 
 		txs = append(txs, tx)
 	}
+
+	/*
+		var txStrings []string
+		for _, tx := range txx {
+			tx.
+			bs, err := hex.DecodeString(fmt.Sprintf("%X", []byte(tx)))
+			if err != nil {
+				panic(err)
+			}
+			txStr := string(bs)
+			txStrings = append(txStrings, txStr)
+		}
+		err = file.WriteJSONToFile("transactions-internal.json", txStrings)
+		if err != nil {
+			return txs, err
+		}
+	*/
+
+	/*
+		var txStrings []string
+		for _, tx := range txs {
+			l, err := s.sdkTxConfig.TxDecoder()(tx)
+			s.logger.Info(l.GetMsgs)
+		}
+	*/
 
 	s.logger.Info("generated txs", zap.Int("num tx", len(txs)))
 	return txs, nil
