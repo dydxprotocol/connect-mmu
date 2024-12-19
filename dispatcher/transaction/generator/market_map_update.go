@@ -145,6 +145,16 @@ func (s *SigningTransactionGenerator) GenerateTransactions(
 			return nil, err
 		}
 
+		txbb := txb.GetTx()
+
+		s.logger.Error("TXBB",
+			zap.String("fee", txbb.GetFee().String()),
+			zap.Strings("fee-Denoms", txbb.GetFee().Denoms()),
+			zap.String("fee-Granter", string(txbb.FeeGranter())),
+			zap.String("fee-Payer", string(txbb.FeePayer())),
+			zap.Uint64("gas", txbb.GetGas()),
+		)
+
 		txx = append(txx, txb.GetTx())
 
 		tx, err := s.signingAgent.Sign(ctx, txb)
