@@ -79,7 +79,12 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 				return err
 			}
 
-			err = file.WriteJSONToFile("transactions.json", txs)
+			var txStrings []string
+			for _, tx := range txs {
+				txStrings = append(txStrings, tx.String())
+			}
+
+			err = file.WriteJSONToFile("transactions.json", txStrings)
 			if err != nil {
 				return err
 			}
