@@ -82,7 +82,7 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 
 			var txStrings []string
 			for _, tx := range txs {
-				bs, err := hex.DecodeString(fmt.Sprintf("%X", []byte(tx)))
+				bs, err := hex.DecodeString(hex.EncodeToString([]byte(tx)))
 				if err != nil {
 					panic(err)
 				}
