@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -81,7 +82,12 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 
 			var txStrings []string
 			for _, tx := range txs {
-				txStrings = append(txStrings, tx.String())
+				bs, err := hex.DecodeString(tx.String())
+				if err != nil {
+					panic(err)
+				}
+				txStr := string(bs)
+				txStrings = append(txStrings, txStr)
 			}
 
 			err = file.WriteJSONToFile("transactions.json", txStrings)
