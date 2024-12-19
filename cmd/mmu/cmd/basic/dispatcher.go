@@ -82,6 +82,20 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 
 			var txStrings []string
 			for _, tx := range txs {
+				bs, err := hex.DecodeString(fmt.Sprintf("%X", []byte(tx)))
+				if err != nil {
+					panic(err)
+				}
+				txStr := string(bs)
+				txStrings = append(txStrings, txStr)
+			}
+			err = file.WriteJSONToFile("transactions-0.json", txStrings)
+			if err != nil {
+				return err
+			}
+
+			txStrings = make([]string, 0)
+			for _, tx := range txs {
 				bs, err := hex.DecodeString(hex.EncodeToString([]byte(tx)))
 				if err != nil {
 					panic(err)
@@ -89,8 +103,28 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 				txStr := string(bs)
 				txStrings = append(txStrings, txStr)
 			}
+			err = file.WriteJSONToFile("transactions-1.json", txStrings)
+			if err != nil {
+				return err
+			}
 
-			err = file.WriteJSONToFile("transactions.json", txStrings)
+			txStrings = make([]string, 0)
+			for _, tx := range txs {
+				txStr := string(tx)
+				txStrings = append(txStrings, txStr)
+			}
+			err = file.WriteJSONToFile("transactions-2.json", txStrings)
+			if err != nil {
+				return err
+			}
+
+			txStrings = make([]string, 0)
+			for _, tx := range txs {
+				dst := make([]byte, hex.DecodedLen(len(tx)))
+				hex.Decode(dst, tx)
+				txStrings = append(txStrings, string(dst))
+			}
+			err = file.WriteJSONToFile("transactions-3.json", txStrings)
 			if err != nil {
 				return err
 			}
