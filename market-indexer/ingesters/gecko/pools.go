@@ -123,8 +123,8 @@ func (c *geckoClientImpl) TopPools(ctx context.Context, network, dex string, pag
 		return nil, fmt.Errorf("page must be between 1 and %d", maxPages)
 	}
 
-	sort_option := "h24_volume_usd_desc"
-	endpoint := fmt.Sprintf("%s/networks/%s/dexes/%s/pools?page=%d&sort=%s", c.baseEndpoint, network, dex, page, sort_option)
+	sortOption := "h24_volume_usd_desc"
+	endpoint := fmt.Sprintf("%s/networks/%s/dexes/%s/pools?page=%d&sort=%s", c.baseEndpoint, network, dex, page, sortOption)
 	c.logger.Debug("getting top pools", zap.String("network", network), zap.String("dex", dex), zap.Int("page", page))
 	resp, err := c.GetWithContext(ctx, endpoint)
 	if err != nil {
