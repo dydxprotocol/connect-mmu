@@ -21,19 +21,19 @@ const (
 
 // SetupAssets setup up the Indexer database with AssetInfo for all assets it can scrape.
 // These assets are later referenced when ProviderMarkets are indexed as they consist of a pair of two assets.
-func (idx *Indexer) SetupAssets(ctx context.Context, archiveIntermediateSteps bool) (coinmarketcap.ProviderMarketPairs, error) {
+func (idx *Indexer) SetupAssets(ctx context.Context) (coinmarketcap.ProviderMarketPairs, error) {
 	// index everything since we have no assets in the db
-	return idx.IndexKnownAssetInfo(ctx, archiveIntermediateSteps)
+	return idx.IndexKnownAssetInfo(ctx)
 }
 
-func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, archiveIntermediateSteps bool) (coinmarketcap.ProviderMarketPairs, error) {
+func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.ProviderMarketPairs, error) {
 	// Get CMC crypto map data
 	cmcCryptoData, err := idx.cmcIndexer.CryptoIDMap(ctx)
 	if err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
-	if err := writeIntermediateFile(cmcCryptoData, "cmc_crypto_data.json", archiveIntermediateSteps); err != nil {
+	if err := idx.archiveIntermediateFile(cmcCryptoData, "cmc_crypto_data.json"); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
@@ -43,7 +43,7 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, archiveIntermediate
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
-	if err := writeIntermediateFile(cmcFiatData, "cmc_fiat_data.json", archiveIntermediateSteps); err != nil {
+	if err := idx.archiveIntermediateFile(cmcFiatData, "cmc_fiat_data.json"); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
@@ -105,16 +105,16 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context, archiveIntermediate
 
 	idx.logger.Info("committing aggregate info tx to db...")
 
-	if err := writeIntermediateFile(cmcMarketPairs, "cmc_market_pairs.json", archiveIntermediateSteps); err != nil {
+	if err := idx.archiveIntermediateFile(cmcMarketPairs, "cmc_market_pairs.json"); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
 	return cmcMarketPairs, nil
 }
 
-// writeIntermediateFile writes data to a JSON file in the tmp directory if writeIntermediate is true
-func writeIntermediateFile(data interface{}, filename string, archiveIntermediateSteps bool) error {
-	if !archiveIntermediateSteps {
+// achiveIntermediateFile writes data to a JSON file in the tmp directory if the --archive-intermediate-steps flag is true
+func (idx *Indexer) archiveIntermediateFile(data interface{}, filename string) error {
+	if !idx.archiveIntermediateSteps {
 		return nil
 	}
 

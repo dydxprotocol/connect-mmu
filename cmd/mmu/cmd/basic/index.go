@@ -37,12 +37,12 @@ func IndexCmd() *cobra.Command {
 
 			providerStore := provider.NewMemoryStore()
 
-			idx, err := indexer.NewIndexer(*cfg.Index, logger, providerStore)
+			idx, err := indexer.NewIndexer(*cfg.Index, logger, providerStore, flags.archiveIntermediateSteps)
 			if err != nil {
 				return err
 			}
 
-			if err := idx.Index(ctx, flags.archiveIntermediateSteps); err != nil {
+			if err := idx.Index(ctx); err != nil {
 				return err
 			}
 
@@ -71,5 +71,5 @@ type indexCmdFlags struct {
 func indexCmdConfigureFlags(cmd *cobra.Command, flags *indexCmdFlags) {
 	cmd.Flags().StringVar(&flags.configPath, ConfigPathFlag, ConfigPathDefault, ConfigPathDescription)
 	cmd.Flags().StringVar(&flags.providerDataOutPath, ProviderDataOutPathFlag, ProviderDataOutPathDefault, ProviderDataOutPathDescription)
-	cmd.Flags().BoolVar(&flags.archiveIntermediateSteps, ArchiveIntemediateStepsFlag, ArchiveIntemediateStepsDefault, ArchiveIntemediateStepsDescription)
+	cmd.Flags().BoolVar(&flags.archiveIntermediateSteps, ArchiveIntermediateStepsFlag, ArchiveIntermediateStepsDefault, ArchiveIntermediateStepsDescription)
 }
