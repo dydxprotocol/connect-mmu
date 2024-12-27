@@ -100,6 +100,10 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 				)
 				continue
 			}
+			usdVol, err := pool.UsdVolume()
+			if err != nil {
+				return nil, fmt.Errorf("gecko client: failed to get USD volume for pool %q, quote %q: %w", pool.ID, quoteData.Attributes.Symbol, err)
+			}
 
 			// uniswap sets the token order based on the token addresses.
 			// that means, pools may appear as 0xFOO/0xBAR, however, since sorting these strings would place
@@ -124,6 +128,10 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 			if err != nil {
 				return nil, err
 			}
+			liquidity, err := pool.Liquidity()
+			if err != nil {
+				return nil, err
+			}
 
 			targetBase, err := pool.Base()
 			if err != nil {
@@ -145,13 +153,16 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 
 			market := provider.CreateProviderMarket{
 				Create: provider.CreateProviderMarketParams{
-					TargetBase:     targetBase,
-					TargetQuote:    targetQuote,
-					OffChainTicker: offChainTicker,
-					ProviderName:   geckoDexToConnectDex(pool.Venue()),
-					QuoteVolume:    quoteVolF64,
-					MetadataJSON:   metaDataBz,
-					ReferencePrice: refPrice,
+					TargetBase:       targetBase,
+					TargetQuote:      targetQuote,
+					OffChainTicker:   offChainTicker,
+					ProviderName:     geckoDexToConnectDex(pool.Venue()),
+					QuoteVolume:      quoteVolF64,
+					UsdVolume:        usdVol,
+					MetadataJSON:     metaDataBz,
+					ReferencePrice:   refPrice,
+					NegativeDepthTwo: liquidity / 2,
+					PositiveDepthTwo: liquidity / 2,
 				},
 				BaseAddress:  pool.BaseAddress(),
 				QuoteAddress: pool.QuoteAddress(),

@@ -231,6 +231,7 @@ type ProviderMarketData struct {
 	BaseAsset      string                  `json:"base_asset"`
 	QuoteAsset     string                  `json:"quote_asset"`
 	QuoteVolume    float64                 `json:"quote_volume"`
+	UsdVolume      float64                 `json:"usd_volume"`
 	CMCInfo        types.CoinMarketCapInfo `json:"coinmarketcap_info"`
 	MetadataJSON   []byte                  `json:"metadata_json"`
 	ReferencePrice float64                 `json:"reference_price"`
@@ -264,8 +265,8 @@ func (i *Indexer) GetProviderMarketsPairs(ctx context.Context, cfg config.Market
 
 			key := ProviderMarketPairKey(
 				names.GetProviderName(name),
-				pair.MarketPairBase.CurrencySymbol,
-				pair.MarketPairQuote.CurrencySymbol,
+				pair.MarketPairBase.ExchangeSymbol,
+				pair.MarketPairQuote.ExchangeSymbol,
 			)
 
 			idInfo := types.CoinMarketCapInfo{
@@ -278,15 +279,23 @@ func (i *Indexer) GetProviderMarketsPairs(ctx context.Context, cfg config.Market
 				PositiveDepthTwo: pair.Quote.USD.DepthPositiveTwo,
 			}
 
-			pmps.Data[key] = ProviderMarketData{
+			newMarketData := ProviderMarketData{
 				BaseAsset:      pair.MarketPairBase.CurrencySymbol,
 				QuoteAsset:     pair.MarketPairQuote.CurrencySymbol,
 				QuoteVolume:    pair.Quote.ExchangeReported.Volume24HQuote,
+				UsdVolume:      pair.Quote.USD.Volume24H,
 				CMCInfo:        idInfo,
 				MetadataJSON:   nil,
 				ReferencePrice: pair.Quote.ExchangeReported.Price,
 				LiquidityInfo:  liquidityInfo,
 			}
+
+			if existing, exists := pmps.Data[key]; exists {
+				i.logger.Error("key already exists in pmps.Data", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
+				continue
+			}
+
+			pmps.Data[key] = newMarketData
 		}
 	}
 

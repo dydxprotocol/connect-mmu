@@ -3,10 +3,12 @@ package indexer
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 
+	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
 	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/utils"
@@ -32,9 +34,17 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
+	if err := idx.archiveIntermediateFile(cmcCryptoData, "cmc_crypto_data.json"); err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
 	// Get CMC fiat map data
 	cmcFiatData, err := idx.cmcIndexer.FiatIDMap(ctx)
 	if err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
+	if err := idx.archiveIntermediateFile(cmcFiatData, "cmc_fiat_data.json"); err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
@@ -96,7 +106,21 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 
 	idx.logger.Info("committing aggregate info tx to db...")
 
+	if err := idx.archiveIntermediateFile(cmcMarketPairs, "cmc_market_pairs.json"); err != nil {
+		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
 	return cmcMarketPairs, nil
+}
+
+// achiveIntermediateFile writes data to a JSON file in the tmp directory if the --archive-intermediate-steps flag is true
+func (idx *Indexer) archiveIntermediateFile(data interface{}, filename string) error {
+	if !idx.archiveIntermediateSteps {
+		return nil
+	}
+
+	filepath := fmt.Sprintf("tmp/%s", filename)
+	return file.CreateAndWriteJSONToFile(filepath, data)
 }
 
 // FiatAssetInfoFromData creates a fiat asset from coinmarketcap data.
@@ -141,9 +165,18 @@ func CryptoAssetInfoFromData(data coinmarketcap.WrappedCryptoIDMapData) (provide
 	var multiAddresses [][]string //nolint:prealloc
 
 	for _, contractAddress := range data.Info.ContractAddress {
+		assetSlug := contractAddress.Platform.Coin.Slug
+		contractAddressValue := contractAddress.ContractAddress
+
+		// CoinGecko lowercases their EVM addresses. EVM addresses are case-insensitive.
+		// Solana addresses are case-sensitive
+		if assetSlug == "base" || assetSlug == "ethereum" {
+			contractAddressValue = strings.ToLower(contractAddressValue)
+		}
+
 		assetAddress := utils.AssetAddress{
 			Venue:   contractAddress.Platform.Name,
-			Address: contractAddress.ContractAddress,
+			Address: contractAddressValue,
 		}
 
 		multiAddresses = append(multiAddresses, assetAddress.ToArray())
@@ -230,6 +263,10 @@ func addPairDataToCreateProviderMarket(
 	// use coinmarketcap values if there are no primary source values
 	if create.Create.QuoteVolume == 0 {
 		create.Create.QuoteVolume = data.QuoteVolume
+	}
+
+	if create.Create.UsdVolume == 0 {
+		create.Create.UsdVolume = data.UsdVolume
 	}
 
 	if create.Create.ReferencePrice == 0 {

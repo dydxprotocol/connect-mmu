@@ -76,6 +76,7 @@ func NewMemoryStoreFromFile(path string) (*MemoryStore, error) {
 			OffChainTicker:   providerMarket.OffChainTicker,
 			ProviderName:     providerMarket.ProviderName,
 			QuoteVolume:      providerMarket.QuoteVolume,
+			UsdVolume:        providerMarket.UsdVolume,
 			BaseAssetInfoID:  providerMarket.BaseAssetInfoID,
 			QuoteAssetInfoID: providerMarket.QuoteAssetInfoID,
 			MetadataJSON:     providerMarket.MetadataJSON,
@@ -106,6 +107,7 @@ func (w *MemoryStore) AddProviderMarket(_ context.Context, params CreateProvider
 		OffChainTicker:   params.OffChainTicker,
 		ProviderName:     params.ProviderName,
 		QuoteVolume:      params.QuoteVolume,
+		UsdVolume:        params.UsdVolume,
 		BaseAssetInfoID:  params.BaseAssetInfoID,
 		QuoteAssetInfoID: params.QuoteAssetInfoID,
 		MetadataJSON:     string(params.MetadataJSON),
@@ -129,13 +131,20 @@ func (w *MemoryStore) updateProviderMarket(params CreateProviderMarketParams, id
 	if !ok {
 		return ProviderMarket{}, errors.New("attempted to update provider market at invalid id")
 	}
+	// Don't overwrite if the quote volume is lower.
+	// e.g. we can have multiple provider markets for the same uniswap ticker because there can be multiple fee pools
+	if providerMarket.QuoteVolume > params.QuoteVolume {
+		return *providerMarket, nil
+	}
 
 	providerMarket.QuoteVolume = params.QuoteVolume
+	providerMarket.UsdVolume = params.UsdVolume
 	providerMarket.BaseAssetInfoID = params.BaseAssetInfoID
 	providerMarket.QuoteAssetInfoID = params.QuoteAssetInfoID
 	providerMarket.ReferencePrice = params.ReferencePrice
 	providerMarket.NegativeDepthTwo = params.NegativeDepthTwo
 	providerMarket.PositiveDepthTwo = params.PositiveDepthTwo
+	providerMarket.MetadataJSON = string(params.MetadataJSON)
 
 	return *providerMarket, nil
 }
@@ -205,6 +214,7 @@ func (w *MemoryStore) GetProviderMarkets(_ context.Context, params GetFilteredPr
 			OffChainTicker:   providerMarket.OffChainTicker,
 			ProviderName:     providerMarket.ProviderName,
 			QuoteVolume:      providerMarket.QuoteVolume,
+			UsdVolume:        providerMarket.UsdVolume,
 			MetadataJSON:     []byte(providerMarket.MetadataJSON),
 			ReferencePrice:   providerMarket.ReferencePrice,
 			NegativeDepthTwo: providerMarket.NegativeDepthTwo,
