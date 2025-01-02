@@ -70,13 +70,14 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 
 	network := lambdaEvent.Network
 	supportedNetworks := getSupportedNetworks()
-	if network != "" && !slices.Contains(supportedNetworks, network) {
+	// All non-"validate" commands require caller to specify a target network
+	if lambdaEvent.Command != "validate" && !slices.Contains(supportedNetworks, network) {
 		return nil, fmt.Errorf("invalid network: %s. must be 1 of: %v", network, supportedNetworks)
 	}
 
 	args := []string{lambdaEvent.Command}
 
-	switch command := lambdaEvent.Command; command {
+	switch lambdaEvent.Command {
 	case "index":
 		args = append(args, "--config", fmt.Sprintf("./local/config-dydx-%s.json", network))
 	case "generate":
