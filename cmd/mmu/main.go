@@ -114,7 +114,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKe
 	case Override:
 		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network)}
 	case Validate:
-		args = []string{"generate", "--market-map", "generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--start-delay", "10s", "--duration", "1m", "--enable-all"}
+		args = []string{"validate", "--market-map", "generated-market-map.json", "--cmc-api-key", cmcAPIKey, "--start-delay", "10s", "--duration", "10m", "--enable-all"}
 	case Upserts:
 		args = []string{"upserts", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--warn-on-invalid-market-map"}
 	case Diff:
@@ -130,7 +130,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	logger := logging.Logger(ctx)
 
 	// Fetch CMC API Key from Secrets Manager and set it as env var
-	// so it can be used by the Indexer HTTP client
+	// so it can be used by the Index + Validate jobs
 	cmcAPIKey, err := aws.GetSecret(ctx, "market-map-updater-cmc-api-key")
 	if err != nil {
 		logger.Error("failed to get CMC API key from Secrets Manager", zap.Error(err))
