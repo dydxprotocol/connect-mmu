@@ -69,7 +69,7 @@ func getSupportedNetworks() []string {
 	return []string{"testnet", "mainnet"}
 }
 
-func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage, cmcAPIKey string) ([]string, error) {
+func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]string, error) {
 	logger := logging.Logger(ctx)
 
 	var lambdaEvent LambdaEvent
@@ -138,7 +138,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	}
 	os.Setenv("CMC_API_KEY", cmcAPIKey)
 
-	args, err := getArgsFromLambdaEvent(ctx, event, cmcAPIKey)
+	args, err := getArgsFromLambdaEvent(ctx, event)
 	if err != nil {
 		logger.Error("failed to get args from Lambda event", zap.Error(err))
 		return resp, err
