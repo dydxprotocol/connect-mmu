@@ -105,16 +105,17 @@ func ResolveCMCConflictsForMarket() TransformFeed {
 		for ticker, feeds := range tickerToFeeds {
 			feeds.Sort()
 			bestCMCId := feeds[0].CMCInfo.BaseID
+			bestCMCRank := feeds[0].CMCInfo.BaseRank
 			for _, feed := range feeds {
-				if feed.CMCInfo.BaseID < bestCMCId {
-					panic(fmt.Sprintf("found feed with lower CMC ID than the best one for ticker %s. best id %d, feed id %d", ticker, bestCMCId, feed.CMCInfo.BaseID))
+				if feed.CMCInfo.BaseRank < bestCMCRank {
+					panic(fmt.Sprintf("found feed for %s with lower CMC rank than the best one for ticker %s. best CMC rank %d, feed CMC rank %d", feed.ProviderConfig.Name, ticker, bestCMCRank, feed.CMCInfo.BaseRank))
 				}
 				if feed.CMCInfo.BaseID == bestCMCId {
 					out = append(out, feed)
 				} else {
 					removals.AddRemovalReasonFromFeed(feed, feed.ProviderConfig.Name,
-						fmt.Sprintf("Transform ResolveCMCConflictsForMarket: BestCMCID: %d, FeedCMCID: %v", bestCMCId,
-							feed.CMCInfo.BaseID))
+						fmt.Sprintf("Transform ResolveCMCConflictsForMarket: BestCMCID: %d, FeedCMCID: %d, BestCMCRank: %d, FeedCMCRank: %d", bestCMCId,
+							feed.CMCInfo.BaseID, bestCMCRank, feed.CMCInfo.BaseRank))
 					logger.Debug("dropping feed with worse CMC ID", zap.Any("ticker", feed.Ticker.String()), zap.Any("provider", feed.ProviderConfig.Name))
 
 				}
