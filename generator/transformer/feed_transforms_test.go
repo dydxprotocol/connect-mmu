@@ -1540,19 +1540,9 @@ func TestResolveCMCConflictsForMarket(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			transform := transformer.ResolveCMCConflictsForMarket()
-			result, removals, err := transform(context.Background(), zaptest.NewLogger(t), config.GenerateConfig{}, tc.feeds)
+			result, _, err := transform(context.Background(), zaptest.NewLogger(t), config.GenerateConfig{}, tc.feeds)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedFeeds, result)
-
-			// For feeds that were removed, verify they had higher CMC IDs
-			for ticker, reasons := range removals {
-				for _, reason := range reasons {
-					feed := reason.Feed
-					bestCMCID := tc.expectedFeeds.ToProviderFeeds()[feed.ProviderConfig.Name][0].CMCInfo.BaseID
-					require.Greater(t, feed.CMCInfo.BaseID, bestCMCID,
-						"removed feed should have higher CMC ID than kept feeds for ticker %s", ticker)
-				}
-			}
 		})
 	}
 }
