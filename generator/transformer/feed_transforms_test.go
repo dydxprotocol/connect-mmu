@@ -259,7 +259,7 @@ func TestNormalizeBy(t *testing.T) {
 	}
 }
 
-func TestResolveConflicts(t *testing.T) {
+func TestResolveProviderConflicts(t *testing.T) {
 	// run multiple times to check deterministic output
 	numIters := 100
 
@@ -1360,6 +1360,199 @@ func TestResolveNamingAliases(t *testing.T) {
 				droppedKeys = append(droppedKeys, k)
 			}
 			require.Equal(t, tc.dropped, droppedKeys)
+		})
+	}
+}
+
+func TestResolveCMCConflictsForMarket(t *testing.T) {
+	tests := []struct {
+		name          string
+		feeds         types.Feeds
+		expectedFeeds types.Feeds
+	}{
+		{
+			name: "no conflicts - single feed",
+			feeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+			expectedFeeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+		},
+		{
+			name: "resolve conflicts - keep lowest CMC ID",
+			feeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(10),
+				},
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: bybitProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   2,   // Different CMC ID for BTC (should be dropped)
+						QuoteID:  825, // USDT
+						BaseRank: 100,
+					},
+					DailyUsdVolume: big.NewFloat(20),
+				},
+			},
+			expectedFeeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(10),
+				},
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+		},
+		{
+			name: "multiple tickers with conflicts",
+			feeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusd,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,    // BTC
+						QuoteID:  2781, // USD
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusd,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: bybitProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   2,    // Different CMC ID for BTC (should be dropped)
+						QuoteID:  2781, // USD
+						BaseRank: 100,
+					},
+					DailyUsdVolume: big.NewFloat(10),
+				},
+			},
+			expectedFeeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusd,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,    // BTC
+						QuoteID:  2781, // USD
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			transform := transformer.ResolveCMCConflictsForMarket()
+			result, removals, err := transform(context.Background(), zaptest.NewLogger(t), config.GenerateConfig{}, tc.feeds)
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedFeeds, result)
+
+			// For feeds that were removed, verify they had higher CMC IDs
+			for ticker, reasons := range removals {
+				for _, reason := range reasons {
+					feed := reason.Feed
+					bestCMCID := tc.expectedFeeds.ToProviderFeeds()[feed.ProviderConfig.Name][0].CMCInfo.BaseID
+					require.Greater(t, feed.CMCInfo.BaseID, bestCMCID,
+						"removed feed should have higher CMC ID than kept feeds for ticker %s", ticker)
+				}
+			}
 		})
 	}
 }
