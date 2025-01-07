@@ -40,7 +40,7 @@ func New(logger *zap.Logger) Transformer {
 		},
 		mmTransforms: []TransformMarketMap{
 			PruneMarkets(),
-			RemoveDisabledProviders(),
+			ExcludeDisabledProviders(),
 			EnableMarkets(),
 			ProcessDefiMarkets(),
 			PruneInsufficientlyProvidedMarkets(),
