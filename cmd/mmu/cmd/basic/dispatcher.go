@@ -117,7 +117,7 @@ func generateUpsertTransactions(
 		return nil, fmt.Errorf("failed to read upserts file: %w", err)
 	}
 
-	upsert_msgs, err := generator.ConvertUpsertsToMessages(
+	upsertMsgs, err := generator.ConvertUpsertsToMessages(
 		logger,
 		cfg.Dispatch.TxConfig,
 		cfg.Chain.Version,
@@ -128,7 +128,7 @@ func generateUpsertTransactions(
 		return nil, fmt.Errorf("failed to convert upserts to messages: %w", err)
 	}
 
-	txs, err := dp.GenerateTransactions(ctx, upsert_msgs)
+	txs, err := dp.GenerateTransactions(ctx, upsertMsgs)
 	if err != nil {
 		return nil, err
 	}
@@ -154,9 +154,8 @@ func generateRemovalTransactions(
 		return nil, fmt.Errorf("failed to read marketmap removals file: %w", err)
 	}
 
-	removal_msgs, err := generator.ConvertRemovalsToMessages(
+	removalMsgs, err := generator.ConvertRemovalsToMessages(
 		logger,
-		cfg.Dispatch.TxConfig,
 		cfg.Chain.Version,
 		signerAddress,
 		removals,
@@ -165,7 +164,7 @@ func generateRemovalTransactions(
 		return nil, fmt.Errorf("failed to convert removals to messages: %w", err)
 	}
 
-	txs, err := dp.GenerateTransactions(ctx, removal_msgs)
+	txs, err := dp.GenerateTransactions(ctx, removalMsgs)
 	if err != nil {
 		return nil, err
 	}

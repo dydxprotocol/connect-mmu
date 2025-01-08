@@ -102,7 +102,6 @@ func ConvertUpsertsToMessages(
 // ConvertRemovalsToMessage converts a set of market tickers to remove to a slice of sdk.Message.
 func ConvertRemovalsToMessages(
 	logger *zap.Logger,
-	cfg config.TransactionConfig,
 	version config.Version,
 	authorityAddress string,
 	removals []string,
@@ -122,6 +121,6 @@ func ConvertRemovalsToMessages(
 	default:
 		return nil, fmt.Errorf("unsupported version %s", version)
 	}
-
+	logger.Info("created remove msg", zap.Int("num markets to remove", len(removals)))
 	return []sdk.Msg{msg}, nil
 }
