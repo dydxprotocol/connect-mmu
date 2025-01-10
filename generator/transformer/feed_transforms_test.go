@@ -259,7 +259,7 @@ func TestNormalizeBy(t *testing.T) {
 	}
 }
 
-func TestResolveConflicts(t *testing.T) {
+func TestResolveProviderConflicts(t *testing.T) {
 	// run multiple times to check deterministic output
 	numIters := 100
 
@@ -772,7 +772,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 			expectErr:   false,
 		},
 		{
-			name: "valid remove a market with no associated quote config, keep others",
+			name: "valid exclude a market with no associated quote config, keep others",
 			cfg: config.GenerateConfig{
 				Providers: map[string]config.ProviderConfig{
 					krakenProvider: {
@@ -894,7 +894,7 @@ func TestPruneByLiquidity(t *testing.T) {
 			expectErr:   false,
 		},
 		{
-			name: "valid remove a market with no associated quote config, keep others",
+			name: "valid exclude a market with no associated quote config, keep others",
 			cfg: config.GenerateConfig{
 				Providers: map[string]config.ProviderConfig{
 					krakenProvider: {
@@ -1013,12 +1013,12 @@ func TestTopMarketsForProvider(t *testing.T) {
 	}
 
 	tests := []struct {
-		name         string
-		feeds        types.Feeds
-		cfg          config.GenerateConfig
-		want         types.Feeds
-		wantRemovals types.RemovalReasons
-		wantErr      bool
+		name           string
+		feeds          types.Feeds
+		cfg            config.GenerateConfig
+		want           types.Feeds
+		wantExclusions types.ExclusionReasons
+		wantErr        bool
 	}{
 		{
 			name: "return nothing for no invalid provider configs",
@@ -1032,94 +1032,94 @@ func TestTopMarketsForProvider(t *testing.T) {
 						Invert:          false,
 						Metadata_JSON:   "",
 					},
-					DailyQuoteVolume: big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
-					ReferencePrice:   big.NewFloat(100),
+					DailyUsdVolume: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
+					ReferencePrice: big.NewFloat(100),
 				},
 			},
-			cfg:          cfg,
-			want:         nil,
-			wantRemovals: types.RemovalReasons{},
-			wantErr:      true,
+			cfg:            cfg,
+			want:           nil,
+			wantExclusions: types.ExclusionReasons{},
+			wantErr:        true,
 		},
 		{
-			name:         "do nothing for no provider feeds",
-			feeds:        nil,
-			cfg:          cfg,
-			want:         nil,
-			wantRemovals: types.RemovalReasons{},
-			wantErr:      false,
+			name:           "do nothing for no provider feeds",
+			feeds:          nil,
+			cfg:            cfg,
+			want:           nil,
+			wantExclusions: types.ExclusionReasons{},
+			wantErr:        false,
 		},
 		{
 			name: "retain all markets for a provider with no filter - should sort",
 			feeds: types.Feeds{
 				{
-					Ticker:           marketBtcUsd.Ticker,
-					ProviderConfig:   marketBtcUsd.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(100),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsd.Ticker,
+					ProviderConfig: marketBtcUsd.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(100),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 				},
 				{
-					Ticker:           marketBtcUsdt.Ticker,
-					ProviderConfig:   marketBtcUsdt.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(1000),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsdt.Ticker,
+					ProviderConfig: marketBtcUsdt.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(1000),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 				},
 			},
 
 			cfg: cfg,
 			want: types.Feeds{
 				{
-					Ticker:           marketBtcUsdt.Ticker,
-					ProviderConfig:   marketBtcUsdt.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(1000),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsdt.Ticker,
+					ProviderConfig: marketBtcUsdt.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(1000),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 				},
 				{
-					Ticker:           marketBtcUsd.Ticker,
-					ProviderConfig:   marketBtcUsd.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(100),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsd.Ticker,
+					ProviderConfig: marketBtcUsd.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(100),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 				},
 			},
-			wantRemovals: types.RemovalReasons{},
-			wantErr:      false,
+			wantExclusions: types.ExclusionReasons{},
+			wantErr:        false,
 		},
 		{
-			name: "remove market with lower quote volume for provider with filter - will order feeds",
+			name: "exclude market with lower quote volume for provider with filter - will order feeds",
 			feeds: types.Feeds{
 				{
-					Ticker:           marketBtcUsdt.Ticker,
-					ProviderConfig:   marketBtcUsdt.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(1000),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsdt.Ticker,
+					ProviderConfig: marketBtcUsdt.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(1000),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 					LiquidityInfo: mmutypes.LiquidityInfo{
 						NegativeDepthTwo: 1000,
 						PositiveDepthTwo: 1000,
 					},
 				},
 				{
-					Ticker:           marketBtcUsd.Ticker,
-					ProviderConfig:   marketBtcUsd.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(100),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsd.Ticker,
+					ProviderConfig: marketBtcUsd.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(100),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 					LiquidityInfo: mmutypes.LiquidityInfo{
 						NegativeDepthTwo: 100,
 						PositiveDepthTwo: 100,
 					},
 				},
 				{
-					Ticker:           marketBtcUsdNormalized.Ticker,
-					ProviderConfig:   marketBtcUsdNormalized.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(2000),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsdNormalized.Ticker,
+					ProviderConfig: marketBtcUsdNormalized.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(2000),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 					LiquidityInfo: mmutypes.LiquidityInfo{
 						NegativeDepthTwo: 2000,
 						PositiveDepthTwo: 2000,
@@ -1129,37 +1129,37 @@ func TestTopMarketsForProvider(t *testing.T) {
 			cfg: cfg,
 			want: types.Feeds{
 				{
-					Ticker:           marketBtcUsdNormalized.Ticker,
-					ProviderConfig:   marketBtcUsdNormalized.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(2000),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsdNormalized.Ticker,
+					ProviderConfig: marketBtcUsdNormalized.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(2000),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 					LiquidityInfo: mmutypes.LiquidityInfo{
 						NegativeDepthTwo: 2000,
 						PositiveDepthTwo: 2000,
 					},
 				},
 				{
-					Ticker:           marketBtcUsdt.Ticker,
-					ProviderConfig:   marketBtcUsdt.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(1000),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsdt.Ticker,
+					ProviderConfig: marketBtcUsdt.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(1000),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 					LiquidityInfo: mmutypes.LiquidityInfo{
 						NegativeDepthTwo: 1000,
 						PositiveDepthTwo: 1000,
 					},
 				},
 			},
-			wantRemovals: types.RemovalReasons{"BTC/USD": []types.RemovalReason{{
+			wantExclusions: types.ExclusionReasons{"BTC/USD": []types.ExclusionReason{{
 				Reason:   "only selecting top 2 feeds for this provider",
 				Provider: krakenProvider,
 				Feed: types.Feed{
-					Ticker:           marketBtcUsd.Ticker,
-					ProviderConfig:   marketBtcUsd.ProviderConfigs[0],
-					DailyQuoteVolume: big.NewFloat(100),
-					ReferencePrice:   big.NewFloat(100),
-					CMCInfo:          cmcInfoA,
+					Ticker:         marketBtcUsd.Ticker,
+					ProviderConfig: marketBtcUsd.ProviderConfigs[0],
+					DailyUsdVolume: big.NewFloat(100),
+					ReferencePrice: big.NewFloat(100),
+					CMCInfo:        cmcInfoA,
 					LiquidityInfo: mmutypes.LiquidityInfo{
 						NegativeDepthTwo: 100,
 						PositiveDepthTwo: 100,
@@ -1173,7 +1173,7 @@ func TestTopMarketsForProvider(t *testing.T) {
 		transform := transformer.TopFeedsForProvider()
 
 		t.Run(tt.name, func(t *testing.T) {
-			got, removals, err := transform(context.Background(), zap.NewNop(), tt.cfg, tt.feeds)
+			got, exclusions, err := transform(context.Background(), zap.NewNop(), tt.cfg, tt.feeds)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -1181,7 +1181,7 @@ func TestTopMarketsForProvider(t *testing.T) {
 
 			require.NoError(t, err)
 			require.True(t, tt.want.Equal(got))
-			require.Equal(t, tt.wantRemovals, removals)
+			require.Equal(t, tt.wantExclusions, exclusions)
 		})
 	}
 }
@@ -1360,6 +1360,189 @@ func TestResolveNamingAliases(t *testing.T) {
 				droppedKeys = append(droppedKeys, k)
 			}
 			require.Equal(t, tc.dropped, droppedKeys)
+		})
+	}
+}
+
+func TestResolveCMCConflictsForMarket(t *testing.T) {
+	tests := []struct {
+		name          string
+		feeds         types.Feeds
+		expectedFeeds types.Feeds
+	}{
+		{
+			name: "no conflicts - single feed",
+			feeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+			expectedFeeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+		},
+		{
+			name: "resolve conflicts - keep lowest CMC ID",
+			feeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(10),
+				},
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: bybitProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   2,   // Different CMC ID for BTC (should be dropped)
+						QuoteID:  825, // USDT
+						BaseRank: 100,
+					},
+					DailyUsdVolume: big.NewFloat(20),
+				},
+			},
+			expectedFeeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(10),
+				},
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+		},
+		{
+			name: "multiple tickers with conflicts",
+			feeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusd,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,    // BTC
+						QuoteID:  2781, // USD
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusd,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: bybitProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   2,    // Different CMC ID for BTC (should be dropped)
+						QuoteID:  2781, // USD
+						BaseRank: 100,
+					},
+					DailyUsdVolume: big.NewFloat(10),
+				},
+			},
+			expectedFeeds: types.Feeds{
+				{
+					Ticker: btcusdt,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: krakenProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,   // BTC
+						QuoteID:  825, // USDT
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+				{
+					Ticker: btcusd,
+					ProviderConfig: mmtypes.ProviderConfig{
+						Name: binanceProvider,
+					},
+					CMCInfo: mmutypes.CoinMarketCapInfo{
+						BaseID:   1,    // BTC
+						QuoteID:  2781, // USD
+						BaseRank: 1,
+					},
+					DailyUsdVolume: big.NewFloat(0),
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			transform := transformer.ResolveCMCConflictsForMarket()
+			result, _, err := transform(context.Background(), zaptest.NewLogger(t), config.GenerateConfig{}, tc.feeds)
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedFeeds, result)
 		})
 	}
 }
