@@ -17,12 +17,7 @@
       { "name": "raydium" }
     ],
     "coinmarketcap": { "api_key": "" },
-    "raydium": [
-      {
-        "endpoint": "https://solana-mainnet.g.alchemy.com/v2/xTYYXFnid3W8lnhyOHWpC2iyuHZQUwG8",
-        "node_key": "xTYYXFnid3W8lnhyOHWpC2iyuHZQUwG8"
-      }
-    ],
+    "raydium": [],
     "gecko_network_dex_pairs": [{ "network": "eth", "dex": "uniswap_v3" }, { "network": "base", "dex": "uniswap-v3-base" }]
   },
   "generate": {
@@ -185,13 +180,6 @@
     },
     "min_cex_provider_count": 2,
     "min_dex_provider_count": 1,
-    "disabled_cmc_tags": ["wrapped-tokens"],
-    "disable_providers": {
-      "DAI/USD": ["gate_ws"],
-      "EURC/USD": ["bitstamp_ws"],
-      "ZEN/USD": ["huobi_ws"],
-      "ZERO/USD": ["raydium_api"]
-    },
     "exclude_pairs": {
       "AGLD/USD": {},
       "AUD/USD": {},
