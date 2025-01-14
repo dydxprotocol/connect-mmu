@@ -2,9 +2,13 @@ package basic
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	auth "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/spf13/cobra"
@@ -89,6 +93,30 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 			}
 			if err != nil {
 				return err
+			}
+
+			registry := codectypes.NewInterfaceRegistry()
+			cdc := codec.NewProtoCodec(registry)
+			decoder := auth.DefaultTxDecoder(cdc)
+			jsonEncoder := auth.DefaultJSONTxEncoder(cdc)
+			for _, tx := range txs {
+				txStr := string(tx)
+				txBytes, err := hex.DecodeString(txStr)
+				if err != nil {
+					return err
+				}
+
+				decodedTx, err := decoder(txBytes)
+				if err != nil {
+					return err
+				}
+
+				json, err := jsonEncoder(decodedTx)
+				if err != nil {
+					return err
+				}
+
+				logger.Error(string(json))
 			}
 
 			if flags.simulate {
