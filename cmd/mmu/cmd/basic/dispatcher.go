@@ -1,9 +1,13 @@
 package basic
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -81,6 +85,31 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 			err = file.WriteJSONToFile("transactions.json", txs)
 			if err != nil {
 				return err
+			}
+
+			registry := codectypes.NewInterfaceRegistry()
+			cdc := codec.NewProtoCodec(registry)
+			decoder := DefaultTxDecoder(cdc)
+			for _, tx := range txs {
+				txStr := string(tx)
+				txBytes, err := hex.DecodeString(txStr)
+				if err != nil {
+					return err
+				}
+
+				cfg.Dispatch.TxConfig.TxDecoder()(txBytes)
+
+				tx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
+				if err != nil {
+					return err
+				}
+
+				json, err := clientCtx.TxConfig.TxJSONEncoder()(tx)
+				if err != nil {
+					return err
+				}
+
+				return clientCtx.PrintBytes(json)
 			}
 
 			if flags.simulate {

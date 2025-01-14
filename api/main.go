@@ -1,4 +1,4 @@
-package mmuapi
+package main
 
 import (
 	"context"
@@ -14,7 +14,7 @@ var FILENAME = "latest-mmu-tx.json"
 
 //nolint:unused
 func lambdaHandler(_ context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	txJSON, err := aws.ReadFromS3("latest-mmu-tx.json")
+	txJSON, err := aws.ReadFromS3(FILENAME)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
