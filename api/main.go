@@ -12,10 +12,8 @@ import (
 
 var FILENAME = "latest-mmu-tx.json"
 
-//nolint:unused
 func lambdaHandler(_ context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	txJSON, err := aws.ReadFromS3(FILENAME, false)
-	fmt.Println("test")
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
@@ -29,7 +27,6 @@ func lambdaHandler(_ context.Context, _ events.APIGatewayProxyRequest) (events.A
 	}, nil
 }
 
-//nolint:unused
 func main() {
 	lambda.Start(lambdaHandler)
 }
