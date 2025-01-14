@@ -2,7 +2,7 @@ package basic
 
 import (
 	"context"
-	"encoding/hex"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -101,7 +101,7 @@ func DispatchCmd(registry *signing.Registry) *cobra.Command {
 			jsonEncoder := auth.DefaultJSONTxEncoder(cdc)
 			for _, tx := range txs {
 				txStr := string(tx)
-				txBytes, err := hex.DecodeString(txStr)
+				txBytes, err := base64.StdEncoding.DecodeString(txStr)
 				if err != nil {
 					return err
 				}
