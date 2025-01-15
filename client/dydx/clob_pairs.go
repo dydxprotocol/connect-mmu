@@ -27,7 +27,7 @@ const (
 
 // ClobPair represents a clob pair on the dYdX exchange.
 type ClobPair struct {
-	Id                        uint64                `json:"id"`
+	ID                        uint64                `json:"id"`
 	PerpetualClobMetadata     PerpetualClobMetadata `json:"perpetual_clob_metadata"`
 	StepBaseQuantums          string                `json:"step_base_quantums"`
 	SubticksPerTick           uint64                `json:"subticks_per_tick"`
@@ -37,7 +37,7 @@ type ClobPair struct {
 
 // PerpetualClobMetadata represents the parameters of an associated perpetual for a clob pair on the dYdX exchange.
 type PerpetualClobMetadata struct {
-	PerpetualId uint64 `json:"perpetual_id"`
+	PerpetualID uint64 `json:"perpetual_id"`
 }
 
 // AllClobPairsResponse is the response type for the AllClobPairs RPC method.

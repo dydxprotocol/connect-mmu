@@ -29,7 +29,7 @@ type Perpetual struct {
 
 // PerpetualParams represents the parameters of a perpetual on the dYdX exchange.
 type PerpetualParams struct {
-	Id         uint64 `json:"id"`
+	ID         uint64 `json:"id"`
 	Ticker     string `json:"ticker"`
 	MarketType string `json:"market_type"`
 }

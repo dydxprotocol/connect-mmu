@@ -119,7 +119,7 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 
 	logger.Info("got perpetuals", zap.Int("count", len(perpsResp.Perpetuals)))
 
-	perpetualIdToClobPair, err := o.getPerpetualIdToClobPair(ctx, logger)
+	perpetualIDToClobPair, err := o.getPerpetualIDToClobPair(ctx, logger)
 	if err != nil {
 		return mmtypes.MarketMap{}, []string{}, err
 	}
@@ -127,7 +127,7 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	// to the corresponding market in actual
 	for _, perpetual := range perpsResp.Perpetuals {
 		// if corresponding clob pair for the perpetual is in STATUS_FINAL_SETTLEMENT, skip it
-		clobPair, ok := perpetualIdToClobPair[perpetual.Params.Id]
+		clobPair, ok := perpetualIDToClobPair[perpetual.Params.ID]
 		if ok && clobPair.Status == dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT {
 			continue
 		}
@@ -173,7 +173,7 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	return combinedMarketMap, removals, nil
 }
 
-func (o *DyDxOverride) getPerpetualIdToClobPair(
+func (o *DyDxOverride) getPerpetualIDToClobPair(
 	ctx context.Context,
 	logger *zap.Logger,
 ) (map[uint64]dydx.ClobPair, error) {
@@ -188,16 +188,16 @@ func (o *DyDxOverride) getPerpetualIdToClobPair(
 
 	logger.Info("got clob pairs", zap.Int("count", len(clobPairsResp.ClobPairs)))
 
-	perpetualIdToClobPair := make(map[uint64]dydx.ClobPair, len(clobPairsResp.ClobPairs))
+	perpetualIDToClobPair := make(map[uint64]dydx.ClobPair, len(clobPairsResp.ClobPairs))
 	for _, clobPair := range clobPairsResp.ClobPairs {
-		perpetualId := clobPair.PerpetualClobMetadata.PerpetualId
-		if _, ok := perpetualIdToClobPair[perpetualId]; ok {
-			return nil, fmt.Errorf("duplicate perpetual id: %d", perpetualId)
+		perpetualID := clobPair.PerpetualClobMetadata.PerpetualID
+		if _, ok := perpetualIDToClobPair[perpetualID]; ok {
+			return nil, fmt.Errorf("duplicate perpetual id: %d", perpetualID)
 		}
-		perpetualIdToClobPair[perpetualId] = clobPair
+		perpetualIDToClobPair[perpetualID] = clobPair
 	}
 
-	return perpetualIdToClobPair, nil
+	return perpetualIDToClobPair, nil
 }
 
 // ConsolidateDeFiMarkets takes a generated marketmap and attempts to move any DeFi markets to normal markets if the generated market
