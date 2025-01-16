@@ -1084,6 +1084,38 @@ func TestOverrideMarketMap(t *testing.T) {
 			wantErr:       true,
 		},
 		{
+			name:   "dont error if delisted perpetual market is not in actual market map ",
+			client: mockClient,
+			expect: func(_ dydx.Client) {
+				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{
+					Perpetuals: []dydx.Perpetual{
+						{
+							Params: dydx.PerpetualParams{
+								ID:         1,
+								Ticker:     "BTC-USD",
+								MarketType: dydx.PERPETUAL_MARKET_TYPE_CROSS,
+							},
+						},
+					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{
+						{
+							ID: 1,
+							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+								PerpetualID: 1,
+							},
+							Status: dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT,
+						},
+					},
+				}, nil).Once()
+			},
+			want:          types.MarketMap{Markets: map[string]types.Market{}},
+			wantRemovals:  []string{},
+			updateEnabled: false,
+			wantErr:       false,
+		},
+		{
 			name:   "set all fields equal to actual market map if it is CROSS MARGIN",
 			client: mockClient,
 			expect: func(_ dydx.Client) {
