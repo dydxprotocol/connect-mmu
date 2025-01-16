@@ -1100,7 +1100,6 @@ func TestOverrideMarketMap(t *testing.T) {
 				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
 					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
-
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
