@@ -425,6 +425,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -472,6 +473,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -519,6 +521,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -549,6 +552,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -596,6 +600,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -660,6 +665,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -724,6 +730,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -788,6 +795,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -852,6 +860,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -916,6 +925,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -984,6 +994,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1065,6 +1076,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			updateEnabled: false,
 			wantErr:       true,
@@ -1083,6 +1097,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
+
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1155,6 +1173,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -1228,6 +1249,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -1302,6 +1326,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1374,6 +1401,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -1448,6 +1478,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1521,6 +1554,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1593,6 +1629,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -1675,6 +1714,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1755,6 +1797,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -1837,6 +1882,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1913,6 +1961,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -1991,6 +2042,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2068,6 +2122,9 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2144,6 +2201,9 @@ func TestOverrideMarketMap(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -2297,6 +2357,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -2344,6 +2405,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2391,6 +2453,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2421,6 +2484,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -2468,6 +2532,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2532,6 +2597,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2596,6 +2662,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2660,6 +2727,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2724,6 +2792,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2788,6 +2857,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2852,6 +2922,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2933,6 +3004,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			wantRemovals:  []string{},
 			updateEnabled: false,
@@ -2951,6 +3025,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -3025,6 +3102,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3097,6 +3177,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -3171,6 +3254,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3243,6 +3329,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -3317,6 +3406,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3389,6 +3481,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -3471,6 +3566,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3551,6 +3649,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -3633,6 +3734,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3709,6 +3813,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
@@ -3787,6 +3894,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3864,6 +3974,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
+				}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3940,6 +4053,9 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 							},
 						},
 					},
+				}, nil).Once()
+				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
+					ClobPairs: []dydx.ClobPair{},
 				}, nil).Once()
 			},
 			actual: types.MarketMap{
