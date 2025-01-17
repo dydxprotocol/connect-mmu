@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -20,10 +21,14 @@ import (
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/dispatcher"
 	"github.com/skip-mev/connect-mmu/dispatcher/transaction/generator"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
+	"github.com/skip-mev/connect-mmu/lib/slack"
 	"github.com/skip-mev/connect-mmu/signing"
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 )
+
+const LatestTransactionsFilename = "latest-transactions.json"
 
 // DispatchCmd returns a command to DispatchCmd market upserts.
 func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
@@ -107,11 +112,35 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				return err
 			}
 
-			if flags.simulate {
-				return nil
+			if aws.IsLambda() {
+				// Check if new transactions differ from the existing "latest-transactions.json" in S3
+				newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
+				if err != nil {
+					return err
+				}
+				existingLatestTransactionsJSON, err := aws.ReadFromS3(LatestTransactionsFilename, false)
+				if err != nil {
+					return err
+				}
+				if bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
+					return nil
+				}
+
+				// If we have new transactions, write them to "latest-transactions.json"
+				err = aws.WriteToS3(LatestTransactionsFilename, newLatestTransactionsJSON, false)
+				if err != nil {
+					return err
+				}
+
+				// If we're running the prod MMU, also send a notification to Slack
+				// TODO Once ready, update this to only send notifs for prod (not staging) MMU runs
+				err = slack.SendNotification("New Market Map Transaction: https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx")
+				if err != nil {
+					return err
+				}
 			}
 
-			return dp.SubmitTransactions(cmd.Context(), txs)
+			return nil
 		},
 	}
 
