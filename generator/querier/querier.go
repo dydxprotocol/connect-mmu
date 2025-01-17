@@ -105,3 +105,10 @@ func toFeed(pm provider.GetFilteredProviderMarketsRow, cfg config.GenerateConfig
 		cmcInfo,
 	), nil
 }
+
+func (q *Querier) CMCIDToAssetInfo(ctx context.Context, cfg config.GenerateConfig) (map[int64]provider.AssetInfo, error) {
+	q.logConfig(cfg)
+
+	cmcIDToAssetInfo := q.providerStore.GetCMCIDToAssetInfo(ctx)
+	return cmcIDToAssetInfo, nil
+}

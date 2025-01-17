@@ -416,7 +416,13 @@ type FiatData struct {
 // "cmc_rank": 1,
 // "last_updated": "2018-08-09T21:56:28.000Z",
 // "tags": [
-// "mineable"
+//
+//	{
+//		"slug": "mineable",
+//		"name": "Mineable",
+//		"category": "OTHERS"
+//	}
+//
 // ],
 // "platform": null,
 // "self_reported_circulating_supply": null,
@@ -468,16 +474,23 @@ type QuoteData struct {
 		Slug         string `json:"slug"`
 		TokenAddress string `json:"token_address"`
 	} `json:"platform"`
-	IsActive       int       `json:"is_active"`
-	InfiniteSupply bool      `json:"infinite_supply"`
-	CmcRank        int       `json:"cmc_rank"`
-	IsFiat         int       `json:"is_fiat"`
-	LastUpdated    time.Time `json:"last_updated"`
+	IsActive       int        `json:"is_active"`
+	InfiniteSupply bool       `json:"infinite_supply"`
+	CmcRank        int        `json:"cmc_rank"`
+	IsFiat         int        `json:"is_fiat"`
+	LastUpdated    time.Time  `json:"last_updated"`
+	Tags           []QuoteTag `json:"tags"`
 	// Quote is a map of price to
 	Quote map[string]struct {
 		Price     float64 `json:"price"`
 		Volume24H float64 `json:"volume_24h"`
 	} `json:"quote"`
+}
+
+type QuoteTag struct {
+	Slug     string `json:"slug"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
 }
 
 // InfoResponse is the payload returned from the info query to CoinMarketCap
@@ -1168,6 +1181,7 @@ type InfoData struct {
 	Description     string            `json:"description"`
 	Slug            string            `json:"slug"`
 	ContractAddress []ContractAddress `json:"contract_address"`
+	Tags            []string          `json:"tags"`
 }
 
 type ContractAddress struct {

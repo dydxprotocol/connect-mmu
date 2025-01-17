@@ -185,6 +185,7 @@
     },
     "min_cex_provider_count": 2,
     "min_dex_provider_count": 1,
+    "exclude_cmc_tags": ["wrapped-tokens", "algorithmic-stablecoin"],
     "exclude_pairs": {
       "AGLD/USD": {},
       "AUD/USD": {},

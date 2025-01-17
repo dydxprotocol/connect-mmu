@@ -149,11 +149,18 @@ func CryptoAssetInfoFromQuoteData(data coinmarketcap.QuoteData) provider.CreateA
 		assetAddress.Address = data.Platform.TokenAddress
 	}
 
+	// Convert set back to slice for JSON
+	tagSlugs := make([]string, 0, len(data.Tags))
+	for _, tag := range data.Tags {
+		tagSlugs = append(tagSlugs, tag.Slug)
+	}
+
 	create := provider.CreateAssetInfoParams{
 		Symbol:         data.Symbol,
 		MultiAddresses: [][]string{assetAddress.ToArray()},
 		CmcID:          int64(data.ID),
 		Rank:           int64(data.CmcRank),
+		CMCTags:        tagSlugs,
 	}
 
 	return create
@@ -192,6 +199,7 @@ func CryptoAssetInfoFromData(data coinmarketcap.WrappedCryptoIDMapData) (provide
 		MultiAddresses: multiAddresses,
 		CmcID:          int64(data.IDMap.ID),
 		Rank:           int64(data.IDMap.Rank),
+		CMCTags:        data.Info.Tags,
 	}, nil
 }
 
