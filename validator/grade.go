@@ -77,6 +77,8 @@ func (v *Validator) GradeReports(reports []types.Report, failChecks ...CheckFail
 	slices.SortFunc(reports, func(a, _ types.Report) int {
 		switch a.Status {
 		case types.StatusFailed:
+			return -2
+		case types.StatusDegraded:
 			return -1
 		default:
 			return 0

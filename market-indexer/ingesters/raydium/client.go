@@ -100,6 +100,9 @@ func (h *client) TokenMetadata(ctx context.Context) (TokenMetadataResponse, erro
 func (h *client) GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error) {
 	// choose random endpoint to use
 	cycleValue := len(h.multiRPCClient.rpcs)
+	if cycleValue == 0 {
+		return nil, fmt.Errorf("no raydium RPC nodes configured")
+	}
 	i := rand.Intn(cycleValue)
 
 	for i < i+cycleValue {
