@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -110,18 +111,26 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				return err
 			}
 
-			// Write "latest" output file
-			bz, err := json.MarshalIndent(decodedTxs, "", "  ")
+			// Check if new transactions differ from the existing "latest-transactions.json" in S3
+			newLatestTransactionsJson, err := json.MarshalIndent(decodedTxs, "", "  ")
 			if err != nil {
 				return err
 			}
-			err = aws.WriteToS3("latest-transactions.json", bz, false)
+			existingLatestTransactionsJson, err := aws.ReadFromS3("latest-transactions.json", false)
 			if err != nil {
 				return err
+			}
+			if bytes.Equal(newLatestTransactionsJson, existingLatestTransactionsJson) {
+				return nil
 			}
 
-			// Send Slack notif to #market-map-notifs channel
-			err = slack.SendNotification(fmt.Sprintf("Latest MMU TX: %s", bz))
+			// If we have new transactions, write them to "latest-transactions.json"
+			// and send a notification to Slack
+			err = aws.WriteToS3("latest-transactions.json", newLatestTransactionsJson, false)
+			if err != nil {
+				return err
+			}
+			err = slack.SendNotification(fmt.Sprintf("New Market Map Transaction: https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx"))
 			if err != nil {
 				return err
 			}
