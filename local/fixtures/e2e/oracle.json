@@ -7,28 +7,28 @@
             "url":"https://solana.polkachu.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"bdbcbd83-2323-7363-nrft-112"
+              "apiKey":""
             }
           },
           {
             "url":"https://connect-solana.kingnodes.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"b0e33b49"
+              "apiKey":""
             }
           },
           {
             "url":"https://solana.lavenderfive.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"5875379d-a65b-4df8-87c6-ceb189f31090"
+              "apiKey":""
             }
           },
           {
             "url":"https://solana-rpc.rhino-apis.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"c5382c59"
+              "apiKey":""
             }
           }
         ]
@@ -41,28 +41,28 @@
             "url":"https://ethereum.lavenderfive.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"5875379d-a65b-4df8-87c6-ceb189f31090"
+              "apiKey":""
             }
           },
           {
             "url":"https://ethereum-rpc.polkachu.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"bdbcbd83-2323-7363-nrft-112"
+              "apiKey":""
             }
           },
           {
             "url":"https://connect-eth.kingnodes.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"b0e33b49"
+              "apiKey":""
             }
           },
           {
             "url":"https://ethereum-rpc.rhino-apis.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"c5382c59"
+              "apiKey":""
             }
           }
         ]
@@ -75,21 +75,21 @@
             "url":"https://base-rpc.rhino-apis.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"c5382c59"
+              "apiKey":""
             }
           },
           {
             "url":"https://connect-base.kingnodes.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"b0e33b49"
+              "apiKey":""
             }
           },
           {
             "url":"https://base.lavenderfive.com",
             "authentication":{
               "apiKeyHeader":"x-api-key",
-              "apiKey":"5875379d-a65b-4df8-87c6-ceb189f31090"
+              "apiKey":""
             }
           }
         ]
