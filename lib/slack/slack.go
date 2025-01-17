@@ -15,7 +15,7 @@ type slackMessage struct {
 }
 
 func SendNotification(message string) error {
-	webhookUrl, err := aws.GetSecret(context.Background(), "maket-map-updater-slack-webhook-url")
+	webhookUrl, err := aws.GetSecret(context.Background(), "market-map-updater-slack-webhook-url")
 	if err != nil {
 		fmt.Printf("Error fetching Slack Webhook URL from Secrets Manager: %v", err)
 		return err
