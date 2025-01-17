@@ -149,7 +149,6 @@ func CryptoAssetInfoFromQuoteData(data coinmarketcap.QuoteData) provider.CreateA
 		assetAddress.Address = data.Platform.TokenAddress
 	}
 
-	// Convert set back to slice for JSON
 	tagSlugs := make([]string, 0, len(data.Tags))
 	for _, tag := range data.Tags {
 		tagSlugs = append(tagSlugs, tag.Slug)
