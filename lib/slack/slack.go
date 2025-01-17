@@ -37,7 +37,7 @@ func SendNotification(message string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Error response from slack: %v", resp.StatusCode)
+		fmt.Printf("Error response from Slack: %v", resp.StatusCode)
 	} else {
 		fmt.Printf("Successfully sent Slack notification: %v", resp.StatusCode)
 	}
