@@ -137,6 +137,54 @@ func (_c *Store_AddProviderMarket_Call) RunAndReturn(run func(context.Context, p
 	return _c
 }
 
+// GetCMCIDToAssetInfo provides a mock function with given fields: ctx
+func (_m *Store) GetCMCIDToAssetInfo(ctx context.Context) map[int64]provider.AssetInfo {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCMCIDToAssetInfo")
+	}
+
+	var r0 map[int64]provider.AssetInfo
+	if rf, ok := ret.Get(0).(func(context.Context) map[int64]provider.AssetInfo); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[int64]provider.AssetInfo)
+		}
+	}
+
+	return r0
+}
+
+// Store_GetCMCIDToAssetInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCMCIDToAssetInfo'
+type Store_GetCMCIDToAssetInfo_Call struct {
+	*mock.Call
+}
+
+// GetCMCIDToAssetInfo is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Store_Expecter) GetCMCIDToAssetInfo(ctx interface{}) *Store_GetCMCIDToAssetInfo_Call {
+	return &Store_GetCMCIDToAssetInfo_Call{Call: _e.mock.On("GetCMCIDToAssetInfo", ctx)}
+}
+
+func (_c *Store_GetCMCIDToAssetInfo_Call) Run(run func(ctx context.Context)) *Store_GetCMCIDToAssetInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Store_GetCMCIDToAssetInfo_Call) Return(_a0 map[int64]provider.AssetInfo) *Store_GetCMCIDToAssetInfo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_GetCMCIDToAssetInfo_Call) RunAndReturn(run func(context.Context) map[int64]provider.AssetInfo) *Store_GetCMCIDToAssetInfo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProviderMarkets provides a mock function with given fields: ctx, params
 func (_m *Store) GetProviderMarkets(ctx context.Context, params provider.GetFilteredProviderMarketsParams) ([]provider.GetFilteredProviderMarketsRow, error) {
 	ret := _m.Called(ctx, params)
