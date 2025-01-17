@@ -105,7 +105,6 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				return err
 			}
 
-			// Write timestamped output file
 			err = file.WriteJSONToFile("transactions.json", decodedTxs)
 			if err != nil {
 				return err
