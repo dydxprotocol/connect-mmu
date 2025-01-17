@@ -38,8 +38,6 @@ func (q *Querier) logConfig(cfg config.GenerateConfig) {
 }
 
 func (q *Querier) Feeds(ctx context.Context, cfg config.GenerateConfig) (types.Feeds, error) {
-	q.logConfig(cfg)
-
 	args := provider.GetFilteredProviderMarketsParams{
 		ProviderNames: maps.Keys(cfg.Providers),
 	}
