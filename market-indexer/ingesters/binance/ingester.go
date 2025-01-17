@@ -2,6 +2,7 @@ package binance
 
 import (
 	"context"
+	"strings"
 
 	"go.uber.org/zap"
 
@@ -62,6 +63,12 @@ func (i *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePro
 		if ticker.FirstID == -1 && ticker.LastID == -1 {
 			continue
 		}
+		// Skip tickers that start with "1000" (like 1000SATSUSDT) or "1M" (like 1MBABYDOGEUSDT) bc the price will be off from other providers
+		// TODO: Remove this when sidecar supports adjusting the price for these binance markets
+		if strings.HasPrefix(ticker.Symbol, "1000") || strings.HasPrefix(ticker.Symbol, "1M") {
+			continue
+		}
+
 		pm, err := ticker.toProviderMarket()
 		if err != nil {
 			return nil, err

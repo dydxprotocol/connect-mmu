@@ -88,6 +88,22 @@ func TestIngesterGetsValidMarkets(t *testing.T) {
 			QuoteVolume: "50000",
 			LastPrice:   "12.55",
 		},
+		{ // skipped because starts with "1M"
+			Symbol:      "1MBABYDOGEUSDT",
+			HighPrice:   "",
+			LowPrice:    "",
+			Volume:      "",
+			QuoteVolume: "50000",
+			LastPrice:   "12.55",
+		},
+		{ // skipped because starts with "1000"
+			Symbol:      "1000CATUSDT",
+			HighPrice:   "",
+			LowPrice:    "",
+			Volume:      "",
+			QuoteVolume: "50000",
+			LastPrice:   "12.55",
+		},
 	}, nil)
 
 	markets, err := ingester.GetProviderMarkets(ctx)
