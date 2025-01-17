@@ -111,30 +111,32 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				return err
 			}
 
-			// Check if new transactions differ from the existing "latest-transactions.json" in S3
-			newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
-			if err != nil {
-				return err
-			}
-			existingLatestTransactionsJSON, err := aws.ReadFromS3("latest-transactions.json", false)
-			if err != nil {
-				return err
-			}
-			if bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
-				return nil
-			}
+			if aws.IsLambda() {
+				// Check if new transactions differ from the existing "latest-transactions.json" in S3
+				newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
+				if err != nil {
+					return err
+				}
+				existingLatestTransactionsJSON, err := aws.ReadFromS3("latest-transactions.json", false)
+				if err != nil {
+					return err
+				}
+				if bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
+					return nil
+				}
 
-			// If we have new transactions, write them to "latest-transactions.json"
-			err = aws.WriteToS3("latest-transactions.json", newLatestTransactionsJSON, false)
-			if err != nil {
-				return err
-			}
+				// If we have new transactions, write them to "latest-transactions.json"
+				err = aws.WriteToS3("latest-transactions.json", newLatestTransactionsJSON, false)
+				if err != nil {
+					return err
+				}
 
-			// If we're running the prod MMU, also send a notification to Slack
-			// TODO Once ready, update this to only send notifs for prod (not staging) MMU runs
-			err = slack.SendNotification("New Market Map Transaction: https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx")
-			if err != nil {
-				return err
+				// If we're running the prod MMU, also send a notification to Slack
+				// TODO Once ready, update this to only send notifs for prod (not staging) MMU runs
+				err = slack.SendNotification("New Market Map Transaction: https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx")
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
