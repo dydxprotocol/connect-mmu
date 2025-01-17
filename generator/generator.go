@@ -34,7 +34,7 @@ func (g *Generator) GenerateMarketMap(
 ) (mmtypes.MarketMap, types.ExclusionReasons, error) {
 	feeds, err := g.q.Feeds(ctx, cfg)
 	if err != nil {
-		g.logger.Error("Unable to query", zap.Error(err))
+		g.logger.Error("Unable to query feeds", zap.Error(err))
 		return mmtypes.MarketMap{}, nil, err
 	}
 
@@ -48,18 +48,33 @@ func (g *Generator) GenerateMarketMap(
 
 	g.logger.Info("feed transforms complete", zap.Int("remaining feeds", len(transformed)))
 
+	g.logger.Info("transforming assets", zap.Int("markets", len(transformed)))
+	cmcIDToAssetInfo, err := g.q.CMCIDToAssetInfo(ctx, cfg)
+	if err != nil {
+		g.logger.Error("Unable to query asset infos", zap.Error(err))
+		return mmtypes.MarketMap{}, nil, err
+	}
+
+	transformed, droppedMarkets, err := g.t.TransformAssets(ctx, cfg, transformed, cmcIDToAssetInfo)
+	if err != nil {
+		g.logger.Error("Unable to transform assets in market map", zap.Error(err))
+		return mmtypes.MarketMap{}, nil, err
+	}
+	dropped.Merge(droppedMarkets)
+
 	mm, err := transformed.ToMarketMap()
 	if err != nil {
 		g.logger.Error("Unable to transform feeds to a MarketMap", zap.Error(err))
 		return mmtypes.MarketMap{}, nil, err
 	}
 
-	mm, droppedMarkets, err := g.t.TransformMarketMap(ctx, cfg, mm)
+	mm, droppedMarkets, err = g.t.TransformMarketMap(ctx, cfg, mm)
 	if err != nil {
 		g.logger.Error("Unable to transform market map", zap.Error(err))
 		return mm, nil, err
 	}
 	dropped.Merge(droppedMarkets)
+	g.logger.Info("market map transforms complete", zap.Int("remaining markets", len(mm.Markets)))
 
 	g.logger.Info("final market", zap.Int("size", len(mm.Markets)))
 
