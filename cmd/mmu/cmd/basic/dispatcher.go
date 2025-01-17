@@ -115,7 +115,7 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			err = aws.WriteToS3("latest-mm-tx.json", bz, false)
+			err = aws.WriteToS3("latest-transactions.json", bz, false)
 			if err != nil {
 				return err
 			}
