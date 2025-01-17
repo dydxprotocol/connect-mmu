@@ -7,17 +7,17 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 
+	cmd "github.com/skip-mev/connect-mmu/cmd/mmu/cmd/basic"
+
 	"github.com/skip-mev/connect-mmu/lib/aws"
 )
 
-var FILENAME = "latest-transactions.json"
-
 func lambdaHandler(_ context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	txJSON, err := aws.ReadFromS3(FILENAME, false)
+	txJSON, err := aws.ReadFromS3(cmd.LatestTransactionsFilename, false)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
-			Body:       fmt.Sprintf("Failed to read %s", FILENAME),
+			Body:       fmt.Sprintf("Failed to read %s", cmd.LatestTransactionsFilename),
 		}, nil
 	}
 

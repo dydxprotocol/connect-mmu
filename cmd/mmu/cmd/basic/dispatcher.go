@@ -28,6 +28,8 @@ import (
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 )
 
+const LatestTransactionsFilename = "latest-transactions.json"
+
 // DispatchCmd returns a command to DispatchCmd market upserts.
 func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 	var flags dispatchCmdFlags
@@ -116,7 +118,7 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				existingLatestTransactionsJSON, err := aws.ReadFromS3("latest-transactions.json", false)
+				existingLatestTransactionsJSON, err := aws.ReadFromS3(LatestTransactionsFilename, false)
 				if err != nil {
 					return err
 				}
@@ -125,7 +127,7 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				}
 
 				// If we have new transactions, write them to "latest-transactions.json"
-				err = aws.WriteToS3("latest-transactions.json", newLatestTransactionsJSON, false)
+				err = aws.WriteToS3(LatestTransactionsFilename, newLatestTransactionsJSON, false)
 				if err != nil {
 					return err
 				}
