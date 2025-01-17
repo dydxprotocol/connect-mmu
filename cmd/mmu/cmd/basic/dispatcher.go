@@ -120,6 +120,7 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				return err
 			}
 
+			// Send Slack notif to #market-map-notifs channel
 			err = slack.SendNotification(fmt.Sprintf("Latest MMU TX: %s", bz))
 			if err != nil {
 				return err
