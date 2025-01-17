@@ -11,6 +11,7 @@ var _ Client = &HTTPClient{}
 //go:generate mockery --name Client  --filename mock_dydx_client.go
 type Client interface {
 	AllPerpetuals(ctx context.Context) (*AllPerpetualsResponse, error)
+	AllClobPairs(ctx context.Context) (*AllClobPairsResponse, error)
 }
 
 // HTTPClient represents a client for interacting with the dYdX API.

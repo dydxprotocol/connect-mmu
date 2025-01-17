@@ -23,6 +23,64 @@ func (_m *Client) EXPECT() *Client_Expecter {
 	return &Client_Expecter{mock: &_m.Mock}
 }
 
+// AllClobPairs provides a mock function with given fields: ctx
+func (_m *Client) AllClobPairs(ctx context.Context) (*dydx.AllClobPairsResponse, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AllClobPairs")
+	}
+
+	var r0 *dydx.AllClobPairsResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*dydx.AllClobPairsResponse, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) *dydx.AllClobPairsResponse); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*dydx.AllClobPairsResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Client_AllClobPairs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AllClobPairs'
+type Client_AllClobPairs_Call struct {
+	*mock.Call
+}
+
+// AllClobPairs is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Client_Expecter) AllClobPairs(ctx interface{}) *Client_AllClobPairs_Call {
+	return &Client_AllClobPairs_Call{Call: _e.mock.On("AllClobPairs", ctx)}
+}
+
+func (_c *Client_AllClobPairs_Call) Run(run func(ctx context.Context)) *Client_AllClobPairs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Client_AllClobPairs_Call) Return(_a0 *dydx.AllClobPairsResponse, _a1 error) *Client_AllClobPairs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Client_AllClobPairs_Call) RunAndReturn(run func(context.Context) (*dydx.AllClobPairsResponse, error)) *Client_AllClobPairs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AllPerpetuals provides a mock function with given fields: ctx
 func (_m *Client) AllPerpetuals(ctx context.Context) (*dydx.AllPerpetualsResponse, error) {
 	ret := _m.Called(ctx)
