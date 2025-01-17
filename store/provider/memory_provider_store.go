@@ -60,6 +60,7 @@ func NewMemoryStoreFromFile(path string) (*MemoryStore, error) {
 			CMCID:          assetInfo.CMCID,
 			Rank:           assetInfo.Rank,
 			MultiAddresses: assetInfo.MultiAddresses,
+			CMCTags:        assetInfo.CMCTags,
 		}
 	}
 	store.assetInfoNextID = maxAssetID + 1
@@ -165,6 +166,7 @@ func (w *MemoryStore) AddAssetInfo(_ context.Context, params CreateAssetInfoPara
 		CMCID:          params.CmcID,
 		Rank:           params.Rank,
 		MultiAddresses: params.MultiAddresses,
+		CMCTags:        params.CMCTags,
 	}
 
 	w.assetInfoNextID++
@@ -184,6 +186,14 @@ func (w *MemoryStore) updateAssetInfo(params CreateAssetInfoParams, id int32) (A
 	assetInfo.MultiAddresses = params.MultiAddresses
 
 	return *assetInfo, nil
+}
+
+func (w *MemoryStore) GetCMCIDToAssetInfo(_ context.Context) map[int64]AssetInfo {
+	result := make(map[int64]AssetInfo)
+	for _, assetInfo := range w.assetInfos {
+		result[assetInfo.CMCID] = *assetInfo
+	}
+	return result
 }
 
 func (w *MemoryStore) GetProviderMarkets(_ context.Context, params GetFilteredProviderMarketsParams) ([]GetFilteredProviderMarketsRow, error) {

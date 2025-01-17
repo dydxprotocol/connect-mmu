@@ -19,6 +19,7 @@ type AssetInfo struct {
 	CMCID          int64      `json:"cmc_id"`
 	CMCIDValid     bool       `json:"cmc_id_valid"`
 	MultiAddresses [][]string `json:"multi_addresses"`
+	CMCTags        []string   `json:"cmc_tags"`
 }
 
 //nolint:revive
@@ -94,6 +95,7 @@ type CreateAssetInfoParams struct {
 	CmcID          int64
 	Rank           int64
 	MultiAddresses [][]string
+	CMCTags        []string
 }
 
 type CreateProviderMarketParams struct {

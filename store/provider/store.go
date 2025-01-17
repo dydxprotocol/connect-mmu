@@ -12,6 +12,7 @@ type Store interface {
 	// TODO(zrbecker): The params object here includes a MaxMarketAge field that is ignored by all implemented
 	// proivder stores. This should be removed eventually. It should be considered an error to pass the field to this function.
 	GetProviderMarkets(ctx context.Context, params GetFilteredProviderMarketsParams) ([]GetFilteredProviderMarketsRow, error)
+	GetCMCIDToAssetInfo(ctx context.Context) map[int64]AssetInfo
 
 	WriteToPath(ctx context.Context, path string) error
 }

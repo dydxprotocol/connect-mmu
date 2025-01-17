@@ -38,8 +38,6 @@ func (q *Querier) logConfig(cfg config.GenerateConfig) {
 }
 
 func (q *Querier) Feeds(ctx context.Context, cfg config.GenerateConfig) (types.Feeds, error) {
-	q.logConfig(cfg)
-
 	args := provider.GetFilteredProviderMarketsParams{
 		ProviderNames: maps.Keys(cfg.Providers),
 	}
@@ -104,4 +102,11 @@ func toFeed(pm provider.GetFilteredProviderMarketsRow, cfg config.GenerateConfig
 		liquidityInfo,
 		cmcInfo,
 	), nil
+}
+
+func (q *Querier) CMCIDToAssetInfo(ctx context.Context, cfg config.GenerateConfig) (map[int64]provider.AssetInfo, error) {
+	q.logConfig(cfg)
+
+	cmcIDToAssetInfo := q.providerStore.GetCMCIDToAssetInfo(ctx)
+	return cmcIDToAssetInfo, nil
 }

@@ -111,7 +111,7 @@
         "min_provider_liquidity": 10000
       },
       "mexc_ws": {
-        "isSupplemental": false,
+        "isSupplemental": true,
         "require_aggregate_ids": false,
         "ignore_liquidity": false,
         "ignore_volume": false,
@@ -180,6 +180,7 @@
     },
     "min_cex_provider_count": 2,
     "min_dex_provider_count": 1,
+    "exclude_cmc_tags": ["wrapped-tokens", "algorithmic-stablecoin"],
     "exclude_pairs": {
       "AGLD/USD": {},
       "AUD/USD": {},

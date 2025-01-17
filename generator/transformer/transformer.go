@@ -9,12 +9,14 @@ import (
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/generator/types"
+	"github.com/skip-mev/connect-mmu/store/provider"
 )
 
 type Transformer struct {
-	logger         *zap.Logger
-	feedTransforms []TransformFeed
-	mmTransforms   []TransformMarketMap
+	logger          *zap.Logger
+	feedTransforms  []TransformFeed
+	mmTransforms    []TransformMarketMap
+	assetTransforms []TransformAsset
 }
 
 // New creates a new Transformer.
@@ -37,6 +39,9 @@ func New(logger *zap.Logger) Transformer {
 			ResolveCMCConflictsForMarket(),
 			ResolveConflictsForProvider(),
 			TopFeedsForProvider(),
+		},
+		assetTransforms: []TransformAsset{ // Separate from feed transforms because these require extra metadata from asset infos
+			FilterOutCMCTags(),
 		},
 		mmTransforms: []TransformMarketMap{
 			PruneMarkets(),
@@ -61,6 +66,22 @@ func (d *Transformer) TransformFeeds(ctx context.Context, cfg config.GenerateCon
 			return nil, nil, err
 		}
 		feeds = transformFeeds
+		dropped.Merge(transformDrops)
+	}
+
+	return feeds, dropped, nil
+}
+
+// TransformAssets runs all asset transformers that are assigned to the Transformer.
+func (d *Transformer) TransformAssets(ctx context.Context, cfg config.GenerateConfig, feeds types.Feeds, cmcIDToAssetInfo map[int64]provider.AssetInfo) (types.Feeds, types.ExclusionReasons, error) {
+	dropped := types.NewExclusionReasons()
+
+	for _, t := range d.assetTransforms {
+		transformAssets, transformDrops, err := t(ctx, d.logger, cfg, feeds, cmcIDToAssetInfo)
+		if err != nil {
+			return nil, nil, err
+		}
+		feeds = transformAssets
 		dropped.Merge(transformDrops)
 	}
 
