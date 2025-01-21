@@ -43,6 +43,10 @@ const (
 	Dispatch
 )
 
+func init() {
+	// TODO fetch all API keys etc. from Secrets Manager here
+}
+
 func createSigningRegistry() *signing.Registry {
 	r := signing.NewRegistry()
 	err := errors.Join(
@@ -114,7 +118,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	case Generate:
 		args = []string{"generate", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network)}
 	case Override:
-		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network)}
+		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--overwrite-providers", "--update-enabled"}
 	case Validate:
 		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all"}
 	case Upserts:
