@@ -43,10 +43,6 @@ const (
 	Dispatch
 )
 
-func init() {
-	// TODO fetch all API keys etc. from Secrets Manager here
-}
-
 func createSigningRegistry() *signing.Registry {
 	r := signing.NewRegistry()
 	err := errors.Join(
