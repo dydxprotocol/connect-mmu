@@ -21,7 +21,7 @@ func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (ev
 	if !slices.Contains(supportedNetworks, network) {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
-			Body:       fmt.Sprintf("Invalid network: %s, must be one of: {testnet | mainnet}", network),
+			Body:       fmt.Sprintf("Invalid network: %s", network),
 		}, nil
 	}
 	os.Setenv("NETWORK", network)
