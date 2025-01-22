@@ -134,9 +134,16 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaResponse, err error) {
 	logger := logging.Logger(ctx)
 
+	env := os.Getenv("ENVIRONMENT")
+	if env != "testnet" && env != "mainnet" {
+		logger.Error("invalid env", zap.String("env", env))
+		return resp, err
+	}
+
 	// Fetch CMC API Key from Secrets Manager and set it as env var
 	// so it can be used by the Index + Validate jobs
-	cmcAPIKey, err := aws.GetSecret(ctx, "market-map-updater-cmc-api-key")
+	cmcAPIKeySecretName := fmt.Sprintf("%s-market-map-updater-cmc-api-key", env)
+	cmcAPIKey, err := aws.GetSecret(ctx, cmcAPIKeySecretName)
 	if err != nil {
 		logger.Error("failed to get CMC API key from Secrets Manager", zap.Error(err))
 		return resp, err
