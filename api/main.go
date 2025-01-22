@@ -15,6 +15,8 @@ import (
 )
 
 func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	fmt.Println("MAIN LAMBDA HANDLER")
+
 	network := request.QueryStringParameters["network"]
 	if network != "testnet" && network != "mainnet" {
 		return events.APIGatewayProxyResponse{
@@ -39,5 +41,6 @@ func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (ev
 }
 
 func main() {
+	fmt.Println("MAIN MAIN LAMBDA HANDLER")
 	lambda.Start(lambdaHandler)
 }

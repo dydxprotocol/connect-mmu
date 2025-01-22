@@ -179,6 +179,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 }
 
 func main() {
+	fmt.Println("MAIN MAIN")
 	if aws.IsLambda() {
 		// Running in AWS Lambda
 		lambda.Start(lambdaHandler)
