@@ -67,10 +67,6 @@ func getSupportedCommands() map[string]Command {
 	}
 }
 
-func getSupportedNetworks() []string {
-	return []string{"testnet", "mainnet"}
-}
-
 func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]string, error) {
 	logger := logging.Logger(ctx)
 
@@ -87,7 +83,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	}
 
 	network := lambdaEvent.Network
-	supportedNetworks := getSupportedNetworks()
+	supportedNetworks := cmd.GetSupportedNetworks()
 	// All non-Validate commands require caller to specify a target network
 	if command != Validate && !slices.Contains(supportedNetworks, network) {
 		return nil, fmt.Errorf("invalid network: %s. must be 1 of: %v", network, supportedNetworks)
@@ -135,8 +131,9 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	logger := logging.Logger(ctx)
 
 	env := os.Getenv("ENVIRONMENT")
-	if env != "staging" && env != "mainnet" {
-		logger.Error("invalid env", zap.String("env", env))
+	supportedEnvs := cmd.GetSupportedEnvironments()
+	if !slices.Contains(supportedEnvs, env) {
+		logger.Error("invalid env", zap.String("env", env), zap.Strings("validEnvs", supportedEnvs))
 		return resp, err
 	}
 
