@@ -1,7 +1,10 @@
 package update
 
 import (
+	"fmt"
+
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
 )
 
@@ -48,6 +51,35 @@ func CombineMarketMaps(
 		}
 
 		if found {
+			// Skip if generated market's CMC ID does not match the actual market's and actual market is enabled
+			if actualMarket.Ticker.Enabled {
+				actualMetadataJSON := actualMarket.Ticker.GetMetadata_JSON()
+				if actualMetadataJSON == "" {
+					logger.Warn("empty ticker metadata for existing market", zap.String("ticker", ticker))
+					continue
+				}
+				actualMetadata, err := tickermetadata.DyDxFromJSONString(actualMetadataJSON)
+				if err != nil {
+					return mmtypes.MarketMap{}, []string{}, err
+				}
+				generatedMetadataJSON := market.Ticker.GetMetadata_JSON()
+				if generatedMetadataJSON == "" {
+					return mmtypes.MarketMap{}, []string{}, fmt.Errorf("empty ticker metadata for market %s", ticker)
+				}
+				generatedMetadata, err := tickermetadata.DyDxFromJSONString(generatedMetadataJSON)
+				if err != nil {
+					return mmtypes.MarketMap{}, []string{}, err
+				}
+				if generatedMetadata.AggregateIDs[0].ID != actualMetadata.AggregateIDs[0].ID {
+					logger.Warn("not adding market because the generated market has a different CMC ID than the actual market",
+						zap.String("ticker", ticker),
+						zap.String("generated_cmc_id", generatedMetadata.AggregateIDs[0].ID),
+						zap.String("actual_cmc_id", actualMetadata.AggregateIDs[0].ID),
+					)
+					continue
+				}
+			}
+
 			if actualMarket.Ticker.Enabled && !options.UpdateEnabled {
 				// if the market is enabled, but we are NOT updating enabled, keep it the set to actual
 				logger.Debug("not updating market because it is already in the actual market map",
