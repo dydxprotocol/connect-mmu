@@ -163,12 +163,13 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				} else if mmuEnv == "mainnet" {
 					apiURL = ProdAPIURL
 				}
+				fullTXURL := fmt.Sprintf("%s?network=%s", apiURL, network)
 
 				// Construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
 				slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, network)
 
 				// Send notif to Slack
-				err = slack.SendNotification(fmt.Sprintf("New Market Map Transaction available for %s: %s", network, apiURL), slackWebhookURLSecretName)
+				err = slack.SendNotification(fmt.Sprintf("New Market Map Transaction available for %s: %s", network, fullTXURL), slackWebhookURLSecretName)
 				if err != nil {
 					return err
 				}
