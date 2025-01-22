@@ -10,15 +10,14 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 
-	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd"
-	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/basic"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 
 	"github.com/skip-mev/connect-mmu/lib/aws"
 )
 
 func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	network := request.QueryStringParameters["network"]
-	supportedNetworks := cmd.GetSupportedNetworks()
+	supportedNetworks := consts.GetSupportedNetworks()
 	if !slices.Contains(supportedNetworks, network) {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
@@ -27,11 +26,11 @@ func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (ev
 	}
 	os.Setenv("NETWORK", network)
 
-	txJSON, err := aws.ReadFromS3(basic.LatestTransactionsFilename, false)
+	txJSON, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Sprintf("Failed to read file from S3: %s-%s", network, basic.LatestTransactionsFilename),
+			Body:       fmt.Sprintf("Failed to read file from S3: %s-%s", network, consts.LatestTransactionsFilename),
 		}, nil
 	}
 

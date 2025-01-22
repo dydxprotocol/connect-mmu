@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/signing"
@@ -83,7 +84,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	}
 
 	network := lambdaEvent.Network
-	supportedNetworks := cmd.GetSupportedNetworks()
+	supportedNetworks := consts.GetSupportedNetworks()
 	// All non-Validate commands require caller to specify a target network
 	if command != Validate && !slices.Contains(supportedNetworks, network) {
 		return nil, fmt.Errorf("invalid network: %s. must be 1 of: %v", network, supportedNetworks)
@@ -131,7 +132,7 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	logger := logging.Logger(ctx)
 
 	env := os.Getenv("ENVIRONMENT")
-	supportedEnvs := cmd.GetSupportedEnvironments()
+	supportedEnvs := consts.GetSupportedEnvironments()
 	if !slices.Contains(supportedEnvs, env) {
 		logger.Error("invalid env", zap.String("env", env), zap.Strings("validEnvs", supportedEnvs))
 		return resp, err
