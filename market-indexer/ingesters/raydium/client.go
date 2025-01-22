@@ -12,12 +12,15 @@ import (
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/lib/http"
+	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
 )
 
 const (
 	EndpointPairs = "https://api.raydium.io/v2/main/pairs"
 	//nolint:gosec
 	EndpointTokenMetadata = "https://token-list-api.solana.cloud/v1/list"
+	CMC_DEX_ID = 1342
+	CMC_NETWORK_ID = 16  // Solana
 )
 
 var _ Client = &client{}
@@ -36,6 +39,7 @@ type Client interface {
 
 type client struct {
 	httpClient     *http.Client
+	cmcClient  *coinmarketcap.Client
 	multiRPCClient multiRPC
 }
 
@@ -60,9 +64,10 @@ func newMultiRPC(logger *zap.Logger, cfg config.MarketConfig) multiRPC {
 	return mRPC
 }
 
-func NewClient(logger *zap.Logger, cfg config.MarketConfig) Client {
+func NewClient(logger *zap.Logger, cfg config.MarketConfig, cmcClient *coinmarketcap.Client) Client {
 	return &client{
 		httpClient:     http.NewClient(),
+		cmcClient:  cmcClient,
 		multiRPCClient: newMultiRPC(logger, cfg),
 	}
 }
@@ -96,6 +101,8 @@ func (h *client) TokenMetadata(ctx context.Context) (TokenMetadataResponse, erro
 
 	return tmd, nil
 }
+
+func (h *client) CMCTokenMetadata(ctx context.Context) ([]*rpc.Account, error) {
 
 func (h *client) GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error) {
 	// choose random endpoint to use

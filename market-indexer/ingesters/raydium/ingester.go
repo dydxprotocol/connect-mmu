@@ -16,6 +16,7 @@ import (
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
+	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters"
 	raydium "github.com/skip-mev/connect-mmu/market-indexer/ingesters/raydium/generated/raydium_amm"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters/types"
@@ -40,14 +41,14 @@ type Ingester struct {
 }
 
 // New creates a new raydium Ingester.
-func New(logger *zap.Logger, cfg config.MarketConfig) *Ingester {
+func New(logger *zap.Logger, cfg config.MarketConfig, cmcClient *coinmarketcap.Client) *Ingester {
 	if logger == nil {
 		panic("cannot set nil logger")
 	}
 
 	return &Ingester{
 		logger: logger.With(zap.String("ingester", Name)),
-		client: NewClient(logger, cfg),
+		client: NewClient(logger, cfg, cmcClient),
 	}
 }
 

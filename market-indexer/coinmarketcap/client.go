@@ -18,6 +18,9 @@ const (
 	EndpointFiatMap         = "https://pro-api.coinmarketcap.com/v1/fiat/map"
 	EndpointQuote           = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=%s"
 	EndpointInfo            = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?id=%s"
+
+	MIN_DEX_VOLUME    = 10000
+	MIN_DEX_LIQUIDITY = 100000
 )
 
 var _ Client = &httpClient{}
@@ -244,6 +247,37 @@ func (h *httpClient) Quote(ctx context.Context, id int64) (QuoteResponse, error)
 
 // Info gets the info for the provided IDs from CoinMarketCap.
 func (h *httpClient) Info(ctx context.Context, ids []int64) (InfoResponse, error) {
+	var response InfoResponse
+
+	opts := []http.GetOptions{
+		http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
+		http.WithJSONAccept(),
+	}
+
+	// Convert each integer to a string
+	strSlice := make([]string, len(ids))
+	for i, num := range ids {
+		strSlice[i] = fmt.Sprintf("%d", num)
+	}
+
+	// Join the string slice with a comma separator
+	idsString := strings.Join(strSlice, ",")
+
+	resp, err := h.client.GetWithContext(ctx, fmt.Sprintf(EndpointInfo, idsString), opts...)
+	if err != nil {
+		return response, err
+	}
+	defer resp.Body.Close()
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return response, err
+	}
+
+	return response, nil
+}
+
+// DexAssets gets the info for the provided IDs from CoinMarketCap.
+func (h *httpClient) DexAssets(ctx context.Context, dex_id int64, network_slug string) (InfoResponse, error) {
 	var response InfoResponse
 
 	opts := []http.GetOptions{

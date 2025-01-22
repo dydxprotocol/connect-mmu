@@ -92,7 +92,8 @@ func NewIndexer(cfg config.MarketConfig, logger *zap.Logger, writer provider.Sto
 		case huobi.Name:
 			igs[i] = huobi.New(logger)
 		case raydium.Name:
-			igs[i] = raydium.New(logger, cfg)
+			cmcClient := svc.cmcIndexer.GetClient()
+			igs[i] = raydium.New(logger, cfg, &cmcClient)
 		case gecko.Name:
 			igs[i] = gecko.New(logger, cfg)
 		default:
