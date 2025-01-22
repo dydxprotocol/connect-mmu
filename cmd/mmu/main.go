@@ -92,6 +92,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	if command != Validate && !slices.Contains(supportedNetworks, network) {
 		return nil, fmt.Errorf("invalid network: %s. must be 1 of: %v", network, supportedNetworks)
 	}
+	os.Setenv("NETWORK", network)
 
 	// All non-Index commands require caller to specify a timestamp of input file(s) to use
 	if command != Index && lambdaEvent.Timestamp == "" {
