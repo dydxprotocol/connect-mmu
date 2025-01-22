@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/dispatcher"
@@ -28,26 +29,6 @@ import (
 	"github.com/skip-mev/connect-mmu/signing"
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 )
-
-// Filename of the file to write to S3 containing the latest MM transactions
-const LatestTransactionsFilename = "latest-transactions.json"
-
-// URL to fetch the latest transactions output by the Staging MMU.
-// Only used for internal dev / testing of the MMU itself.
-const StagingAPIURL = "https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx"
-
-// URL to fetch the latest transactions output by the Prod MMU.
-// Used by external MM Operator to fetch transactions for updating Testnet and Mainnet MMs.
-const ProdAPIURL = "https://fdviqy4mbk.execute-api.ap-northeast-1.amazonaws.com/mainnet/market-map-updater/v1/tx"
-
-// Slack Webhook URL for the Staging MMU env (posts to internal dev channel only)
-const StagingSlackWebhookURL = "https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx"
-
-// Slack Webhook URL for the Prod MMU env's Testnet transactions (posts to ext-testnet-market-map-notifs, a shared channel w/ MM Operator)
-const ProdTestnetSlackWebhookURL = "https://hooks.slack.com/services/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"
-
-// Slack Webhook URL for the Prod MMU env's Mainnet transactions (posts to ext-mainnet-market-map-notifs, a shared channel w/ MM Operator)
-const ProdMainnetSlackWebhookURL = "TODO"
 
 // DispatchCmd returns a command to DispatchCmd market upserts.
 func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
@@ -132,46 +113,7 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 			}
 
 			if aws.IsLambda() {
-				// Check if new transactions differ from the existing "latest-transactions.json" in S3
-				newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
-				if err != nil {
-					return err
-				}
-				existingLatestTransactionsJSON, err := aws.ReadFromS3(LatestTransactionsFilename, false)
-				if err != nil {
-					return err
-				}
-				if bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
-					return nil
-				}
-
-				// If we have new transactions, write them to "latest-transactions.json"
-				err = aws.WriteToS3(LatestTransactionsFilename, newLatestTransactionsJSON, false)
-				if err != nil {
-					return err
-				}
-
-				// Get current env of the MMU itself
-				mmuEnv := os.Getenv("ENVIRONMENT")
-
-				// Get target network of the current MMU run
-				network := os.Getenv("NETWORK")
-
-				var apiURL string
-				if mmuEnv == "staging" {
-					apiURL = StagingAPIURL
-				} else if mmuEnv == "mainnet" {
-					apiURL = ProdAPIURL
-				}
-
-				// Construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
-				slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, network)
-
-				// Send notif to Slack
-				err = slack.SendNotification(fmt.Sprintf("New Market Map Transaction available for %s: %s", network, apiURL), slackWebhookURLSecretName)
-				if err != nil {
-					return err
-				}
+				return writeLatestTransactionsAndNotifySlack(decodedTxs)
 			}
 
 			return nil
@@ -296,6 +238,48 @@ func getSignerAddress(ctx context.Context, signer signing.SigningAgent) (string,
 		return "", fmt.Errorf("expected BaseAccount but got %T", acc)
 	}
 	return baseAcc.Address, nil
+}
+
+func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
+	// Check if new transactions differ from the existing "latest-transactions.json" in S3
+	newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
+	if err != nil {
+		return err
+	}
+	existingLatestTransactionsJSON, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
+	if err != nil {
+		return err
+	}
+	if bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
+		return nil
+	}
+
+	// If we have new transactions, write them to "latest-transactions.json"
+	err = aws.WriteToS3(consts.LatestTransactionsFilename, newLatestTransactionsJSON, false)
+	if err != nil {
+		return err
+	}
+
+	// Get current env of the MMU itself
+	mmuEnv := os.Getenv("ENVIRONMENT")
+
+	// Get target network of the current MMU run
+	network := os.Getenv("NETWORK")
+
+	// Construct full API URL to fetch the latest transactions, incl. network query param
+	var baseAPIURL string
+	if mmuEnv == "staging" {
+		baseAPIURL = consts.StagingAPIURL
+	} else if mmuEnv == "mainnet" {
+		baseAPIURL = consts.ProdAPIURL
+	}
+	fullAPIURL := fmt.Sprintf("%s?network=%s", baseAPIURL, network)
+
+	// Construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
+	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, network)
+
+	// Send notif to Slack
+	return slack.SendNotification(fmt.Sprintf("New Market Map Transaction available for %s: %s", network, fullAPIURL), slackWebhookURLSecretName)
 }
 
 type dispatchCmdFlags struct {
