@@ -38,20 +38,6 @@ func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (ev
 	}, nil
 }
 
-func serverError(err error) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusInternalServerError,
-		Body:       http.StatusText(http.StatusInternalServerError),
-	}, nil
-}
-
-func clientError(status int, body string) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
-		StatusCode: status,
-		Body:       body,
-	}, nil
-}
-
 func main() {
 	lambda.Start(lambdaHandler)
 }
