@@ -134,7 +134,11 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaResponse, err error) {
 	logger := logging.Logger(ctx)
 
+	logger.Error("MAIN")
+
 	env := os.Getenv("ENVIRONMENT")
+	logger.Error("ENV:")
+	logger.Error(env)
 	if env != "testnet" && env != "mainnet" {
 		logger.Error("invalid env", zap.String("env", env))
 		return resp, err
