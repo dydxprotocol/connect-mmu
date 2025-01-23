@@ -11,6 +11,7 @@ import (
 	"gopkg.in/typ.v4/maps"
 
 	"github.com/skip-mev/connect-mmu/config"
+	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters"
 	"github.com/skip-mev/connect-mmu/store/provider"
 )
@@ -57,6 +58,10 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 		if err != nil {
 			return nil, err
 		}
+
+		// TODO: Remove
+		filepath := fmt.Sprintf("tmp/%s_pools.json", pair.Dex)
+		file.CreateAndWriteJSONToFile(filepath, pools)
 
 		ig.logger.Info("fetched data", zap.Int("pools", len(pools)), zap.String("dex", pair.Dex))
 
@@ -171,6 +176,10 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 		}
 	}
 	ig.logger.Info("fetched data", zap.Int("markets", len(providerMarkets)))
+
+	// TODO: Remove
+	filepath := "tmp/uniswap_provider_markets.json"
+	file.CreateAndWriteJSONToFile(filepath, providerMarkets)
 
 	return providerMarkets, nil
 }

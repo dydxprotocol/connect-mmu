@@ -15,6 +15,7 @@ const (
 	EndpointExchangeMap     = "https://pro-api.coinmarketcap.com/v1/exchange/map"
 	EndpointExchangeAssets  = "https://pro-api.coinmarketcap.com/v1/exchange/assets?id=%d"
 	EndpointExchangeMarkets = "https://pro-api.coinmarketcap.com/v1/exchange/market-pairs/latest?id=%d&limit=5000"
+	EndpointDexMarkets      = "https://pro-api.coinmarketcap.com/v4/dex/spot-pairs/latest"
 	EndpointFiatMap         = "https://pro-api.coinmarketcap.com/v1/fiat/map"
 	EndpointQuote           = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=%s"
 	EndpointInfo            = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?id=%s"
@@ -40,6 +41,9 @@ type Client interface {
 
 	// ExchangeMarkets gets the full list of markets for the given exchange.
 	ExchangeMarkets(ctx context.Context, exchange int) (ExchangeMarketsResponse, error)
+
+	// DexMarkets gets the full list of markets for the given DEX exchange.
+	DexMarkets(ctx context.Context, cmcInfo CMCIDInfo) (DexMarketsResponse, error)
 
 	// FiatMap gets the full fiat asset map from CoinMarketCap.
 	FiatMap(ctx context.Context) (FiatResponse, error)
@@ -79,7 +83,7 @@ func (h *httpClient) CryptoIDMap(ctx context.Context) (CryptoIDMapResponse, erro
 		opts := []http.GetOptions{
 			http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
 			http.WithJSONAccept(),
-			http.WithQueryParam("start", fmt.Sprintf("%d", start)),
+			http.WithQueryParam("start", strconv.Itoa(start)),
 		}
 
 		resp, err := h.client.GetWithContext(ctx, EndpointCryptoMap, opts...)
@@ -93,6 +97,10 @@ func (h *httpClient) CryptoIDMap(ctx context.Context) (CryptoIDMapResponse, erro
 			return response, err
 		}
 		resp.Body.Close()
+
+		if err := pageResponse.Status.Validate(); err != nil {
+			return response, err
+		}
 
 		allData = append(allData, pageResponse.Data...)
 
@@ -175,6 +183,54 @@ func (h *httpClient) ExchangeMarkets(ctx context.Context, exchange int) (Exchang
 	return response, nil
 }
 
+// DexMarkets gets the full list of markets for the given DEX.
+func (h *httpClient) DexMarkets(ctx context.Context, dex_id int, network_id int) (DexMarketsResponse, error) {
+	var response DexMarketsResponse
+	var allData []DexMarketsData
+
+	scroll_id := "0" // CMC's DEX API pagination field for start index of results page
+	limit := 100
+
+	for {
+		opts := []http.GetOptions{
+			http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
+			http.WithJSONAccept(),
+			http.WithQueryParam("dex_id", strconv.Itoa(dex_id)),
+			http.WithQueryParam("network_id", strconv.Itoa(network_id)),
+			http.WithQueryParam("liquidity_min", strconv.Itoa(MIN_DEX_LIQUIDITY)),
+			http.WithQueryParam("volume_24h_min", strconv.Itoa(MIN_DEX_VOLUME)),
+			http.WithQueryParam("scroll_id", scroll_id),
+			http.WithQueryParam("limit", strconv.Itoa(limit)),
+		}
+
+		resp, err := h.client.GetWithContext(ctx, EndpointDexMarkets, opts...)
+		if err != nil {
+			return response, err
+		}
+
+		var pageResponse DexMarketsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&pageResponse); err != nil {
+			resp.Body.Close()
+			return response, err
+		}
+		resp.Body.Close()
+
+		if err := pageResponse.Status.Validate(); err != nil {
+			return response, err
+		}
+
+		allData = append(allData, pageResponse.Data...)
+
+		if len(pageResponse.Data) < limit {
+			break
+		}
+		scroll_id = pageResponse.Data[len(pageResponse.Data)-1].ScrollID
+	}
+
+	response.Data = allData
+	return response, nil
+}
+
 // FiatMap gets the full fiat asset map from CoinMarketCap.
 func (h *httpClient) FiatMap(ctx context.Context) (FiatResponse, error) {
 	var response FiatResponse
@@ -247,37 +303,6 @@ func (h *httpClient) Quote(ctx context.Context, id int64) (QuoteResponse, error)
 
 // Info gets the info for the provided IDs from CoinMarketCap.
 func (h *httpClient) Info(ctx context.Context, ids []int64) (InfoResponse, error) {
-	var response InfoResponse
-
-	opts := []http.GetOptions{
-		http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
-		http.WithJSONAccept(),
-	}
-
-	// Convert each integer to a string
-	strSlice := make([]string, len(ids))
-	for i, num := range ids {
-		strSlice[i] = fmt.Sprintf("%d", num)
-	}
-
-	// Join the string slice with a comma separator
-	idsString := strings.Join(strSlice, ",")
-
-	resp, err := h.client.GetWithContext(ctx, fmt.Sprintf(EndpointInfo, idsString), opts...)
-	if err != nil {
-		return response, err
-	}
-	defer resp.Body.Close()
-
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return response, err
-	}
-
-	return response, nil
-}
-
-// DexAssets gets the info for the provided IDs from CoinMarketCap.
-func (h *httpClient) DexAssets(ctx context.Context, dex_id int64, network_slug string) (InfoResponse, error) {
 	var response InfoResponse
 
 	opts := []http.GetOptions{

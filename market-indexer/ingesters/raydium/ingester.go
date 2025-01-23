@@ -37,7 +37,8 @@ var _ ingesters.Ingester = &Ingester{}
 type Ingester struct {
 	logger *zap.Logger
 
-	client Client
+	client    Client
+	cmcClient *coinmarketcap.Client
 }
 
 // New creates a new raydium Ingester.
@@ -47,8 +48,9 @@ func New(logger *zap.Logger, cfg config.MarketConfig, cmcClient *coinmarketcap.C
 	}
 
 	return &Ingester{
-		logger: logger.With(zap.String("ingester", Name)),
-		client: NewClient(logger, cfg, cmcClient),
+		logger:    logger.With(zap.String("ingester", Name)),
+		client:    NewClient(logger, cfg),
+		cmcClient: cmcClient,
 	}
 }
 
