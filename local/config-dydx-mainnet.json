@@ -182,10 +182,10 @@
     "min_dex_provider_count": 1,
     "exclude_cmc_tags": ["wrapped-tokens", "algorithmic-stablecoin"],
     "exclude_pairs": {
-      "AGLD/USD": {},
       "AUD/USD": {},
       "CAD/USD": {},
       "CNY/USD": {},
+      "ETHDYDX/USD": {},
       "GBP/USD": {},
       "JPY/USD": {},
       "MATIC/USD": {},
@@ -277,6 +277,43 @@
             {
               "name": "polymarket_api",
               "off_chain_ticker": "0xeb3cef6b7f43fcd35ce139e89c0b00cbc3a70a556c87ef934f8ca984208aaaa8/51052158557761079600060821198344572146234634299666295420235183322360518805559"
+            }
+          ]
+        },
+        "NEIRO/USD": {
+          "ticker": {
+            "currency_pair": {
+              "Base": "NEIRO",
+              "Quote": "USD"
+            },
+            "decimals": 11,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":3168000000,\"liquidity\":190473,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"32461\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "bybit_ws",
+              "off_chain_ticker": "NEIROUSDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            },
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "NEIROETH_USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            },
+            {
+              "name": "kucoin_ws",
+              "off_chain_ticker": "NEIRO-USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
             }
           ]
         },

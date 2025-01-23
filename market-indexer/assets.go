@@ -10,6 +10,7 @@ import (
 
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
+	cmc_api "github.com/skip-mev/connect-mmu/market-indexer/api/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/utils"
 	"github.com/skip-mev/connect-mmu/store/provider"
@@ -124,7 +125,7 @@ func (idx *Indexer) archiveIntermediateFile(data interface{}, filename string) e
 }
 
 // FiatAssetInfoFromData creates a fiat asset from coinmarketcap data.
-func FiatAssetInfoFromData(data coinmarketcap.FiatData) provider.CreateAssetInfoParams {
+func FiatAssetInfoFromData(data cmc_api.FiatData) provider.CreateAssetInfoParams {
 	assetAddress := utils.AssetAddress{
 		Venue:   VenueFiat,
 		Address: "",
@@ -140,7 +141,7 @@ func FiatAssetInfoFromData(data coinmarketcap.FiatData) provider.CreateAssetInfo
 }
 
 // CryptoAssetInfoFromQuoteData creates a crypto asset from coinmarketcap quote data.
-func CryptoAssetInfoFromQuoteData(data coinmarketcap.QuoteData) provider.CreateAssetInfoParams {
+func CryptoAssetInfoFromQuoteData(data cmc_api.QuoteData) provider.CreateAssetInfoParams {
 	// use zero values
 	assetAddress := utils.AssetAddress{}
 

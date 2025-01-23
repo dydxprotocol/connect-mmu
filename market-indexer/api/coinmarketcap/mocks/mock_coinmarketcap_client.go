@@ -79,6 +79,64 @@ func (_c *Client_CryptoIDMap_Call) RunAndReturn(run func(context.Context) (coinm
 	return _c
 }
 
+// DexMarkets provides a mock function with given fields: ctx, networkID, dexID
+func (_m *Client) DexMarkets(ctx context.Context, networkID int, dexID int) (coinmarketcap.DexMarketsResponse, error) {
+	ret := _m.Called(ctx, networkID, dexID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DexMarkets")
+	}
+
+	var r0 coinmarketcap.DexMarketsResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) (coinmarketcap.DexMarketsResponse, error)); ok {
+		return rf(ctx, networkID, dexID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) coinmarketcap.DexMarketsResponse); ok {
+		r0 = rf(ctx, networkID, dexID)
+	} else {
+		r0 = ret.Get(0).(coinmarketcap.DexMarketsResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, networkID, dexID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Client_DexMarkets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DexMarkets'
+type Client_DexMarkets_Call struct {
+	*mock.Call
+}
+
+// DexMarkets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - networkID int
+//   - dexID int
+func (_e *Client_Expecter) DexMarkets(ctx interface{}, networkID interface{}, dexID interface{}) *Client_DexMarkets_Call {
+	return &Client_DexMarkets_Call{Call: _e.mock.On("DexMarkets", ctx, networkID, dexID)}
+}
+
+func (_c *Client_DexMarkets_Call) Run(run func(ctx context.Context, networkID int, dexID int)) *Client_DexMarkets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int), args[2].(int))
+	})
+	return _c
+}
+
+func (_c *Client_DexMarkets_Call) Return(_a0 coinmarketcap.DexMarketsResponse, _a1 error) *Client_DexMarkets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Client_DexMarkets_Call) RunAndReturn(run func(context.Context, int, int) (coinmarketcap.DexMarketsResponse, error)) *Client_DexMarkets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ExchangeAssets provides a mock function with given fields: ctx, exchange
 func (_m *Client) ExchangeAssets(ctx context.Context, exchange int) (coinmarketcap.ExchangeAssetsResponse, error) {
 	ret := _m.Called(ctx, exchange)

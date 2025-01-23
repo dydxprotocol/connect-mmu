@@ -15,9 +15,15 @@ const (
 	EndpointExchangeMap     = "https://pro-api.coinmarketcap.com/v1/exchange/map"
 	EndpointExchangeAssets  = "https://pro-api.coinmarketcap.com/v1/exchange/assets?id=%d"
 	EndpointExchangeMarkets = "https://pro-api.coinmarketcap.com/v1/exchange/market-pairs/latest?id=%d&limit=5000"
+	EndpointDexMarkets      = "https://pro-api.coinmarketcap.com/v4/dex/spot-pairs/latest"
 	EndpointFiatMap         = "https://pro-api.coinmarketcap.com/v1/fiat/map"
 	EndpointQuote           = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=%s"
 	EndpointInfo            = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?id=%s"
+
+	// Loose constraints to limit the number of CMC credits we need to use
+	// as there are a ton of raydium assets that shouldn't be considered
+	MIN_DEX_VOLUME    = 10000
+	MIN_DEX_LIQUIDITY = 100000
 )
 
 var _ Client = &httpClient{}
@@ -37,6 +43,9 @@ type Client interface {
 
 	// ExchangeMarkets gets the full list of markets for the given exchange.
 	ExchangeMarkets(ctx context.Context, exchange int) (ExchangeMarketsResponse, error)
+
+	// DexMarkets gets the full list of markets for the given DEX exchange.
+	DexMarkets(ctx context.Context, networkID int, dexID int) (DexMarketsResponse, error)
 
 	// FiatMap gets the full fiat asset map from CoinMarketCap.
 	FiatMap(ctx context.Context) (FiatResponse, error)
@@ -76,7 +85,7 @@ func (h *httpClient) CryptoIDMap(ctx context.Context) (CryptoIDMapResponse, erro
 		opts := []http.GetOptions{
 			http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
 			http.WithJSONAccept(),
-			http.WithQueryParam("start", fmt.Sprintf("%d", start)),
+			http.WithQueryParam("start", strconv.Itoa(start)),
 		}
 
 		resp, err := h.client.GetWithContext(ctx, EndpointCryptoMap, opts...)
@@ -90,6 +99,10 @@ func (h *httpClient) CryptoIDMap(ctx context.Context) (CryptoIDMapResponse, erro
 			return response, err
 		}
 		resp.Body.Close()
+
+		if err := pageResponse.Status.Validate(); err != nil {
+			return response, err
+		}
 
 		allData = append(allData, pageResponse.Data...)
 
@@ -169,6 +182,54 @@ func (h *httpClient) ExchangeMarkets(ctx context.Context, exchange int) (Exchang
 		return response, err
 	}
 
+	return response, nil
+}
+
+// DexMarkets gets the full list of markets for the given DEX.
+func (h *httpClient) DexMarkets(ctx context.Context, networkID int, dexID int) (DexMarketsResponse, error) {
+	var response DexMarketsResponse
+	var allData []DexMarketsData
+
+	scrollID := "0" // CMC's DEX API pagination field for start index of results page
+	limit := 100
+
+	for {
+		opts := []http.GetOptions{
+			http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
+			http.WithJSONAccept(),
+			http.WithQueryParam("dex_id", strconv.Itoa(dexID)),
+			http.WithQueryParam("network_id", strconv.Itoa(networkID)),
+			http.WithQueryParam("liquidity_min", strconv.Itoa(MIN_DEX_LIQUIDITY)),
+			http.WithQueryParam("volume_24h_min", strconv.Itoa(MIN_DEX_VOLUME)),
+			http.WithQueryParam("scroll_id", scrollID),
+			http.WithQueryParam("limit", strconv.Itoa(limit)),
+		}
+
+		resp, err := h.client.GetWithContext(ctx, EndpointDexMarkets, opts...)
+		if err != nil {
+			return response, err
+		}
+
+		var pageResponse DexMarketsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&pageResponse); err != nil {
+			resp.Body.Close()
+			return response, err
+		}
+		resp.Body.Close()
+
+		if err := pageResponse.Status.Validate(); err != nil {
+			return response, err
+		}
+
+		allData = append(allData, pageResponse.Data...)
+
+		if len(pageResponse.Data) < limit {
+			break
+		}
+		scrollID = pageResponse.Data[len(pageResponse.Data)-1].ScrollID
+	}
+
+	response.Data = allData
 	return response, nil
 }
 

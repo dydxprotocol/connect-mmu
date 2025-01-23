@@ -15,7 +15,7 @@ import (
 
 	mapslib "github.com/skip-mev/connect-mmu/lib/maps"
 	"github.com/skip-mev/connect-mmu/lib/slices"
-	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
+	"github.com/skip-mev/connect-mmu/market-indexer/api/coinmarketcap"
 )
 
 var ErrCMCIDNotFound = errors.New("cmc ID not found")

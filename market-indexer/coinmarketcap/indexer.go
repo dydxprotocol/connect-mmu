@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
+	cmc "github.com/skip-mev/connect-mmu/market-indexer/api/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters/coinbase"
 	crypto_com "github.com/skip-mev/connect-mmu/market-indexer/ingesters/crypto.com"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters/gate"
@@ -21,11 +22,17 @@ import (
 	"github.com/skip-mev/connect-mmu/types"
 )
 
+const (
+	exchangeStatusActive   = 1
+	exchangeStatusInactive = 0
+)
+
 type Indexer struct {
 	logger *zap.Logger
 
-	client Client
-	quotes map[int64]QuoteData
+	client   cmc.Client
+	quotes   map[int64]cmc.QuoteData
+	cmcIDMap map[int]cmc.CryptoIDMapData
 }
 
 // New creates a new coinmarketcap Indexer.
@@ -35,32 +42,34 @@ func New(logger *zap.Logger, apiKey string) *Indexer {
 	}
 
 	return &Indexer{
-		logger: logger.With(zap.String("indexer", Name)),
-		client: NewHTTPClient(apiKey),
-		quotes: make(map[int64]QuoteData),
+		logger:   logger.With(zap.String("indexer", cmc.Name)),
+		client:   cmc.NewHTTPClient(apiKey),
+		quotes:   make(map[int64]cmc.QuoteData),
+		cmcIDMap: make(map[int]cmc.CryptoIDMapData),
 	}
 }
 
 // NewWithClient creates a new coinmarketcap Indexer.
-func NewWithClient(logger *zap.Logger, client Client) *Indexer {
+func NewWithClient(logger *zap.Logger, client cmc.Client) *Indexer {
 	if logger == nil {
 		panic("cannot set nil logger")
 	}
 
 	return &Indexer{
-		logger: logger.With(zap.String("ingester", Name)),
-		client: client,
-		quotes: make(map[int64]QuoteData),
+		logger:   logger.With(zap.String("ingester", cmc.Name)),
+		client:   client,
+		quotes:   make(map[int64]cmc.QuoteData),
+		cmcIDMap: make(map[int]cmc.CryptoIDMapData),
 	}
 }
 
-func (i *Indexer) GetClient() Client {
+func (i *Indexer) GetClient() cmc.Client {
 	return i.client
 }
 
 type WrappedCryptoIDMapData struct {
-	IDMap CryptoIDMapData
-	Info  InfoData
+	IDMap cmc.CryptoIDMapData
+	Info  cmc.InfoData
 }
 
 // CryptoIDMap is an alias for the data payload returned from the CoinMarketCap API.
@@ -75,10 +84,6 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 		return nil, err
 	}
 
-	if err := resp.Status.Validate(); err != nil {
-		return nil, err
-	}
-
 	wrapped := make(CryptoIDMap, len(resp.Data))
 	ids := make([]int64, len(resp.Data))
 	for i, data := range resp.Data {
@@ -86,7 +91,7 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 	}
 
 	const reqSize = 1000
-	infoDataMap := make(InfoDataMap, len(resp.Data))
+	infoDataMap := make(cmc.InfoDataMap, len(resp.Data))
 	splitIDs := slices.Chunk(ids, reqSize)
 	for _, split := range splitIDs {
 		infoResp, err := i.client.Info(ctx, split)
@@ -119,7 +124,7 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 }
 
 // FiatIDMap is an alias for the data payload returned from the CoinMarketCap API.
-type FiatIDMap []FiatData
+type FiatIDMap []cmc.FiatData
 
 // FiatIDMap returns the map of all fiat CMC IDs to asset names using its underlying client.
 func (i *Indexer) FiatIDMap(ctx context.Context) (FiatIDMap, error) {
@@ -155,7 +160,7 @@ func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) error {
 // Quotes fetches the QuoteData for the given CMC IDs and returns them as a map.
 // If a desired ID is not returned, we fall back to individually fetch the data for the ID,
 // and return an error if that fails.
-func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]QuoteData, error) {
+func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteData, error) {
 	i.logger.Debug("fetching quote data", zap.Any("cmc ids", ids))
 
 	resp, err := i.client.Quotes(ctx, ids)
@@ -169,7 +174,7 @@ func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]QuoteData,
 		return nil, err
 	}
 
-	quotes := make(map[int64]QuoteData)
+	quotes := make(map[int64]cmc.QuoteData)
 	for _, id := range ids {
 		data, ok := resp.Data[fmt.Sprintf("%d", id)]
 		if !ok {
@@ -187,7 +192,7 @@ func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]QuoteData,
 }
 
 // Quote returns a quote from the CMC ID and symbol using its underlying client.
-func (i *Indexer) Quote(ctx context.Context, id int64) (QuoteData, error) {
+func (i *Indexer) Quote(ctx context.Context, id int64) (cmc.QuoteData, error) {
 	i.logger.Debug("fetching quote data", zap.Int64("cmc id", id))
 
 	if data, ok := i.quotes[id]; ok {
@@ -197,12 +202,12 @@ func (i *Indexer) Quote(ctx context.Context, id int64) (QuoteData, error) {
 	resp, err := i.client.Quote(ctx, id)
 	if err != nil {
 		i.logger.Error("unable to fetch quote data", zap.Error(err))
-		return QuoteData{}, err
+		return cmc.QuoteData{}, err
 	}
 
 	if err := resp.Status.Validate(); err != nil {
 		i.logger.Error("failed to validate response", zap.Error(err))
-		return QuoteData{}, err
+		return cmc.QuoteData{}, err
 	}
 
 	// lookup by string rep of ID
@@ -211,7 +216,7 @@ func (i *Indexer) Quote(ctx context.Context, id int64) (QuoteData, error) {
 	}
 
 	i.logger.Error("desired symbol not found", zap.Error(err), zap.Any("data", resp.Data))
-	return QuoteData{}, fmt.Errorf("quote data not found for id: %d, %w", id, err)
+	return cmc.QuoteData{}, fmt.Errorf("quote data not found for id: %d, %w", id, err)
 }
 
 type ProviderMarketPairs struct {
