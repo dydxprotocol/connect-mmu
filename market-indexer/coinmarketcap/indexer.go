@@ -6,12 +6,13 @@ import (
 	"maps"
 	"strconv"
 
-	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/lib/slices"
+	"github.com/skip-mev/connect-mmu/lib/symbols"
 
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
+	cmc "github.com/skip-mev/connect-mmu/market-indexer/api/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters/coinbase"
 	crypto_com "github.com/skip-mev/connect-mmu/market-indexer/ingesters/crypto.com"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters/gate"
@@ -21,12 +22,17 @@ import (
 	"github.com/skip-mev/connect-mmu/types"
 )
 
+const (
+	exchangeStatusActive   = 1
+	exchangeStatusInactive = 0
+)
+
 type Indexer struct {
 	logger *zap.Logger
 
-	client   Client
-	quotes   map[int64]QuoteData
-	cmcIDMap map[int]CryptoIDMapData
+	client   cmc.Client
+	quotes   map[int64]cmc.QuoteData
+	cmcIDMap map[int]cmc.CryptoIDMapData
 }
 
 // New creates a new coinmarketcap Indexer.
@@ -36,34 +42,34 @@ func New(logger *zap.Logger, apiKey string) *Indexer {
 	}
 
 	return &Indexer{
-		logger:   logger.With(zap.String("indexer", Name)),
-		client:   NewHTTPClient(apiKey),
-		quotes:   make(map[int64]QuoteData),
-		cmcIDMap: make(map[int]CryptoIDMapData),
+		logger:   logger.With(zap.String("indexer", cmc.Name)),
+		client:   cmc.NewHTTPClient(apiKey),
+		quotes:   make(map[int64]cmc.QuoteData),
+		cmcIDMap: make(map[int]cmc.CryptoIDMapData),
 	}
 }
 
 // NewWithClient creates a new coinmarketcap Indexer.
-func NewWithClient(logger *zap.Logger, client Client) *Indexer {
+func NewWithClient(logger *zap.Logger, client cmc.Client) *Indexer {
 	if logger == nil {
 		panic("cannot set nil logger")
 	}
 
 	return &Indexer{
-		logger:   logger.With(zap.String("ingester", Name)),
+		logger:   logger.With(zap.String("ingester", cmc.Name)),
 		client:   client,
-		quotes:   make(map[int64]QuoteData),
-		cmcIDMap: make(map[int]CryptoIDMapData),
+		quotes:   make(map[int64]cmc.QuoteData),
+		cmcIDMap: make(map[int]cmc.CryptoIDMapData),
 	}
 }
 
-func (i *Indexer) GetClient() Client {
+func (i *Indexer) GetClient() cmc.Client {
 	return i.client
 }
 
 type WrappedCryptoIDMapData struct {
-	IDMap CryptoIDMapData
-	Info  InfoData
+	IDMap cmc.CryptoIDMapData
+	Info  cmc.InfoData
 }
 
 // CryptoIDMap is an alias for the data payload returned from the CoinMarketCap API.
@@ -85,7 +91,7 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 	}
 
 	const reqSize = 1000
-	infoDataMap := make(InfoDataMap, len(resp.Data))
+	infoDataMap := make(cmc.InfoDataMap, len(resp.Data))
 	splitIDs := slices.Chunk(ids, reqSize)
 	for _, split := range splitIDs {
 		infoResp, err := i.client.Info(ctx, split)
@@ -118,7 +124,7 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 }
 
 // FiatIDMap is an alias for the data payload returned from the CoinMarketCap API.
-type FiatIDMap []FiatData
+type FiatIDMap []cmc.FiatData
 
 // FiatIDMap returns the map of all fiat CMC IDs to asset names using its underlying client.
 func (i *Indexer) FiatIDMap(ctx context.Context) (FiatIDMap, error) {
@@ -154,7 +160,7 @@ func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) error {
 // Quotes fetches the QuoteData for the given CMC IDs and returns them as a map.
 // If a desired ID is not returned, we fall back to individually fetch the data for the ID,
 // and return an error if that fails.
-func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]QuoteData, error) {
+func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteData, error) {
 	i.logger.Debug("fetching quote data", zap.Any("cmc ids", ids))
 
 	resp, err := i.client.Quotes(ctx, ids)
@@ -168,7 +174,7 @@ func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]QuoteData,
 		return nil, err
 	}
 
-	quotes := make(map[int64]QuoteData)
+	quotes := make(map[int64]cmc.QuoteData)
 	for _, id := range ids {
 		data, ok := resp.Data[fmt.Sprintf("%d", id)]
 		if !ok {
@@ -186,7 +192,7 @@ func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]QuoteData,
 }
 
 // Quote returns a quote from the CMC ID and symbol using its underlying client.
-func (i *Indexer) Quote(ctx context.Context, id int64) (QuoteData, error) {
+func (i *Indexer) Quote(ctx context.Context, id int64) (cmc.QuoteData, error) {
 	i.logger.Debug("fetching quote data", zap.Int64("cmc id", id))
 
 	if data, ok := i.quotes[id]; ok {
@@ -196,12 +202,12 @@ func (i *Indexer) Quote(ctx context.Context, id int64) (QuoteData, error) {
 	resp, err := i.client.Quote(ctx, id)
 	if err != nil {
 		i.logger.Error("unable to fetch quote data", zap.Error(err))
-		return QuoteData{}, err
+		return cmc.QuoteData{}, err
 	}
 
 	if err := resp.Status.Validate(); err != nil {
 		i.logger.Error("failed to validate response", zap.Error(err))
-		return QuoteData{}, err
+		return cmc.QuoteData{}, err
 	}
 
 	// lookup by string rep of ID
@@ -210,7 +216,7 @@ func (i *Indexer) Quote(ctx context.Context, id int64) (QuoteData, error) {
 	}
 
 	i.logger.Error("desired symbol not found", zap.Error(err), zap.Any("data", resp.Data))
-	return QuoteData{}, fmt.Errorf("quote data not found for id: %d, %w", id, err)
+	return cmc.QuoteData{}, fmt.Errorf("quote data not found for id: %d, %w", id, err)
 }
 
 type ProviderMarketPairs struct {
@@ -248,219 +254,69 @@ func (i *Indexer) GetProviderMarketsPairs(ctx context.Context, cfg config.Market
 		return pmps, err
 	}
 
-	for name, CMCIDInfo := range ingesterIDs {
+	for name, id := range ingesterIDs {
 		i.logger.Info("fetching cmc market data", zap.String("exchange", name))
-		var exchange_pmps ProviderMarketPairs
-		// if CMCIDInfo.IsDex {
-		// 	exchange_pmps, err = i.GetDEXProviderMarketsPairs(ctx, name, CMCIDInfo)
-		// } else {
-		// 	exchange_pmps, err = i.GetCEXProviderMarketsPairs(ctx, name, CMCIDInfo.ID)
-		// }
-		exchange_pmps, err = i.GetCEXProviderMarketsPairs(ctx, name, CMCIDInfo.ID)
+
+		markets, err := i.client.ExchangeMarkets(ctx, id)
 		if err != nil {
-			return NewProviderMarketPairs(), err
+			return pmps, err
 		}
 
-		pmps = mergeProviderMarketPairs(pmps, exchange_pmps)
-	}
+		if err := markets.Status.Validate(); err != nil {
+			return pmps, err
+		}
 
-	return pmps, nil
-}
-
-func mergeProviderMarketPairs(a, b ProviderMarketPairs) ProviderMarketPairs {
-	for k, v := range b.Data {
-		a.Data[k] = v
-	}
-	return a
-}
-
-func (i *Indexer) GetDEXProviderMarketsPairs(ctx context.Context, name string, cmcExchangeInfo CMCIDInfo) (ProviderMarketPairs, error) {
-	pmps := NewProviderMarketPairs()
-	markets, err := i.client.DexMarkets(ctx, cmcExchangeInfo)
-
-	// Write intermediate file
-	filepath := fmt.Sprintf("tmp/%s.json", name)
-	i.logger.Info("writing DEX markets", zap.String("file", filepath))
-	file.CreateAndWriteJSONToFile(filepath, markets)
-
-	if err != nil {
-		return pmps, err
-	}
-
-	i.logger.Info("fetched cmc DEX market data", zap.String("exchange", name), zap.Int("num markets", len(markets.Data)))
-
-	for _, market := range markets.Data {
-		var cmcBaseID int
-		var cmcQuoteID int
-
-		if market.BaseAssetUCID == "" {
-			i.logger.Debug(("no base asset ucid, skipping"), zap.Any("market", market))
-			continue
-		} else {
-			cmcBaseID, err = strconv.Atoi(market.BaseAssetUCID)
+		i.logger.Info("fetched cmc market data", zap.String("exchange", name), zap.Int("num markets", markets.Data.NumMarketPairs))
+		for _, pair := range markets.Data.MarketPairs {
+			cmcBaseSymbol, err := symbols.ToTickerString(pair.MarketPairBase.CurrencySymbol)
 			if err != nil {
-				i.logger.Error("failed to parse base asset ucid", zap.Any("market", market), zap.Error(err))
+				return ProviderMarketPairs{}, err
+			}
+			cmcQuoteSymbol, err := symbols.ToTickerString(pair.MarketPairQuote.CurrencySymbol)
+			if err != nil {
+				return ProviderMarketPairs{}, err
+			}
+
+			key := ProviderMarketPairKey(
+				names.GetProviderName(name),
+				pair.MarketPairBase.ExchangeSymbol,
+				pair.MarketPairQuote.ExchangeSymbol,
+			)
+
+			idInfo := types.CoinMarketCapInfo{
+				BaseID:  int64(pair.MarketPairBase.CurrencyID),
+				QuoteID: int64(pair.MarketPairQuote.CurrencyID),
+			}
+
+			liquidityInfo := types.LiquidityInfo{
+				NegativeDepthTwo: pair.Quote.USD.DepthNegativeTwo,
+				PositiveDepthTwo: pair.Quote.USD.DepthPositiveTwo,
+			}
+
+			newMarketData := ProviderMarketData{
+				BaseAsset:      cmcBaseSymbol,
+				QuoteAsset:     cmcQuoteSymbol,
+				QuoteVolume:    pair.Quote.ExchangeReported.Volume24HQuote,
+				UsdVolume:      pair.Quote.USD.Volume24H,
+				CMCInfo:        idInfo,
+				MetadataJSON:   nil,
+				ReferencePrice: pair.Quote.ExchangeReported.Price,
+				LiquidityInfo:  liquidityInfo,
+			}
+
+			if existing, exists := pmps.Data[key]; exists {
+				i.logger.Error("key already exists in pmps.Data", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
 				continue
 			}
+
+			pmps.Data[key] = newMarketData
 		}
-		if market.QuoteAssetUCID == "" {
-			i.logger.Debug(("no quote asset ucid, skipping"), zap.Any("market", market))
-			continue
-		} else {
-			cmcQuoteID, err = strconv.Atoi(market.QuoteAssetUCID)
-			if err != nil {
-				i.logger.Error("failed to parse quote asset ucid", zap.Any("market", market), zap.Error(err))
-				continue
-			}
-		}
-
-		var cmcBaseRank = 0
-		var cmcQuoteRank = 0
-
-		if cmcBaseData, ok := i.cmcIDMap[cmcBaseID]; ok {
-			cmcBaseRank = cmcBaseData.Rank
-		}
-		if cmcQuoteData, ok := i.cmcIDMap[cmcQuoteID]; ok {
-			cmcQuoteRank = cmcQuoteData.Rank
-		}
-
-		key := ProviderMarketPairKey(
-			names.GetProviderName(name),
-			market.BaseAssetSymbol,
-			market.QuoteAssetSymbol,
-		)
-
-		idInfo := types.CoinMarketCapInfo{
-			BaseID:    int64(cmcBaseID),
-			QuoteID:   int64(cmcQuoteID),
-			BaseRank:  int64(cmcBaseRank),
-			QuoteRank: int64(cmcQuoteRank),
-		}
-
-		liquidityInfo := types.LiquidityInfo{
-			NegativeDepthTwo: market.Quote[0].Liquidity / 2,
-			PositiveDepthTwo: market.Quote[0].Liquidity / 2,
-		}
-
-		newMarketData := ProviderMarketData{
-			BaseAsset:      market.BaseAssetSymbol,
-			QuoteAsset:     market.QuoteAssetSymbol,
-			QuoteVolume:    market.Quote[0].Volume24H,
-			CMCInfo:        idInfo,
-			MetadataJSON:   nil,
-			ReferencePrice: market.Quote[0].Price,
-			LiquidityInfo:  liquidityInfo,
-		}
-
-		if existing, exists := pmps.Data[key]; exists {
-			shouldReplace := shouldReplaceMarketPair(existing, newMarketData)
-			i.logger.Warn("key already exists in pmps.Data", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
-
-			if shouldReplace {
-				pmps.Data[key] = newMarketData
-				i.logger.Info("replacing market pair", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
-			}
-			continue
-		}
-
-		pmps.Data[key] = newMarketData
 	}
 
 	return pmps, nil
 }
 
-func (i *Indexer) GetCEXProviderMarketsPairs(ctx context.Context, name string, exchangeID int) (ProviderMarketPairs, error) {
-	pmps := NewProviderMarketPairs()
-	markets, err := i.client.ExchangeMarkets(ctx, exchangeID)
-	if err != nil {
-		return pmps, err
-	}
-
-	if err := markets.Status.Validate(); err != nil {
-		return pmps, err
-	}
-
-	i.logger.Info("fetched cmc market data", zap.String("exchange", name), zap.Int("num markets", markets.Data.NumMarketPairs))
-	for _, pair := range markets.Data.MarketPairs {
-		cmcBaseID := pair.MarketPairBase.CurrencyID
-		cmcQuoteID := pair.MarketPairQuote.CurrencyID
-		var cmcBaseRank = 0
-		var cmcQuoteRank = 0
-
-		if cmcBaseData, ok := i.cmcIDMap[cmcBaseID]; ok {
-			cmcBaseRank = cmcBaseData.Rank
-		}
-		if cmcQuoteData, ok := i.cmcIDMap[cmcQuoteID]; ok {
-			cmcQuoteRank = cmcQuoteData.Rank
-		}
-
-		key := ProviderMarketPairKey(
-			names.GetProviderName(name),
-			pair.MarketPairBase.ExchangeSymbol,
-			pair.MarketPairQuote.ExchangeSymbol,
-		)
-
-		idInfo := types.CoinMarketCapInfo{
-			BaseID:    int64(cmcBaseID),
-			QuoteID:   int64(cmcQuoteID),
-			BaseRank:  int64(cmcBaseRank),
-			QuoteRank: int64(cmcQuoteRank),
-		}
-
-		liquidityInfo := types.LiquidityInfo{
-			NegativeDepthTwo: pair.Quote.USD.DepthNegativeTwo,
-			PositiveDepthTwo: pair.Quote.USD.DepthPositiveTwo,
-		}
-
-		newMarketData := ProviderMarketData{
-			BaseAsset:      pair.MarketPairBase.CurrencySymbol,
-			QuoteAsset:     pair.MarketPairQuote.CurrencySymbol,
-			QuoteVolume:    pair.Quote.ExchangeReported.Volume24HQuote,
-			CMCInfo:        idInfo,
-			MetadataJSON:   nil,
-			ReferencePrice: pair.Quote.ExchangeReported.Price,
-			LiquidityInfo:  liquidityInfo,
-		}
-
-		if existing, exists := pmps.Data[key]; exists {
-			shouldReplace := shouldReplaceMarketPair(existing, newMarketData)
-			i.logger.Warn("key already exists in pmps.Data", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
-
-			if shouldReplace {
-				pmps.Data[key] = newMarketData
-				i.logger.Info("replacing market pair", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
-			}
-			continue
-		}
-
-		pmps.Data[key] = newMarketData
-	}
-	return pmps, nil
-}
-
-// shouldReplaceMarketPair determines if an existing market pair should be replaced with a new one
-// based on their base asset rank values. Returns true if:
-// 1. Existing base asset rank is 0 and new base asset rank is non-zero
-// 2. Both ranks are non-zero but new base asset rank is lower
-func shouldReplaceMarketPair(existing, new ProviderMarketData) bool {
-	if existing.CMCInfo.BaseRank == 0 && new.CMCInfo.BaseRank > 0 {
-		return true
-	}
-	if existing.CMCInfo.BaseRank > 0 && new.CMCInfo.BaseRank > 0 &&
-		new.CMCInfo.BaseRank < existing.CMCInfo.BaseRank {
-		return true
-	}
-	return false
-}
-
-type CMCIDInfo struct {
-	IsDex        bool   `json:"is_dex"`
-	ID           int    `json:"id"`
-	NetworkSlug  string `json:"network_slug,omitempty"`
-	MinVolume    int    `json:"min_volume"`
-	MinLiquidity int    `json:"min_liquidity"`
-}
-type IngesterIDMap map[string]CMCIDInfo
+type IngesterIDMap map[string]int
 
 func (i *Indexer) getIngesterMapping(ctx context.Context, cfg config.MarketConfig) (IngesterIDMap, error) {
 	exchangeMapResp, err := i.client.ExchangeIDMap(ctx)
@@ -482,31 +338,7 @@ func (i *Indexer) getIngesterMapping(ctx context.Context, cfg config.MarketConfi
 	ingesterNameToID := make(IngesterIDMap, len(cfg.Ingesters))
 	addNameToMap := func(cmcName, ingesterName string) error {
 		if id, found := exchangeNameToID[cmcName]; found {
-			info := CMCIDInfo{
-				ID:    id,
-				IsDex: false,
-			}
-
-			// Check if this is a DEX
-			switch cmcName {
-			case "raydium":
-				info.IsDex = true
-				info.NetworkSlug = "solana"
-				info.MinVolume = cfg.DexMinVolume
-				info.MinLiquidity = cfg.DexMinLiquidity
-			case "uniswap-v3":
-				info.IsDex = true
-				info.NetworkSlug = "ethereum"
-				info.MinVolume = cfg.DexMinVolume
-				info.MinLiquidity = cfg.DexMinLiquidity
-			case "uniswap-v3-base":
-				info.IsDex = true
-				info.NetworkSlug = "base"
-				info.MinVolume = cfg.DexMinVolume
-				info.MinLiquidity = cfg.DexMinLiquidity
-			}
-
-			ingesterNameToID[ingesterName] = info
+			ingesterNameToID[ingesterName] = id
 		} else {
 			i.logger.Error("could not find an ingester", zap.String("ingester", ingesterName), zap.Any("items", exchangeNameToID))
 			return fmt.Errorf("could not find an ingester named %s", ingesterName)

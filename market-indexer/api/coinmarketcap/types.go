@@ -1299,11 +1299,6 @@ type Platform struct {
 	} `json:"coin"`
 }
 
-const (
-	exchangeStatusActive   = 1
-	exchangeStatusInactive = 0
-)
-
 type Status struct {
 	Timestamp    time.Time `json:"timestamp"`
 	ErrorCode    int       `json:"error_code"`

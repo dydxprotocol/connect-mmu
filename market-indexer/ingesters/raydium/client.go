@@ -18,8 +18,6 @@ const (
 	EndpointPairs = "https://api.raydium.io/v2/main/pairs"
 	//nolint:gosec
 	EndpointTokenMetadata = "https://token-list-api.solana.cloud/v1/list"
-	CMC_DEX_ID            = 1342 // raydium
-	CMC_NETWORK_ID        = 16   // Solana
 )
 
 var _ Client = &client{}

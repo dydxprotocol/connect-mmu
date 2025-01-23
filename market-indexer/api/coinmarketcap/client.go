@@ -43,7 +43,7 @@ type Client interface {
 	ExchangeMarkets(ctx context.Context, exchange int) (ExchangeMarketsResponse, error)
 
 	// DexMarkets gets the full list of markets for the given DEX exchange.
-	DexMarkets(ctx context.Context, cmcInfo CMCIDInfo) (DexMarketsResponse, error)
+	DexMarkets(ctx context.Context, networkID int, dexID int) (DexMarketsResponse, error)
 
 	// FiatMap gets the full fiat asset map from CoinMarketCap.
 	FiatMap(ctx context.Context) (FiatResponse, error)
@@ -184,22 +184,22 @@ func (h *httpClient) ExchangeMarkets(ctx context.Context, exchange int) (Exchang
 }
 
 // DexMarkets gets the full list of markets for the given DEX.
-func (h *httpClient) DexMarkets(ctx context.Context, dex_id int, network_id int) (DexMarketsResponse, error) {
+func (h *httpClient) DexMarkets(ctx context.Context, networkID int, dexID int) (DexMarketsResponse, error) {
 	var response DexMarketsResponse
 	var allData []DexMarketsData
 
-	scroll_id := "0" // CMC's DEX API pagination field for start index of results page
+	scrollID := "0" // CMC's DEX API pagination field for start index of results page
 	limit := 100
 
 	for {
 		opts := []http.GetOptions{
 			http.WithHeader("X-CMC_PRO_API_KEY", h.apiKey),
 			http.WithJSONAccept(),
-			http.WithQueryParam("dex_id", strconv.Itoa(dex_id)),
-			http.WithQueryParam("network_id", strconv.Itoa(network_id)),
+			http.WithQueryParam("dex_id", strconv.Itoa(dexID)),
+			http.WithQueryParam("network_id", strconv.Itoa(networkID)),
 			http.WithQueryParam("liquidity_min", strconv.Itoa(MIN_DEX_LIQUIDITY)),
 			http.WithQueryParam("volume_24h_min", strconv.Itoa(MIN_DEX_VOLUME)),
-			http.WithQueryParam("scroll_id", scroll_id),
+			http.WithQueryParam("scroll_id", scrollID),
 			http.WithQueryParam("limit", strconv.Itoa(limit)),
 		}
 
@@ -224,7 +224,7 @@ func (h *httpClient) DexMarkets(ctx context.Context, dex_id int, network_id int)
 		if len(pageResponse.Data) < limit {
 			break
 		}
-		scroll_id = pageResponse.Data[len(pageResponse.Data)-1].ScrollID
+		scrollID = pageResponse.Data[len(pageResponse.Data)-1].ScrollID
 	}
 
 	response.Data = allData
