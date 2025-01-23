@@ -20,6 +20,8 @@ const (
 	EndpointQuote           = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=%s"
 	EndpointInfo            = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?id=%s"
 
+	// Loose constraints to limit the number of CMC credits we need to use
+	// as there are a ton of raydium assets that shouldn't be considered
 	MIN_DEX_VOLUME    = 10000
 	MIN_DEX_LIQUIDITY = 100000
 )
