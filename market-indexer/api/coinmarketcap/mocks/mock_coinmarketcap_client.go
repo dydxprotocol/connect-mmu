@@ -79,9 +79,9 @@ func (_c *Client_CryptoIDMap_Call) RunAndReturn(run func(context.Context) (coinm
 	return _c
 }
 
-// DexMarkets provides a mock function with given fields: ctx, dex_id, network_id
-func (_m *Client) DexMarkets(ctx context.Context, dex_id int, network_id int) (coinmarketcap.DexMarketsResponse, error) {
-	ret := _m.Called(ctx, dex_id, network_id)
+// DexMarkets provides a mock function with given fields: ctx, networkID, dexID
+func (_m *Client) DexMarkets(ctx context.Context, networkID int, dexID int) (coinmarketcap.DexMarketsResponse, error) {
+	ret := _m.Called(ctx, networkID, dexID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DexMarkets")
@@ -90,16 +90,16 @@ func (_m *Client) DexMarkets(ctx context.Context, dex_id int, network_id int) (c
 	var r0 coinmarketcap.DexMarketsResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, int, int) (coinmarketcap.DexMarketsResponse, error)); ok {
-		return rf(ctx, dex_id, network_id)
+		return rf(ctx, networkID, dexID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, int, int) coinmarketcap.DexMarketsResponse); ok {
-		r0 = rf(ctx, dex_id, network_id)
+		r0 = rf(ctx, networkID, dexID)
 	} else {
 		r0 = ret.Get(0).(coinmarketcap.DexMarketsResponse)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
-		r1 = rf(ctx, dex_id, network_id)
+		r1 = rf(ctx, networkID, dexID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -114,13 +114,13 @@ type Client_DexMarkets_Call struct {
 
 // DexMarkets is a helper method to define mock.On call
 //   - ctx context.Context
-//   - dex_id int
-//   - network_id int
-func (_e *Client_Expecter) DexMarkets(ctx interface{}, dex_id interface{}, network_id interface{}) *Client_DexMarkets_Call {
-	return &Client_DexMarkets_Call{Call: _e.mock.On("DexMarkets", ctx, dex_id, network_id)}
+//   - networkID int
+//   - dexID int
+func (_e *Client_Expecter) DexMarkets(ctx interface{}, networkID interface{}, dexID interface{}) *Client_DexMarkets_Call {
+	return &Client_DexMarkets_Call{Call: _e.mock.On("DexMarkets", ctx, networkID, dexID)}
 }
 
-func (_c *Client_DexMarkets_Call) Run(run func(ctx context.Context, dex_id int, network_id int)) *Client_DexMarkets_Call {
+func (_c *Client_DexMarkets_Call) Run(run func(ctx context.Context, networkID int, dexID int)) *Client_DexMarkets_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(int), args[2].(int))
 	})
