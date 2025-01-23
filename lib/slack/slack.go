@@ -14,8 +14,8 @@ type slackMessage struct {
 	Text string `json:"text"`
 }
 
-func SendNotification(message string) error {
-	webhookURL, err := aws.GetSecret(context.Background(), "market-map-updater-slack-webhook-url")
+func SendNotification(message string, webhookURLSecretName string) error {
+	webhookURL, err := aws.GetSecret(context.Background(), webhookURLSecretName)
 	if err != nil {
 		fmt.Printf("Error fetching Slack Webhook URL from Secrets Manager: %v", err)
 		return err

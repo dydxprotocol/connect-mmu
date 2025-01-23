@@ -86,16 +86,24 @@ func WriteToS3(path string, bz []byte, shouldPrefixWithTimestamp bool) error {
 	return nil
 }
 
+// Construct S3 path to write/read from. S3 paths are prefixed with the target network and (optionally) a timestamp.
 func getS3Path(path string, shouldPrefixWithTimestamp bool) (bucket string, key string, err error) {
+	// Determine which S3 bucket to write/read
 	env := os.Getenv("ENVIRONMENT")
 	if env != "staging" && env != "mainnet" {
 		return bucket, key, fmt.Errorf("failed to fetch valid 'ENVIRONMENT' from env vars: ENVIRONMENT='%s'", env)
 	}
 	bucket = env + "-market-map-updater"
 
+	// Get filename
 	pathTokens := strings.Split(path, "/")
 	key = pathTokens[len(pathTokens)-1]
 
+	// Prefix with network (ex. "testnet", "mainnet")
+	network := os.Getenv("NETWORK")
+	key = network + "-" + key
+
+	// Optionally prefix with timestamp
 	if shouldPrefixWithTimestamp {
 		timestamp := os.Getenv("TIMESTAMP")
 		key = timestamp + "-" + key

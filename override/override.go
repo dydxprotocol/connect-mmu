@@ -126,20 +126,25 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	// for each perpetual, identify if there's a corresponding ticker in the market-map, and set it equal
 	// to the corresponding market in actual
 	for _, perpetual := range perpsResp.Perpetuals {
-		// if corresponding clob pair for the perpetual is in STATUS_FINAL_SETTLEMENT, skip it
-		clobPair, ok := perpetualIDToClobPair[perpetual.Params.ID]
-		if ok && clobPair.Status == dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT {
-			continue
-		}
-
 		connectTicker, err := libdydx.MarketPairToCurrencyPair(perpetual.Params.Ticker)
 		if err != nil {
 			return mmtypes.MarketMap{}, []string{}, err
 		}
 
-		// perpetual markets should always be in the actual market map, error if they are not in correspondence
+		clobPair, ok := perpetualIDToClobPair[perpetual.Params.ID]
+		if !ok {
+			logger.Error("clob pair not found for perpetual", zap.String("ticker", connectTicker.String()))
+			return mmtypes.MarketMap{}, []string{}, fmt.Errorf("clob pair not found for perpetual %s", connectTicker.String())
+		}
+
+		// perpetual markets should always be in the actual market map if not in FINAL_SETTLEMENT, error if they are not in correspondence
 		actualMarket, ok := actual.Markets[connectTicker.String()]
 		if !ok {
+			if clobPair.Status == dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT {
+				logger.Debug("actual market not found, but clob pair is in STATUS_FINAL_SETTLEMENT", zap.String("ticker", connectTicker.String()))
+				continue
+			}
+
 			logger.Error("actual market for cross-margined perpetual not found", zap.String("ticker", connectTicker.String()))
 			return mmtypes.MarketMap{}, []string{}, fmt.Errorf("actual market for cross-margined perpetual %s not found", connectTicker.String())
 		}
