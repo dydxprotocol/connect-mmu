@@ -61,10 +61,9 @@ func New(logger *zap.Logger, cfg config.MarketConfig, cmcAPIKey string) *Ingeste
 func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreateProviderMarket, error) {
 	ig.logger.Info("fetching data")
 
-	ig.logger.Info("querying token registry entries")
+	ig.logger.Info("querying for raydium tokens")
 
-	// tokenMetadata, err := ig.client.TokenMetadata(ctx)
-	dexMarketsResponse, err := ig.cmcClient.DexMarkets(ctx, CMC_NETWORK_ID, CMC_DEX_ID) // TODO: Replace with actual dex_id and network_id
+	dexMarketsResponse, err := ig.cmcClient.DexMarkets(ctx, CMC_NETWORK_ID, CMC_DEX_ID)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch Dex Markets from CMC: %w", err)
 	}
