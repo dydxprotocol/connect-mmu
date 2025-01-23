@@ -143,10 +143,10 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 			if clobPair.Status == dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT {
 				logger.Debug("actual market not found, but clob pair is in STATUS_FINAL_SETTLEMENT", zap.String("ticker", connectTicker.String()))
 				continue
-			} else {
-				logger.Error("actual market for cross-margined perpetual not found", zap.String("ticker", connectTicker.String()))
-				return mmtypes.MarketMap{}, []string{}, fmt.Errorf("actual market for cross-margined perpetual %s not found", connectTicker.String())
 			}
+
+			logger.Error("actual market for cross-margined perpetual not found", zap.String("ticker", connectTicker.String()))
+			return mmtypes.MarketMap{}, []string{}, fmt.Errorf("actual market for cross-margined perpetual %s not found", connectTicker.String())
 		}
 
 		// check for the market in generated
