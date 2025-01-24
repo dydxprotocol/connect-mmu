@@ -12,14 +12,14 @@ import (
 	"github.com/skip-mev/connect-mmu/config"
 )
 
-// ConvertUpsertsToMessages converts a set of upsert markets to a slice of sdk.Messages respecting the configured
+// ConvertUpdatesToMessages converts a set of update markets to a slice of sdk.Messages respecting the configured
 // max size of a transaction.
-func ConvertUpsertsToMessages(
+func ConvertUpdatesToMessages(
 	logger *zap.Logger,
 	cfg config.TransactionConfig,
 	version config.Version,
 	authorityAddress string,
-	upserts []mmtypes.Market,
+	updates []mmtypes.Market,
 ) ([]sdk.Msg, error) {
 	msgs := make([]sdk.Msg, 0)
 
@@ -27,7 +27,7 @@ func ConvertUpsertsToMessages(
 	// not exceeding the max tx size
 	currentTxSize := 0
 	start := 0
-	for i, market := range upserts {
+	for i, market := range updates {
 		// fail if the market is invalid
 		if err := market.ValidateBasic(); err != nil {
 			logger.Error("invalid market", zap.Error(err))
@@ -45,20 +45,20 @@ func ConvertUpsertsToMessages(
 		// update the currentTxSize
 		if currentTxSize+market.Size() > cfg.MaxBytesPerTx {
 			// create the tx
-			txMarkets := upserts[start:i]
+			txMarkets := updates[start:i]
 			logger.Info("creating update msg", zap.Int("markets", len(txMarkets)))
 
 			var msg sdk.Msg
 			switch version {
 			case config.VersionSlinky:
-				msg = &slinkymmtypes.MsgUpsertMarkets{
-					Authority: authorityAddress,
-					Markets:   marketmap.ConnectToSlinkyMarkets(upserts),
+				msg = &slinkymmtypes.MsgUpdateMarkets{
+					Authority:     authorityAddress,
+					UpdateMarkets: marketmap.ConnectToSlinkyMarkets(updates),
 				}
 			case config.VersionConnect:
-				msg = &mmtypes.MsgUpsertMarkets{
-					Authority: authorityAddress,
-					Markets:   upserts,
+				msg = &mmtypes.MsgUpdateMarkets{
+					Authority:     authorityAddress,
+					UpdateMarkets: updates,
 				}
 			default:
 				return nil, fmt.Errorf("unsupported version %s", version)
@@ -80,14 +80,14 @@ func ConvertUpsertsToMessages(
 		var msg sdk.Msg
 		switch version {
 		case config.VersionSlinky:
-			msg = &slinkymmtypes.MsgUpsertMarkets{
-				Authority: authorityAddress,
-				Markets:   marketmap.ConnectToSlinkyMarkets(upserts[start:]),
+			msg = &slinkymmtypes.MsgUpdateMarkets{
+				Authority:     authorityAddress,
+				UpdateMarkets: marketmap.ConnectToSlinkyMarkets(updates[start:]),
 			}
 		case config.VersionConnect:
-			msg = &mmtypes.MsgUpsertMarkets{
-				Authority: authorityAddress,
-				Markets:   upserts[start:],
+			msg = &mmtypes.MsgUpdateMarkets{
+				Authority:     authorityAddress,
+				UpdateMarkets: updates[start:],
 			}
 		default:
 			return nil, fmt.Errorf("unsupported version %s", version)
@@ -97,6 +97,94 @@ func ConvertUpsertsToMessages(
 	}
 
 	return msgs, nil
+}
+
+// ConvertAdditionsToMessages converts a set of new markets to a slice of sdk.Messages respecting the configured
+// max size of a transaction.
+func ConvertAdditionsToMessages(
+	logger *zap.Logger,
+	cfg config.TransactionConfig,
+	version config.Version,
+	authorityAddress string,
+	additions []mmtypes.Market,
+) ([]sdk.Msg, error) {
+	msgs := make([]sdk.Msg, 0)
+
+	// create the creation txs, such that the size of all markets per tx is optimized, while
+	// not exceeding the max tx size
+	currentTxSize := 0
+	start := 0
+	for i, market := range additions {
+		// fail if the market is invalid
+		if err := market.ValidateBasic(); err != nil {
+			logger.Error("invalid market", zap.Error(err))
+			return nil, fmt.Errorf("invalid market: %w", err)
+		}
+
+		// validity check for market
+		if market.Size() > cfg.MaxBytesPerTx {
+			// if the market size exceeds the max tx size, then we can't create a tx for it (fail)
+			logger.Error("market size exceeds max tx size", zap.Any("market", market), zap.Int("size",
+				market.Size()), zap.Int("max_size", cfg.MaxBytesPerTx))
+			return nil, fmt.Errorf("market size exceeds max tx size: %d > %d", market.Size(), cfg.MaxBytesPerTx)
+		}
+
+		// update the currentTxSize
+		if currentTxSize+market.Size() > cfg.MaxBytesPerTx {
+			// create the tx
+			txMarkets := additions[start:i]
+			logger.Info("creating update msg", zap.Int("markets", len(txMarkets)))
+
+			var msg sdk.Msg
+			switch version {
+			case config.VersionSlinky:
+				msg = &slinkymmtypes.MsgCreateMarkets{
+					Authority:     authorityAddress,
+					CreateMarkets: marketmap.ConnectToSlinkyMarkets(txMarkets),
+				}
+			case config.VersionConnect:
+				msg = &mmtypes.MsgCreateMarkets{
+					Authority:     authorityAddress,
+					CreateMarkets: txMarkets,
+				}
+			default:
+				return nil, fmt.Errorf("unsupported version %s", version)
+			}
+
+			msgs = append(msgs, msg)
+
+			// reset the currentTxSize
+			currentTxSize = 0
+			start = i
+		}
+
+		// add to the current group
+		currentTxSize += market.Size()
+	}
+
+	// create the last tx
+	if currentTxSize > 0 {
+		var msg sdk.Msg
+		switch version {
+		case config.VersionSlinky:
+			msg = &slinkymmtypes.MsgCreateMarkets{
+				Authority:     authorityAddress,
+				CreateMarkets: marketmap.ConnectToSlinkyMarkets(additions[start:]),
+			}
+		case config.VersionConnect:
+			msg = &mmtypes.MsgCreateMarkets{
+				Authority:     authorityAddress,
+				CreateMarkets: additions[start:],
+			}
+		default:
+			return nil, fmt.Errorf("unsupported version %s", version)
+		}
+
+		msgs = append(msgs, msg)
+	}
+
+	return msgs, nil
+
 }
 
 // ConvertRemovalsToMessage converts a set of market tickers to remove to a slice of sdk.Message.

@@ -43,9 +43,13 @@ const (
 	WarnOnInvalidMarketMapDescription = "warn then the on-chain market map is invalid instead of failing"
 
 	// dispatch
-	UpsertsPathFlag        = "upserts"
-	UpsertsPathDefault     = "./tmp/upserts.json"
-	UpsertsPathDescription = "path to list of markets to be updated or inserted"
+	UpdatesPathFlag        = "updates"
+	UpdatesPathDefault     = "./tmp/market-map-updates.json"
+	UpdatesPathDescription = "path to list of markets to be updated"
+
+	AdditionsPathFlag        = "additions"
+	AdditionsPathDefault     = "./tmp/market-map-additions.json"
+	AdditionsPathDescription = "path to list of markets to be added to the market map"
 
 	RemovalsPathFlag        = "removals"
 	RemovalsPathDefault     = "./tmp/market-map-removals.json"
@@ -91,7 +95,11 @@ const (
 	MarketMapRemovalsOutPathDescription = "path to output markets to remove from market map"
 
 	// upserts
-	UpsertsOutPathFlag        = "upserts-out"
-	UpsertsOutPathDefault     = UpsertsPathDefault
-	UpsertsOutPathDescription = "path to output markets to be updated or inserted"
+	UpdatesOutPathFlag        = "updates-out"
+	UpdatesOutPathDefault     = "./tmp/market-map-updates.json"
+	UpdatesOutPathDescription = "path to output markets to be updated"
+
+	AdditionsOutPathFlag        = "additions-out"
+	AdditionsOutPathDefault     = "./tmp/market-map-additions.json"
+	AdditionsOutPathDescription = "path to output markets to be added"
 )

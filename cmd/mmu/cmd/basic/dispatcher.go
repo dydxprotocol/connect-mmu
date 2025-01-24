@@ -30,23 +30,24 @@ import (
 	"github.com/skip-mev/connect-mmu/signing/simulate"
 )
 
-// DispatchCmd returns a command to DispatchCmd market upserts.
+// DispatchCmd returns a command to DispatchCmd market updates, additions, and removals.
 func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 	var flags dispatchCmdFlags
 
 	cmd := &cobra.Command{
 		Use:     "dispatch",
-		Short:   "dispatch either upserts or removals to a chain",
-		Example: "dispatch --config path/to/config.json --upserts path/to/upserts.json --simulate",
+		Short:   "dispatch updates, additions and/or removals to a chain",
+		Example: "dispatch --config path/to/config.json --updates path/to/updates.json --simulate",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := logging.Logger(cmd.Context())
 
-			// Validate that exactly one of upserts or removals is set
-			hasUpserts := flags.upsertsPath != ""
+			// Validate that at least one of updates, additions, or removals is set
+			hasUpdates := flags.updatesPath != ""
+			hasAdditions := flags.additionsPath != ""
 			hasRemovals := flags.removalsPath != ""
-			if !hasUpserts && !hasRemovals {
-				return fmt.Errorf("must specify either --upserts and/or --removals")
+			if !hasUpdates && !hasAdditions && !hasRemovals {
+				return fmt.Errorf("must specify at least one of --updates, --additions, or --removals")
 			}
 
 			cfg, err := config.ReadConfig(flags.configPath)
@@ -87,12 +88,19 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 			}
 
 			var txs []cmttypes.Tx
-			if hasUpserts {
-				upsertTxs, err := generateUpsertTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.upsertsPath)
+			if hasUpdates {
+				updateTxs, err := generateUpdateTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.updatesPath)
 				if err != nil {
 					return err
 				}
-				txs = append(txs, upsertTxs...)
+				txs = append(txs, updateTxs...)
+			}
+			if hasAdditions {
+				additionTxs, err := generateAdditionTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.additionsPath)
+				if err != nil {
+					return err
+				}
+				txs = append(txs, additionTxs...)
 			}
 			if hasRemovals {
 				removalTxs, err := generateRemovalTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.removalsPath)
@@ -125,31 +133,63 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 	return cmd
 }
 
-func generateUpsertTransactions(
+func generateUpdateTransactions(
 	ctx context.Context,
 	logger *zap.Logger,
 	dp *dispatcher.Dispatcher,
 	cfg *config.Config,
 	signerAddress string,
-	upsertsPath string,
+	updatesPath string,
 ) ([]cmttypes.Tx, error) {
-	upserts, err := file.ReadJSONFromFile[[]mmtypes.Market](upsertsPath)
+	updates, err := file.ReadJSONFromFile[[]mmtypes.Market](updatesPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read upserts file: %w", err)
+		return nil, fmt.Errorf("failed to read updates file: %w", err)
 	}
 
-	upsertMsgs, err := generator.ConvertUpsertsToMessages(
+	updateMsgs, err := generator.ConvertUpdatesToMessages(
 		logger,
 		cfg.Dispatch.TxConfig,
 		cfg.Chain.Version,
 		signerAddress,
-		upserts,
+		updates,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert upserts to messages: %w", err)
+		return nil, fmt.Errorf("failed to convert updates to messages: %w", err)
 	}
 
-	txs, err := dp.GenerateTransactions(ctx, upsertMsgs)
+	txs, err := dp.GenerateTransactions(ctx, updateMsgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return txs, nil
+}
+
+func generateAdditionTransactions(
+	ctx context.Context,
+	logger *zap.Logger,
+	dp *dispatcher.Dispatcher,
+	cfg *config.Config,
+	signerAddress string,
+	additionsPath string,
+) ([]cmttypes.Tx, error) {
+	additions, err := file.ReadJSONFromFile[[]mmtypes.Market](additionsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read additions file: %w", err)
+	}
+
+	additionMsgs, err := generator.ConvertAdditionsToMessages(
+		logger,
+		cfg.Dispatch.TxConfig,
+		cfg.Chain.Version,
+		signerAddress,
+		additions,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert removals to messages: %w", err)
+	}
+
+	txs, err := dp.GenerateTransactions(ctx, additionMsgs)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +324,8 @@ func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
 
 type dispatchCmdFlags struct {
 	configPath      string
-	upsertsPath     string
+	updatesPath     string
+	additionsPath   string
 	removalsPath    string
 	simulate        bool
 	simulateAddress string
@@ -292,7 +333,8 @@ type dispatchCmdFlags struct {
 
 func dispatchCmdConfigureFlags(cmd *cobra.Command, flags *dispatchCmdFlags) {
 	cmd.Flags().StringVar(&flags.configPath, ConfigPathFlag, ConfigPathDefault, ConfigPathDescription)
-	cmd.Flags().StringVar(&flags.upsertsPath, UpsertsPathFlag, "", UpsertsPathDescription)
+	cmd.Flags().StringVar(&flags.updatesPath, UpdatesPathFlag, "", UpdatesPathDescription)
+	cmd.Flags().StringVar(&flags.additionsPath, AdditionsPathFlag, "", AdditionsPathDescription)
 	cmd.Flags().StringVar(&flags.removalsPath, RemovalsPathFlag, "", RemovalsPathDescription)
 	cmd.Flags().BoolVar(&flags.simulate, SimulateFlag, SimulateDefault, SimulateDescription)
 	cmd.Flags().StringVar(&flags.simulateAddress, SimulateAddressFlag, SimulateAddressDefault, SimulateAddressDescription)
