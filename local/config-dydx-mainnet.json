@@ -181,6 +181,9 @@
     "min_cex_provider_count": 2,
     "min_dex_provider_count": 1,
     "exclude_cmc_tags": ["wrapped-tokens", "algorithmic-stablecoin"],
+    "disable_providers": {
+      "IOTX/USD": ["coinbase_ws"]
+    },
     "exclude_pairs": {
       "AUD/USD": {},
       "CAD/USD": {},
@@ -190,7 +193,8 @@
       "JPY/USD": {},
       "MATIC/USD": {},
       "MXN/USD": {},
-      "NZD/USD": {}
+      "NZD/USD": {},
+      "WTAO,UNISWAP_V3,0X77E06C9ECCF2E797FD462A92B6D7642EF85B0A44/USD": {}
     },
     "allowed_currency_pairs": null,
     "market_map_override": {

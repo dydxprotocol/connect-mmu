@@ -114,7 +114,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	case Override:
 		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--overwrite-providers", "--update-enabled"}
 	case Validate:
-		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all"}
+		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all", "--oracle-config", "local/fixtures/e2e/oracle.json"}
 	case Upserts:
 		args = []string{"upserts", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--warn-on-invalid-market-map"}
 	case Diff:

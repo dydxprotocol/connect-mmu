@@ -29,6 +29,7 @@ const (
 	flagStartDelay      = "start-delay"
 	flagDuration        = "duration"
 	flagOracleConfig    = "oracle-config"
+	flagSidecarLogFile  = "sidecar-log-file"
 	flagWriteToStdError = "write-to-stderr"
 	flagCMCAPIKey       = "cmc-api-key" //nolint:gosec
 	flagHealthFile      = "health-file"
@@ -86,6 +87,13 @@ func ValidateCmd() *cobra.Command {
 				cmd.Println("reference price checking disabled")
 			}
 
+			cmd.Printf("removing sidecar log file %s\n", flags.sidecarLogFile)
+
+			// Remove sidecar.log file if one exists
+			if err := os.Remove(flags.sidecarLogFile); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("error removing sidecar log file %s: %w", flags.sidecarLogFile, err)
+			}
+
 			// write this new marketmap to a temp file, so we can pass the filepath to connect.
 			f, err := writeMarketMapToTempFile(mm)
 			if err != nil {
@@ -109,7 +117,7 @@ func ValidateCmd() *cobra.Command {
 
 			cmd.Printf("using %s %s", connectBin, string(verOut))
 
-			connectCmd := []string{connectBin, "--market-config-path", f.Name(), "--log-std-out-level", "debug"}
+			connectCmd := []string{connectBin, "--market-config-path", f.Name(), "--log-std-out-level", "debug", "--log-file", flags.sidecarLogFile}
 			if flags.oracleConfig != "" {
 				_, err := os.Stat(flags.oracleConfig)
 				if err != nil {
@@ -220,6 +228,8 @@ type validateCmdFlags struct {
 	startDelay time.Duration
 	// oracleConfig is the oracle config to pass to the connect instance. this is useful when providers require API keys.
 	oracleConfig string
+	// sidecarLogFile is the file path to output the sidecar logs to
+	sidecarLogFile string
 	// healthFile is the file path to output the health report to
 	healthFile string
 	// enableAll is an option to enable all markets before running validation.
@@ -255,6 +265,7 @@ func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
 	cmd.Flags().DurationVar(&flags.duration, flagDuration, 5*time.Minute, "the amount of time the process will run before exiting")
 	cmd.Flags().StringVar(&flags.marketmapPath, flagMarketmap, "", "optional path to marketmap file to output potential anomalies such as missing reports")
 	cmd.Flags().StringVar(&flags.oracleConfig, flagOracleConfig, "", "use this flag to pass in an oracle config to connect. this is useful if your markets require API keys")
+	cmd.Flags().StringVar(&flags.sidecarLogFile, flagSidecarLogFile, "sidecar.log", "the output path for the sidecar log file")
 	cmd.Flags().BoolVar(&flags.writeToStdErr, flagWriteToStdError, true, "write the results as an error to std error")
 	cmd.Flags().StringVar(&flags.connectVersion, flagConnectVersion, "", "DOCKER ONLY: the connect version to run the validation on. if empty, the latest will be used. examples: 1.0.12, 2.0.0")
 	cmd.Flags().StringVar(&flags.cmcAPIKey, flagCMCAPIKey, "", "coinmarketcap API key that will be used to get reference prices to check provider prices against")
