@@ -48,7 +48,7 @@ func UpsertsCmd() *cobra.Command {
 				return errors.New("chain configuration missing from mmu config")
 			}
 
-			upserts, err := UpsertsFromConfigs(
+			updates, additions, err := UpsertsFromConfigs(
 				cmd.Context(),
 				logger,
 				generatedMM,
@@ -60,11 +60,17 @@ func UpsertsCmd() *cobra.Command {
 				return fmt.Errorf("failed to read upsert config at %s: %w", flags.configPath, err)
 			}
 
-			err = file.WriteJSONToFile(flags.upsertsOutPath, upserts)
+			err = file.WriteJSONToFile(flags.updatesOutPath, updates)
 			if err != nil {
-				return fmt.Errorf("failed to write upserts: %w", err)
+				return fmt.Errorf("failed to write updates: %w", err)
 			}
-			logger.Info("upserts written to file", zap.String("file", flags.upsertsOutPath))
+			logger.Info("updates written to file", zap.String("file", flags.updatesOutPath))
+
+			err = file.WriteJSONToFile(flags.additionsOutPath, additions)
+			if err != nil {
+				return fmt.Errorf("failed to write additions: %w", err)
+			}
+			logger.Info("additions written to file", zap.String("file", flags.additionsOutPath))
 
 			return nil
 		},
@@ -78,7 +84,8 @@ func UpsertsCmd() *cobra.Command {
 type upsertsCmdFlags struct {
 	configPath             string
 	marketMapPath          string
-	upsertsOutPath         string
+	updatesOutPath         string
+	additionsOutPath       string
 	warnOnInvalidMarketMap bool
 }
 
@@ -87,7 +94,8 @@ func upsertsCmdConfigureFlags(cmd *cobra.Command, flags *upsertsCmdFlags) {
 	cmd.Flags().StringVar(&flags.marketMapPath, MarketMapOverrideFlag, MarketMapOverrideDefault, MarketMapOverrideDescription)
 	cmd.Flags().BoolVar(&flags.warnOnInvalidMarketMap, WarnOnInvalidMarketMapFlag, WarnOnInvalidMarketMapDefault, WarnOnInvalidMarketMapDescription)
 
-	cmd.Flags().StringVar(&flags.upsertsOutPath, UpsertsOutPathFlag, UpsertsOutPathDefault, UpsertsOutPathDescription)
+	cmd.Flags().StringVar(&flags.updatesOutPath, UpdatesOutPathFlag, UpdatesOutPathDefault, UpdatesOutPathDescription)
+	cmd.Flags().StringVar(&flags.additionsOutPath, AdditionsOutPathFlag, AdditionsOutPathDefault, AdditionsOutPathDescription)
 }
 
 func UpsertsFromConfigs(
@@ -97,30 +105,30 @@ func UpsertsFromConfigs(
 	chainCfg config.ChainConfig,
 	cfg config.UpsertConfig,
 	warnOnInvalidMarketMap bool,
-) ([]mmtypes.Market, error) {
+) (updates []mmtypes.Market, additions []mmtypes.Market, err error) {
 	mmClient, err := marketmap.NewClientFromChainConfig(logger, chainCfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create MarketMap client from chain config: %w", err)
+		return nil, nil, fmt.Errorf("failed to create MarketMap client from chain config: %w", err)
 	}
 
 	if err := generatedMarketMap.ValidateBasic(); err != nil {
 		if warnOnInvalidMarketMap {
 			logger.Warn("failed validate generated marketmap - will use a valid subset", zap.Error(err))
 		} else {
-			return nil, fmt.Errorf("failed to validate generated marketmap: %w", err)
+			return nil, nil, fmt.Errorf("failed to validate generated marketmap: %w", err)
 		}
 	}
 
 	onChainMarketMap, err := mmClient.GetMarketMap(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get marketmap: %w", err)
+		return nil, nil, fmt.Errorf("failed to get marketmap: %w", err)
 	}
 
 	if err := onChainMarketMap.ValidateBasic(); err != nil {
 		if warnOnInvalidMarketMap {
 			logger.Warn("failed validate on chain marketmap - will use a valid subset", zap.Error(err))
 		} else {
-			return nil, fmt.Errorf("failed to validate on-chain marketmap: %w", err)
+			return nil, nil, fmt.Errorf("failed to validate on-chain marketmap: %w", err)
 		}
 	}
 
@@ -128,12 +136,12 @@ func UpsertsFromConfigs(
 
 	gen, err := upsert.New(logger, cfg, generatedMarketMap, onChainMarketMap)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create upsert generator: %w", err)
+		return nil, nil, fmt.Errorf("failed to create upsert generator: %w", err)
 	}
-	upserts, err := gen.GenerateUpserts()
+	updates, additions, err = gen.GenerateUpserts()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create upserts: %w", err)
+		return nil, nil, fmt.Errorf("failed to create upserts: %w", err)
 	}
 
-	return upserts, nil
+	return updates, additions, nil
 }

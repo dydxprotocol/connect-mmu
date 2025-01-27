@@ -46,67 +46,67 @@ func New(
 }
 
 // GenerateUpserts generates a slice of market upserts.
-func (d *Generator) GenerateUpserts() ([]types.Market, error) {
-	upserts, err := strategy.GetMarketMapUpserts(d.logger, d.currentMM, d.generatedMM)
+func (d *Generator) GenerateUpserts() (updates []types.Market, additions []types.Market, err error) {
+	updates, additions, err = strategy.GetMarketMapUpserts(d.logger, d.currentMM, d.generatedMM)
 	if err != nil {
-		d.logger.Error("failed to determine upserts", zap.Error(err))
-		return nil, err
+		d.logger.Error("failed to get marketmap updates and additions", zap.Error(err))
+		return nil, nil, err
 	}
-	upserts = removeFromUpserts(upserts, d.cfg.RestrictedMarkets)
-	d.logger.Info("determined upserts", zap.Int("upserts", len(upserts)))
+	updates = removeFromUpdates(updates, d.cfg.RestrictedMarkets)
+	d.logger.Info("determined updates", zap.Int("updates", len(updates)))
 
 	// reorder so that any new normalize by markets are first
-	upserts, err = orderNormalizeMarketsFirst(upserts)
+	updates, err = orderNormalizeMarketsFirst(updates)
 	if err != nil {
 		d.logger.Error("failed to reorder upserts", zap.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	// early exit if there are no upserts
-	if len(upserts) == 0 {
+	if len(updates) == 0 {
 		d.logger.Info("no upserts found - returning")
-		return upserts, nil
+		return updates, additions, nil
 	}
 
 	errs := make([]error, 0)
-	for _, upsert := range upserts {
-		if err := upsert.ValidateBasic(); err != nil {
+	for _, update := range updates {
+		if err := update.ValidateBasic(); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("generated %d invalid market(s): %w", len(errs), errors.Join(errs...))
+		return nil, nil, fmt.Errorf("generated %d invalid market(s): %w", len(errs), errors.Join(errs...))
 	}
 
-	if err := validateUpserts(d.currentMM, upserts); err != nil {
-		return nil, fmt.Errorf("generated invalid upserts in marketmap: %w", err)
+	if err := validateUpdates(d.currentMM, updates); err != nil {
+		return nil, nil, fmt.Errorf("generated invalid upserts in marketmap: %w", err)
 	}
 
-	return upserts, nil
+	return updates, additions, nil
 }
 
-// validateUpserts adds the upserts to a marketmap, and validates the configuration.
-func validateUpserts(currentMM types.MarketMap, upserts []types.Market) error {
-	for _, upsert := range upserts {
-		currentMM.Markets[upsert.Ticker.String()] = upsert
+// validateUpdates adds the upserts to a marketmap, and validates the configuration.
+func validateUpdates(currentMM types.MarketMap, updates []types.Market) error {
+	for _, update := range updates {
+		currentMM.Markets[update.Ticker.String()] = update
 	}
 	return currentMM.ValidateBasic()
 }
 
-// removeFromUpserts removes the specified markets from the upserts slice.
-func removeFromUpserts(upserts []types.Market, remove []string) []types.Market {
+// removeFromUpdates removes the specified markets from the updates slice.
+func removeFromUpdates(updates []types.Market, remove []string) []types.Market {
 	if len(remove) == 0 {
-		return upserts
+		return updates
 	}
 
-	if len(upserts) == 0 {
+	if len(updates) == 0 {
 		return nil
 	}
 
 	filtered := make([]types.Market, 0)
-	for _, upsert := range upserts {
-		if !slices.Contains(remove, upsert.Ticker.String()) {
-			filtered = append(filtered, upsert)
+	for _, update := range updates {
+		if !slices.Contains(remove, update.Ticker.String()) {
+			filtered = append(filtered, update)
 		}
 	}
 	return filtered

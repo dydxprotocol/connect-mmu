@@ -120,7 +120,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	case Diff:
 		args = []string{"diff", "--network", fmt.Sprintf("dydx-%s", network), "--market-map", "generated-market-map.json", "--output", "diff", "--slinky-api"}
 	case Dispatch:
-		args = []string{"dispatch", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--upserts", "upserts.json", "--removals", "market-map-removals.json"}
+		args = []string{"dispatch", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--updates", "market-map-updates.json", "--additions", "market-map-additions.json", "--removals", "market-map-removals.json"}
 	}
 
 	logger.Info("received Lambda command", zap.Strings("args", args))
