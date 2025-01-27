@@ -184,7 +184,6 @@ func ConvertAdditionsToMessages(
 	}
 
 	return msgs, nil
-
 }
 
 // ConvertRemovalsToMessage converts a set of market tickers to remove to a slice of sdk.Message.
