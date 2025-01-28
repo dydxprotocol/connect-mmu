@@ -61,6 +61,33 @@ go run ./cmd/mmu dispatch --config ./local/config-dydx-mainnet.json --simulate
 
 ---
 
+## AWS Pipeline
+
+In addition to running locally, the MMU also runs as an automated pipeline via AWS Step Functions + Lambda (triggered on a schedule by EventBridge). The AWS pipeline reports newly available MM transactions, validation errors, etc. to Slack. 
+
+The AWS pipeline consists of 3 components: 
+
+* MMU Lambda: Contains the core `cmd` module functionality. Command-specific flags (ex. config file paths) are hardcoded in the Lambda for each command, for consistency between runs. Requires the following params:
+    * `command`: Which command to run, either `{index | generate | override | validate | upserts | diff | dispatch}`
+    * `network`: Target network to run MMU on, either `{testnet | mainnet}`
+    * `timestamp`: Timestamp with which to prefix output files in S3 (auto-generated at current time for `index` command)
+* MMU Step Function: Coordinates the pipeline E2E by invoking the MMU Lambda for each command sequentially. The final command, `dispatch`, writes the latest transaction data to `{network}-transactions-latest.json` in S3.
+* API Lambda: Serves the latest transaction data from S3, using a query param `?network={testnet | mainnet}`. 
+
+### AWS Deployments
+
+To deploy a new version of the MMU Lambda, Step Function, or API Lambda: 
+
+1. Merge a PR to `main` (or to test before merging, temporarily enable the `deploy-staging` workflows on your PR).
+2. Wait for the `deploy` workflows to finish running in GitHub Actions. 
+    * The `deploy-mmu` workflows build and push the latest MMU Lambda source code image to ECR. 
+    * The `deploy-api` workflows build and push the latest API Lambda source code `.zip` to S3 (`market-map-updater-source` bucket). 
+3. To deploy `staging`: Run `terraform apply` from [the `market_map_updater` subdir in `v4-terraform` repo](https://github.com/dydxprotocol/v4-terraform/tree/main/market_map_updater). 
+    * You will have to authenticate in AWS CLI w/ your user credentials for the `staging` AWS account.
+4. To deploy `mainnet`: Use the HCP Terraform web UI to kick off a new apply on [the `market-map-updater-mainnet` workspace.](https://app.terraform.io/app/dydxprotocol/workspaces/market-map-updater-mainnet)
+
+---
+
 ## Index
 
 ```bash
