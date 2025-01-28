@@ -340,12 +340,13 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 		return err
 	}
 
-	// Fetch API keys from Secrets Manager
+	// Get map of URL --> API key secret name in Secrets Manager
 	apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
 	if err != nil {
 		return err
 	}
 
+	// Fetch secrets to create map of URL --> API key
 	apiKeyMap := make(map[string]string)
 	for url, secretName := range apiKeySecretsMap {
 		fmt.Printf("Fetching api key: %s\n", secretName)
@@ -358,9 +359,9 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 
 	for _, provider := range oracleConfig["providers"].(map[string]interface{}) {
 		for _, endpoint := range provider.(map[string]interface{})["api"].(map[string]interface{})["endpoints"].([]interface{}) {
-			url := endpoint.(map[string]interface{})["url"]
-			fmt.Printf("Setting url: %s, %s", url, apiKeyMap[url.(string)])
-			endpoint.(map[string]interface{})["authentication"].(map[string]string)["apiKey"] = apiKeyMap[url.(string)]
+			url := endpoint.(map[string]interface{})["url"].(string)
+			fmt.Printf("Setting url: %s, %s", url, apiKeyMap[url])
+			endpoint.(map[string]interface{})["authentication"].(map[string]interface{})["apiKey"] = apiKeyMap[url]
 		}
 	}
 
