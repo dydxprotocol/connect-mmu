@@ -353,6 +353,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf(string(bz))
 	return os.WriteFile(consts.OracleConfigFilePath, bz, 0o600)
 }
 
