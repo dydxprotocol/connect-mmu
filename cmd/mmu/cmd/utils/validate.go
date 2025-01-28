@@ -112,7 +112,6 @@ func ValidateCmd() *cobra.Command {
 			// Fetch API keys from Secrets Manager and write them to oracle.json
 			// That file will be passed to sentry via the --oracle-config flag
 			if aws.IsLambda() {
-				logger.Error("FETCHING API KEYS")
 				err := fetchAPIKeysAndWriteToOracleConfig()
 				if err != nil {
 					logger.Error("failed to fetch and write oracle API keys", zap.Error(err))
@@ -327,13 +326,11 @@ func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
 }
 
 func fetchAPIKeysAndWriteToOracleConfig() error {
-	fmt.Println("FETCHING API KEYS")
 	// Load oracle.json config file
 	bz, err := os.ReadFile(consts.OracleConfigFilePath)
 	if err != nil {
 		return err
 	}
-	// var oracleConfig OracleConfig
 	var oracleConfig map[string]interface{}
 	err = json.Unmarshal(bz, &oracleConfig)
 	if err != nil {
@@ -349,7 +346,6 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	// Fetch secrets to create map of URL --> API key
 	apiKeyMap := make(map[string]string)
 	for url, secretName := range apiKeySecretsMap {
-		fmt.Printf("Fetching api key: %s\n", secretName)
 		secret, err := aws.GetSecret(context.Background(), secretName)
 		if err != nil {
 			return err
@@ -357,43 +353,21 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 		apiKeyMap[url] = secret
 	}
 
+	// Iterate through oracle config to set the API key for each endpoint
+	// Note: Lots of clunky type assertions, alternative would be to parse oracle config JSON to a struct and use reflection to set values, which is even more clunky + error-prone
 	for _, provider := range oracleConfig["providers"].(map[string]interface{}) {
 		for _, endpoint := range provider.(map[string]interface{})["api"].(map[string]interface{})["endpoints"].([]interface{}) {
 			url := endpoint.(map[string]interface{})["url"].(string)
-			fmt.Printf("Setting url: %s, %s", url, apiKeyMap[url])
-			endpoint.(map[string]interface{})["authentication"].(map[string]interface{})["apiKey"] = apiKeyMap[url]
+			if apiKey, ok := apiKeyMap[url]; ok {
+				endpoint.(map[string]interface{})["authentication"].(map[string]interface{})["apiKey"] = apiKey
+			} else {
+				return fmt.Errorf("failed to find API key for endpoint URL: %s", url)
+			}
 		}
 	}
 
-	/*
-		for url, secretName := range apiKeySecretsMap {
-			fmt.Printf("Fetching api key: %s\n", secretName)
-			secret, err := aws.GetSecret(context.Background(), secretName)
-			if err != nil {
-				return err
-			}
-			apiKeyMap[url] = secret
-		}
-
-		// Set API keys in oracle config
-		for _, endpoints := range [][]OracleAPIEndpoint{oracleConfig.Providers.RaydiumAPI.API.Endpoints, oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
-			for _, endpoint := range endpoints {
-				url := endpoint.URL
-				fmt.Printf("Setting API key URL: %s\n", url)
-				fmt.Printf("API Key: %s\n", apiKeyMap[url])
-				// TODO validate url key exists
-				endpoint.Authentication.APIKey = apiKeyMap[url]
-			}
-		}
-	*/
-
-	// Write the oracle config with API keys populated back to oracle.json file
+	// Create temp dirs and file in /tmp/{OracleConfigFilePath} if they don't already exist
 	// Note: We have to write to /tmp/, as that is the only dir that is writeable within AWS Lambda filesystem
-	bz, err = json.MarshalIndent(oracleConfig, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(bz))
 	tmpPath := fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)
 	baseDir := path.Dir(tmpPath)
 	info, err := os.Stat(baseDir)
@@ -403,12 +377,17 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 			return err
 		}
 	}
-
 	file, err := os.Create(tmpPath)
 	if err != nil {
-		return fmt.Errorf("error creating file %s: %w", tmpPath, err)
+		return err
 	}
 	defer file.Close()
+
+	// Write the completed oracle config, with API keys populated, back to oracle.json file
+	bz, err = json.MarshalIndent(oracleConfig, "", "  ")
+	if err != nil {
+		return err
+	}
 	return os.WriteFile(tmpPath, bz, 0o600)
 }
 
