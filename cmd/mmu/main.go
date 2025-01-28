@@ -115,7 +115,7 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--overwrite-providers", "--update-enabled"}
 	case Validate:
 		// Note: We have to prefix --oracle-config path with /tmp/, as API keys must be fetched/set at runtime, and /tmp/ is the only dir that is writeable within AWS Lambda filesystem
-		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "1m", "--enable-all", "--oracle-config", fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)}
+		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all", "--oracle-config", fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)}
 	case Upserts:
 		args = []string{"upserts", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--warn-on-invalid-market-map"}
 	case Diff:

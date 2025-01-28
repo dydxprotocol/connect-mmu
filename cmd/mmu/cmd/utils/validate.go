@@ -49,32 +49,6 @@ const (
 	cmcKeyEnvVar = "CMC_API_KEY"
 )
 
-type OracleAPIEndpoint struct {
-	URL            string `json:"url"`
-	Authentication struct {
-		APIKeyHeader string `json:"apiKeyHeader"`
-		APIKey       string `json:"apiKey"`
-	} `json:"authentication"`
-}
-
-type OracleAPI struct {
-	Endpoints []OracleAPIEndpoint `json:"endpoints"`
-}
-
-type OracleConfig struct {
-	Providers struct {
-		RaydiumAPI struct {
-			API OracleAPI `json:"api"`
-		} `json:"raydium_api"`
-		UniswapV3APIEthereum struct {
-			API OracleAPI `json:"api"`
-		} `json:"uniswapv3_api-ethereum"`
-		UniswapV3APIBase struct {
-			API OracleAPI `json:"api"`
-		} `json:"uniswapv3_api-base"`
-	} `json:"providers"`
-}
-
 // NOTE: This command requires you to have both `connect` and `validator` installed.
 // To install validator run `make install-validator` in the root of this repo.
 // To install connect run `make install` in the Connect repo.
@@ -326,7 +300,7 @@ func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
 }
 
 func fetchAPIKeysAndWriteToOracleConfig() error {
-	// Load oracle.json config file
+	// Load local oracle.json config file
 	bz, err := os.ReadFile(consts.OracleConfigFilePath)
 	if err != nil {
 		return err
@@ -337,7 +311,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 		return err
 	}
 
-	// Get map of URL --> API key secret name in Secrets Manager
+	// Get map of URL --> secret name of its API key in Secrets Manager
 	apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
 	if err != nil {
 		return err

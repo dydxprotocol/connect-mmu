@@ -30,15 +30,17 @@ func GetSupportedNetworks() []string {
 	return []string{"testnet", "mainnet"}
 }
 
+// Get map of oracle endpoint URLs --> secret name of its API key in Secrets Manager
 func GetOracleAPIKeySecretNames() (map[string]string, error) {
+	// Secret names are prefixed with the MMU env
 	env := os.Getenv("ENVIRONMENT")
 	supportedEnvs := GetSupportedEnvironments()
 	if !slices.Contains(supportedEnvs, env) {
 		return nil, fmt.Errorf("invalid env: %s", env)
 	}
-
 	namePrefix := fmt.Sprintf("%s-market-map-updater", env)
 	nameSuffix := "api-key"
+
 	return map[string]string{
 		"https://solana.polkachu.com":          fmt.Sprintf("%s-raydium-solana-polkachu-%s", namePrefix, nameSuffix),
 		"https://connect-solana.kingnodes.com": fmt.Sprintf("%s-raydium-solana-kingnodes-%s", namePrefix, nameSuffix),
