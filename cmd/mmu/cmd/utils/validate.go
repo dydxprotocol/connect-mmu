@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,7 +17,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/utils/validate"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/validator"
 	validatortypes "github.com/skip-mev/connect-mmu/validator/types"
@@ -44,6 +47,32 @@ const (
 
 	cmcKeyEnvVar = "CMC_API_KEY"
 )
+
+type OracleAPIEndpoint struct {
+	URL            string `json:"url"`
+	Authentication struct {
+		APIKeyHeader string `json:"apiKeyHeader"`
+		APIKey       string `json:"apiKey"`
+	} `json:"authentication"`
+}
+
+type OracleAPI struct {
+	Endpoints []OracleAPIEndpoint `json:"endpoints"`
+}
+
+type OracleConfig struct {
+	Providers struct {
+		RaydiumAPI struct {
+			API OracleAPI `json:"api"`
+		} `json:"raydium_api"`
+		UniswapV3APIEthereum struct {
+			API OracleAPI `json:"api"`
+		} `json:"uniswapv3_api-ethereum"`
+		UniswapV3APIBase struct {
+			API OracleAPI `json:"api"`
+		} `json:"uniswapv3_api-base"`
+	} `json:"providers"`
+}
 
 // NOTE: This command requires you to have both `connect` and `validator` installed.
 // To install validator run `make install-validator` in the root of this repo.
@@ -76,6 +105,12 @@ func ValidateCmd() *cobra.Command {
 			}
 
 			cmd.Printf("running validation for %d markets\n", len(mm.Markets))
+
+			// Fetch API keys from Secrets Manager and write them to oracle.json
+			// That file will be passed to sentry via the --oracle-config flag
+			if aws.IsLambda() {
+				fetchAPIKeysAndWriteToOracleConfig()
+			}
 
 			cmcAPIKey := flags.cmcAPIKey
 			if cmcAPIKey == "" {
@@ -279,6 +314,46 @@ func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
 
 	cmd.MarkFlagRequired(flagMarketmap)
 	cmd.MarkFlagsMutuallyExclusive(flagEnableMarkets, flagEnableOnly, flagEnableAll)
+}
+
+func fetchAPIKeysAndWriteToOracleConfig() error {
+	// Load oracle.json config file
+	bz, err := os.ReadFile(consts.OracleConfigFilePath)
+	if err != nil {
+		return err
+	}
+	var oracleConfig OracleConfig
+	err = json.Unmarshal(bz, &oracleConfig)
+	if err != nil {
+		return err
+	}
+
+	// Fetch API keys from Secrets Manager
+	apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
+	apiKeyMap := make(map[string]string)
+	for url, secretName := range apiKeySecretsMap {
+		secret, err := aws.GetSecret(context.Background(), secretName)
+		if err != nil {
+			return err
+		}
+		apiKeyMap[url] = secret
+	}
+
+	// Set API keys in oracle config
+	for _, endpoints := range [][]OracleAPIEndpoint{oracleConfig.Providers.RaydiumAPI.API.Endpoints, oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
+		for _, endpoint := range endpoints {
+			url := endpoint.URL
+			// TODO validate url key exists
+			endpoint.Authentication.APIKey = apiKeyMap[url]
+		}
+	}
+
+	// Write the oracle config with API keys populated back to oracle.json file
+	bz, err = json.MarshalIndent(oracleConfig, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(consts.OracleConfigFilePath, bz, 0o600)
 }
 
 // generateErrorFromReport will generate an error based on failing and missing reports.

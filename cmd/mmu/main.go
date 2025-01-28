@@ -68,23 +68,6 @@ func getSupportedCommands() map[string]Command {
 	}
 }
 
-func fetchAPIKeysAndWriteToOracleConfig() error {
-	// Read oracle.json config file
-	bz, err := os.ReadFile(consts.OracleConfigFilePath)
-	if err != nil {
-		return err
-	}
-	var oracleJSON interface{}
-	err = json.Unmarshal(bz, &oracleJSON)
-	if err != nil {
-		return err
-	}
-
-	// Fetch API keys from Secrets Manager and set them in the oracle JSON
-
-	// Write the JSON with API keys populated back to file
-}
-
 func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]string, error) {
 	logger := logging.Logger(ctx)
 
@@ -113,12 +96,6 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 		return nil, fmt.Errorf("lambda commands require a timestamp of the input file(s) to use")
 	}
 
-	// Validate command requires API keys to be fetched from Secrets Manager and written to oracle.json
-	// That file will be passed to sidecar via the --oracle-config flag
-	if command == Validate {
-		fetchAPIKeysAndWriteToOracleConfig()
-	}
-
 	// Set TIMESTAMP env var for file I/O prefixes in S3
 	var timestamp string
 	if command == Index {
@@ -137,13 +114,13 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	case Override:
 		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--overwrite-providers", "--update-enabled"}
 	case Validate:
-		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all", "--oracle-config", "local/fixtures/e2e/oracle.json"}
+		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all", "--oracle-config", consts.OracleConfigFilePath}
 	case Upserts:
 		args = []string{"upserts", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--warn-on-invalid-market-map"}
 	case Diff:
 		args = []string{"diff", "--network", fmt.Sprintf("dydx-%s", network), "--market-map", "generated-market-map.json", "--output", "diff", "--slinky-api"}
 	case Dispatch:
-		args = []string{"dispatch", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--upserts", "upserts.json", "--removals", "market-map-removals.json"}
+		args = []string{"dispatch", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--updates", "market-map-updates.json", "--additions", "market-map-additions.json", "--removals", "market-map-removals.json"}
 	}
 
 	logger.Info("received Lambda command", zap.Strings("args", args))
