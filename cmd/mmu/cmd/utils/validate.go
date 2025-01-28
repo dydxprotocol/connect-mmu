@@ -357,7 +357,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	}
 
 	for _, provider := range oracleConfig["providers"].(map[string]interface{}) {
-		for _, endpoint := range provider.(map[string]interface{})["api"].(map[string]interface{})["endpoints"].(map[string]interface{}) {
+		for _, endpoint := range provider.(map[string]interface{})["api"].(map[string]interface{})["endpoints"].([]interface{}) {
 			url := endpoint.(map[string]string)["url"]
 			fmt.Printf("Setting url: %s, %s", url, apiKeyMap[url])
 			endpoint.(map[string]interface{})["authentication"].(map[string]string)["apiKey"] = apiKeyMap[url]
