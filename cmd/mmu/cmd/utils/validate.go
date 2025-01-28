@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -371,6 +372,15 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	}
 	fmt.Println(string(bz))
 	tmpPath := fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)
+	baseDir := path.Dir(tmpPath)
+	info, err := os.Stat(baseDir)
+	if err != nil || !info.IsDir() {
+		err = os.MkdirAll(baseDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	file, err := os.Create(tmpPath)
 	if err != nil {
 		return fmt.Errorf("error creating file %s: %w", tmpPath, err)
