@@ -10,6 +10,12 @@ import (
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 )
 
+/*
+This module provides utils for reading / writing files, both locally and in AWS S3.
+If the MMU is running in AWS, files are read / written to S3.
+If the MMU is running locally, files are read / written to local disk.
+*/
+
 func ReadBytesFromFile(path string) ([]byte, error) {
 	if aws.IsLambda() {
 		// Read from S3

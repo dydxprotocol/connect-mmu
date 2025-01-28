@@ -287,10 +287,7 @@ func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
 		return err
 	}
 	existingLatestTransactionsJSON, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
-	if err != nil {
-		return err
-	}
-	if bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
+	if err == nil && bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
 		return nil
 	}
 
