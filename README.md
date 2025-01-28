@@ -78,7 +78,8 @@ The AWS pipeline consists of 3 components:
 
 To deploy a new version of the MMU Lambda, Step Function, or API Lambda: 
 
-1. Merge a PR to `main` (or to test before merging, temporarily enable the `deploy-staging` workflows on your PR).
+1. Merge a PR to `main`.
+    * To test before merging, temporarily enable the `deploy-staging` workflows on your PR.
 2. Wait for the `deploy` workflows to finish running in GitHub Actions. 
     * The `deploy-mmu` workflows build and push the latest MMU Lambda source code image to ECR. 
     * The `deploy-api` workflows build and push the latest API Lambda source code `.zip` to S3 (`market-map-updater-source` bucket). 
