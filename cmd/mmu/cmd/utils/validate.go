@@ -347,7 +347,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 
 	apiKeyMap := make(map[string]string)
 	for url, secretName := range apiKeySecretsMap {
-		fmt.Println("Fetching api key: %s", secretName)
+		fmt.Printf("Fetching api key: %s\n", secretName)
 		secret, err := aws.GetSecret(context.Background(), secretName)
 		if err != nil {
 			return err
@@ -359,8 +359,8 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	for _, endpoints := range [][]OracleAPIEndpoint{oracleConfig.Providers.RaydiumAPI.API.Endpoints, oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
 		for _, endpoint := range endpoints {
 			url := endpoint.URL
-			fmt.Println("Setting API key URL: %s", url)
-			fmt.Println("API Key: %s", apiKeyMap[url])
+			fmt.Printf("Setting API key URL: %s\n", url)
+			fmt.Printf("API Key: %s\n", apiKeyMap[url])
 			// TODO validate url key exists
 			endpoint.Authentication.APIKey = apiKeyMap[url]
 		}
