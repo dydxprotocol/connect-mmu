@@ -87,6 +87,8 @@ func ValidateCmd() *cobra.Command {
 		Example: "validate --market-map marketmap.json --oracle-config oracle.json --start-delay 10s --duration 1m",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			logger := logging.Logger(cmd.Context())
+
 			if err := checkInstalled("sentry"); err != nil {
 				return err
 			}
@@ -109,7 +111,12 @@ func ValidateCmd() *cobra.Command {
 			// Fetch API keys from Secrets Manager and write them to oracle.json
 			// That file will be passed to sentry via the --oracle-config flag
 			if aws.IsLambda() {
-				fetchAPIKeysAndWriteToOracleConfig()
+				logger.Error("FETCHING API KEYS")
+				err := fetchAPIKeysAndWriteToOracleConfig()
+				if err != nil {
+					logger.Error("failed to fetch oracle API keys", zap.Error(err))
+					return err
+				}
 			}
 
 			cmcAPIKey := flags.cmcAPIKey
@@ -241,7 +248,6 @@ func ValidateCmd() *cobra.Command {
 
 			allErrs := generateErrorFromReport(mm, summary, val.MissingReports(health))
 
-			logger := logging.Logger(cmd.Context())
 			logger.Info("validation errors", zap.Bool("slack_report", true), zap.Errors("errors", allErrs))
 
 			err = errors.Join(allErrs...)
@@ -320,6 +326,7 @@ func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
 }
 
 func fetchAPIKeysAndWriteToOracleConfig() error {
+	fmt.Println("FETCHING API KEYS")
 	// Load oracle.json config file
 	bz, err := os.ReadFile(consts.OracleConfigFilePath)
 	if err != nil {
@@ -339,6 +346,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 
 	apiKeyMap := make(map[string]string)
 	for url, secretName := range apiKeySecretsMap {
+		fmt.Printf("Fetching api key: %s", secretName)
 		secret, err := aws.GetSecret(context.Background(), secretName)
 		if err != nil {
 			return err
