@@ -124,9 +124,12 @@ func ValidateCmd() *cobra.Command {
 
 			cmd.Printf("removing sidecar log file %s\n", flags.sidecarLogFile)
 
-			// Remove sidecar.log file if one exists
-			if err := os.Remove(flags.sidecarLogFile); err != nil && !errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("error removing sidecar log file %s: %w", flags.sidecarLogFile, err)
+			// Remove sidecar.log file if running locally, and if one exists.
+			// This is unnecessary when running in Lambda, as each invocation will have a new instance + sidecar image (and filesystem is read-only anyways)
+			if !aws.IsLambda() {
+				if err := os.Remove(flags.sidecarLogFile); err != nil && !errors.Is(err, os.ErrNotExist) {
+					return fmt.Errorf("error removing sidecar log file %s: %w", flags.sidecarLogFile, err)
+				}
 			}
 
 			// write this new marketmap to a temp file, so we can pass the filepath to connect.
@@ -353,12 +356,13 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	}
 
 	// Write the oracle config with API keys populated back to oracle.json file
+	// Note: We have to write to /tmp/, as that is the only dir that is writeable within AWS Lambda filesystem
 	bz, err = json.MarshalIndent(oracleConfig, "", "  ")
 	if err != nil {
 		return err
 	}
 	fmt.Println(string(bz))
-	return os.WriteFile(consts.OracleConfigFilePath, bz, 0o600)
+	return os.WriteFile(fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath), bz, 0o600)
 }
 
 // generateErrorFromReport will generate an error based on failing and missing reports.
