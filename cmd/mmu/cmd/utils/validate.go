@@ -356,8 +356,8 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	}
 
 	// Set API keys in oracle config
-	for _, endpoints := range [][]OracleAPIEndpoint{oracleConfig.Providers.RaydiumAPI.API.Endpoints, oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
-		for _, endpoint := range endpoints {
+	for _, endpoints := range []*[]OracleAPIEndpoint{&oracleConfig.Providers.RaydiumAPI.API.Endpoints, &oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, &oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
+		for _, endpoint := range *endpoints {
 			url := endpoint.URL
 			fmt.Printf("Setting API key URL: %s\n", url)
 			fmt.Printf("API Key: %s\n", apiKeyMap[url])
