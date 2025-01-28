@@ -330,6 +330,10 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 
 	// Fetch API keys from Secrets Manager
 	apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
+	if err != nil {
+		return err
+	}
+
 	apiKeyMap := make(map[string]string)
 	for url, secretName := range apiKeySecretsMap {
 		secret, err := aws.GetSecret(context.Background(), secretName)
@@ -353,7 +357,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf(string(bz))
+	fmt.Println(string(bz))
 	return os.WriteFile(consts.OracleConfigFilePath, bz, 0o600)
 }
 
