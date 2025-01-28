@@ -24,7 +24,7 @@ COPY --from=builder /go/bin/sentry /usr/local/bin/
 COPY --from=builder /usr/local/bin/connect-* /usr/local/bin/
 COPY --from=builder /usr/local/bin/connect /usr/local/bin/
 # Copy config files
-COPY --from=builder /src/connect-mmu/local/* /usr/local/bin/local/
+COPY --from=builder /src/connect-mmu/local/ /usr/local/bin/local/
 # symlink slinky -> connect-1.0.12
 RUN ln -s /usr/local/bin/slinky /usr/local/bin/connect-1.0.12
 
