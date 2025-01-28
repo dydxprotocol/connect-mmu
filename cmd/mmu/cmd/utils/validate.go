@@ -333,7 +333,8 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	if err != nil {
 		return err
 	}
-	var oracleConfig OracleConfig
+	// var oracleConfig OracleConfig
+	var oracleConfig map[string]interface{}
 	err = json.Unmarshal(bz, &oracleConfig)
 	if err != nil {
 		return err
@@ -355,16 +356,35 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 		apiKeyMap[url] = secret
 	}
 
-	// Set API keys in oracle config
-	for _, endpoints := range []*[]OracleAPIEndpoint{&oracleConfig.Providers.RaydiumAPI.API.Endpoints, &oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, &oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
-		for _, endpoint := range *endpoints {
-			url := endpoint.URL
-			fmt.Printf("Setting API key URL: %s\n", url)
-			fmt.Printf("API Key: %s\n", apiKeyMap[url])
-			// TODO validate url key exists
-			endpoint.Authentication.APIKey = apiKeyMap[url]
+	for _, provider := range oracleConfig["providers"].(map[string]interface{}) {
+		for _, endpoint := range provider.(map[string]interface{})["api"].(map[string]interface{})["endpoints"].(map[string]interface{}) {
+			url := endpoint.(map[string]string)["url"]
+			fmt.Printf("Setting url: %s, %s", url, apiKeyMap[url])
+			endpoint.(map[string]interface{})["authentication"].(map[string]string)["apiKey"] = apiKeyMap[url]
 		}
 	}
+
+	/*
+		for url, secretName := range apiKeySecretsMap {
+			fmt.Printf("Fetching api key: %s\n", secretName)
+			secret, err := aws.GetSecret(context.Background(), secretName)
+			if err != nil {
+				return err
+			}
+			apiKeyMap[url] = secret
+		}
+
+		// Set API keys in oracle config
+		for _, endpoints := range [][]OracleAPIEndpoint{oracleConfig.Providers.RaydiumAPI.API.Endpoints, oracleConfig.Providers.UniswapV3APIEthereum.API.Endpoints, oracleConfig.Providers.UniswapV3APIBase.API.Endpoints} {
+			for _, endpoint := range endpoints {
+				url := endpoint.URL
+				fmt.Printf("Setting API key URL: %s\n", url)
+				fmt.Printf("API Key: %s\n", apiKeyMap[url])
+				// TODO validate url key exists
+				endpoint.Authentication.APIKey = apiKeyMap[url]
+			}
+		}
+	*/
 
 	// Write the oracle config with API keys populated back to oracle.json file
 	// Note: We have to write to /tmp/, as that is the only dir that is writeable within AWS Lambda filesystem
