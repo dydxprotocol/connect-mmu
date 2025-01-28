@@ -181,16 +181,20 @@
     "min_cex_provider_count": 2,
     "min_dex_provider_count": 1,
     "exclude_cmc_tags": ["wrapped-tokens", "algorithmic-stablecoin"],
+    "disable_providers": {
+      "IOTX/USD": ["coinbase_ws"]
+    },
     "exclude_pairs": {
-      "AGLD/USD": {},
       "AUD/USD": {},
       "CAD/USD": {},
       "CNY/USD": {},
+      "ETHDYDX/USD": {},
       "GBP/USD": {},
       "JPY/USD": {},
       "MATIC/USD": {},
       "MXN/USD": {},
-      "NZD/USD": {}
+      "NZD/USD": {},
+      "WTAO,UNISWAP_V3,0X77E06C9ECCF2E797FD462A92B6D7642EF85B0A44/USD": {}
     },
     "allowed_currency_pairs": null,
     "market_map_override": {
@@ -277,6 +281,43 @@
             {
               "name": "polymarket_api",
               "off_chain_ticker": "0xeb3cef6b7f43fcd35ce139e89c0b00cbc3a70a556c87ef934f8ca984208aaaa8/51052158557761079600060821198344572146234634299666295420235183322360518805559"
+            }
+          ]
+        },
+        "NEIRO/USD": {
+          "ticker": {
+            "currency_pair": {
+              "Base": "NEIRO",
+              "Quote": "USD"
+            },
+            "decimals": 11,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":3168000000,\"liquidity\":190473,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"32461\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "bybit_ws",
+              "off_chain_ticker": "NEIROUSDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            },
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "NEIROETH_USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            },
+            {
+              "name": "kucoin_ws",
+              "off_chain_ticker": "NEIRO-USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
             }
           ]
         },

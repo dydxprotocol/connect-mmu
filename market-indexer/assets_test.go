@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	indexer "github.com/skip-mev/connect-mmu/market-indexer"
+	cmc_api "github.com/skip-mev/connect-mmu/market-indexer/api/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/utils"
 	"github.com/skip-mev/connect-mmu/store/provider"
@@ -68,7 +69,7 @@ func TestCryptoAssetInfoFromData(t *testing.T) {
 		{
 			name: "add single crypto asset with address",
 			data: coinmarketcap.WrappedCryptoIDMapData{
-				IDMap: coinmarketcap.CryptoIDMapData{
+				IDMap: cmc_api.CryptoIDMapData{
 					ID:                  10,
 					Rank:                10,
 					Name:                "test asset",
@@ -91,11 +92,11 @@ func TestCryptoAssetInfoFromData(t *testing.T) {
 						TokenAddress string
 					}{ID: 10, Name: "ETH", Symbol: "test", Slug: "test", TokenAddress: "address"}),
 				},
-				Info: coinmarketcap.InfoData{
-					ContractAddress: []coinmarketcap.ContractAddress{
+				Info: cmc_api.InfoData{
+					ContractAddress: []cmc_api.ContractAddress{
 						{
 							ContractAddress: "address",
-							Platform: coinmarketcap.Platform{
+							Platform: cmc_api.Platform{
 								Name: "ETH",
 							},
 						},
@@ -112,7 +113,7 @@ func TestCryptoAssetInfoFromData(t *testing.T) {
 		{
 			name: "add single crypto asset with address - no platform",
 			data: coinmarketcap.WrappedCryptoIDMapData{
-				IDMap: coinmarketcap.CryptoIDMapData{
+				IDMap: cmc_api.CryptoIDMapData{
 					ID:                  10,
 					Rank:                10,
 					Name:                "test asset",
@@ -122,8 +123,8 @@ func TestCryptoAssetInfoFromData(t *testing.T) {
 					FirstHistoricalData: time.Time{},
 					LastHistoricalData:  time.Time{},
 				},
-				Info: coinmarketcap.InfoData{
-					ContractAddress: []coinmarketcap.ContractAddress{},
+				Info: cmc_api.InfoData{
+					ContractAddress: []cmc_api.ContractAddress{},
 				},
 			},
 			want: provider.CreateAssetInfoParams{
@@ -150,12 +151,12 @@ func TestCryptoAssetInfoFromData(t *testing.T) {
 func TestFiatAssetInfoFromData(t *testing.T) {
 	tests := []struct {
 		name string
-		data coinmarketcap.FiatData
+		data cmc_api.FiatData
 		want provider.CreateAssetInfoParams
 	}{
 		{
 			name: "create from fiat asset info",
-			data: coinmarketcap.FiatData{
+			data: cmc_api.FiatData{
 				ID:     10,
 				Name:   "TEST",
 				Sign:   "TEST",

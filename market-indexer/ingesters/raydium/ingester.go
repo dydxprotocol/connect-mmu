@@ -16,6 +16,7 @@ import (
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
+	"github.com/skip-mev/connect-mmu/market-indexer/api/coinmarketcap"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters"
 	raydium "github.com/skip-mev/connect-mmu/market-indexer/ingesters/raydium/generated/raydium_amm"
 	"github.com/skip-mev/connect-mmu/market-indexer/ingesters/types"
@@ -28,6 +29,10 @@ const (
 
 	// defaultRequestChunk is the size of the request that can be made to a solana node.
 	defaultRequestChunk = 100
+
+	CMC_DEX_ID     = 1342 // raydium
+	CMC_NETWORK_ID = 16   // Solana
+
 )
 
 var _ ingesters.Ingester = &Ingester{}
@@ -36,34 +41,37 @@ var _ ingesters.Ingester = &Ingester{}
 type Ingester struct {
 	logger *zap.Logger
 
-	client Client
+	client    Client
+	cmcClient coinmarketcap.Client
 }
 
 // New creates a new raydium Ingester.
-func New(logger *zap.Logger, cfg config.MarketConfig) *Ingester {
+func New(logger *zap.Logger, cfg config.MarketConfig, cmcAPIKey string) *Ingester {
 	if logger == nil {
 		panic("cannot set nil logger")
 	}
 
 	return &Ingester{
-		logger: logger.With(zap.String("ingester", Name)),
-		client: NewClient(logger, cfg),
+		logger:    logger.With(zap.String("ingester", Name)),
+		client:    NewClient(logger, cfg),
+		cmcClient: coinmarketcap.NewHTTPClient(cmcAPIKey),
 	}
 }
 
 func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreateProviderMarket, error) {
 	ig.logger.Info("fetching data")
 
-	ig.logger.Info("querying token registry entries")
+	ig.logger.Info("querying for raydium tokens")
 
-	tokenMetadata, err := ig.client.TokenMetadata(ctx)
+	dexMarketsResponse, err := ig.cmcClient.DexMarkets(ctx, CMC_NETWORK_ID, CMC_DEX_ID)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch token metadata: %w", err)
+		return nil, fmt.Errorf("could not fetch Dex Markets from CMC: %w", err)
 	}
 
-	symbolMap := make(map[string]string, len(tokenMetadata.Content))
-	for _, entry := range tokenMetadata.Content {
-		symbolMap[entry.Address] = entry.Symbol
+	symbolMap := make(map[string]string, len(dexMarketsResponse.Data))
+	for _, entry := range dexMarketsResponse.Data {
+		symbolMap[entry.BaseAssetContractAddress] = entry.BaseAssetSymbol
+		symbolMap[entry.QuoteAssetContractAddress] = entry.QuoteAssetSymbol
 	}
 
 	ig.logger.Info("number of token entries", zap.Int("entries", len(symbolMap)))

@@ -15,11 +15,7 @@ func GetMarketMapUpserts(
 	logger *zap.Logger,
 	actual,
 	generated mmtypes.MarketMap,
-) ([]mmtypes.Market, error) {
-	upserts := make([]mmtypes.Market, 0)
-
-	var err error
-
+) (updates []mmtypes.Market, additions []mmtypes.Market, err error) {
 	// we need to make a copy of actual, since we'll be modifying it
 	actualCopy := mmtypes.MarketMap{
 		Markets: maps.Clone(actual.Markets),
@@ -28,13 +24,13 @@ func GetMarketMapUpserts(
 	// short circuit if they're equal
 	if actual.Equal(generated) {
 		logger.Info("both markets are equal - returning")
-		return upserts, nil
+		return updates, additions, nil
 	}
 
 	generated, err = PruneNormalizeByPairs(logger, generated)
 	if err != nil {
 		logger.Error("PruneNormalizeByPairs failed", zap.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	// for each market in the generated market-map
@@ -45,6 +41,9 @@ func GetMarketMapUpserts(
 			if market.Equal(actualMarket) {
 				continue
 			}
+		} else {
+			additions = append(additions, market)
+			continue
 		}
 
 		// otherwise, for all markets pointed to by a normalize-by-pair in the generated market, check if they are in the actual market
@@ -57,29 +56,29 @@ func GetMarketMapUpserts(
 					if normalizeByPairMarket, ok := generated.Markets[normalizeByPair.String()]; ok {
 						// adjust by market exists, add the adjust-by via an upsert + add to the
 						// actual market-map
-						upserts = append(upserts, normalizeByPairMarket)
+						updates = append(updates, normalizeByPairMarket)
 						actualCopy.Markets[normalizeByPairMarket.Ticker.String()] = normalizeByPairMarket
 					} else {
 						logger.Error("market normalize-by pair not found in generated marketmap",
 							zap.String("market", ticker), zap.String("normalize pair", normalizeByPair.String()))
-						return nil, fmt.Errorf("market %s's normalize-by market %s not found in generated market-map", ticker, normalizeByPairMarket.String())
+						return nil, nil, fmt.Errorf("market %s's normalize-by market %s not found in generated market-map", ticker, normalizeByPairMarket.String())
 					}
 				}
 			}
 		}
 
 		// now that any of the necessary adjust-bys exist w/in the market-map, add the market to the upserts
-		upserts = append(upserts, market)
+		updates = append(updates, market)
 		actualCopy.Markets[ticker] = market
 	}
 
 	// return all upserts + verify that the finalized market-map is valid
 	if err := actualCopy.ValidateBasic(); err != nil {
 		logger.Error("updated marketmap is invalid", zap.Error(err))
-		return nil, fmt.Errorf("updated market-map is invalid: %w", err)
+		return nil, nil, fmt.Errorf("updated market-map is invalid: %w", err)
 	}
 
-	return upserts, nil
+	return updates, additions, nil
 }
 
 // PruneNormalizeByPairs removes any provider configs for enabled markets with providers with disabled normalized pairs from markets.

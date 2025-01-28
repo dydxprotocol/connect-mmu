@@ -340,6 +340,106 @@ type ExchangeMarketsData struct {
 	} `json:"market_pairs"`
 }
 
+// DexMarketsResponse is the expected response for the following query to CMC.
+//
+// https://pro-api.coinmarketcap.com/v4/dex/spot-pairs/latest
+//
+// The data payload is as follows:
+//
+// "data": [
+// 	{
+// 		"quote": [
+// 			{
+// 				"convert_id": "2781",
+// 				"price": 0.9999815548805755,
+// 				"price_by_quote_asset": 0.000253776654620438,
+// 				"last_updated": "2024-12-17T16:31:26.659Z",
+// 				"volume_24h": 351056138.7588353,
+// 				"percent_change_price_1h": -0.0000858899,
+// 				"percent_change_price_24h": 0.0000001308,
+// 				"liquidity": 120411023.47339135,
+// 				"fully_diluted_value": 30130454322.5131553129563338153970
+// 			}
+// 		],
+// 		"scroll_id": "50",
+// 		"contract_address": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640",
+// 		"name": "USDC/WETH",
+// 		"base_asset_id": "9034117",
+// 		"base_asset_ucid": "3408",
+// 		"base_asset_name": "USD Coin",
+// 		"base_asset_symbol": "USDC",
+// 		"base_asset_contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+// 		"quote_asset_id": "8793720",
+// 		"quote_asset_ucid": "2396",
+// 		"quote_asset_name": "Wrapped Ether",
+// 		"quote_asset_symbol": "WETH",
+// 		"quote_asset_contract_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+// 		"dex_id": "1348",
+// 		"dex_slug": "uniswap-v3",
+// 		"network_id": "1",
+// 		"network_slug": "Ethereum",
+// 		"last_updated": "2024-12-17T16:31:26.659Z",
+// 		"created_at": "2022-06-29T16:33:51.000Z"
+// 	},
+// ]
+// More information can be found here: https://www.postman.com/bryancmc/coinmarketcap-dex-apis/request/3ub0fm2/v4-dex-spot-pairs-latest-latest-listings-of-pairs
+
+type DexMarketsResponse struct {
+	Data   []DexMarketsData `json:"data"`
+	Status DexStatus        `json:"status"`
+}
+
+type DexStatus struct {
+	Timestamp    time.Time `json:"timestamp"`
+	ErrorCode    string    `json:"error_code"`
+	ErrorMessage string    `json:"error_message"`
+	Elapsed      int       `json:"elapsed"`
+	CreditCount  int       `json:"credit_count"`
+}
+
+func (s *DexStatus) Validate() error {
+	switch s.ErrorCode {
+	case "0":
+		return nil
+	default:
+		return fmt.Errorf("CMC request error: %s: %s", s.ErrorCode, s.ErrorMessage)
+	}
+}
+
+type DexMarketsData struct {
+	Quote                     []DexMarketQuote `json:"quote"`
+	ScrollID                  string           `json:"scroll_id"`
+	ContractAddress           string           `json:"contract_address"`
+	Name                      string           `json:"name"`
+	BaseAssetID               string           `json:"base_asset_id"`
+	BaseAssetUCID             string           `json:"base_asset_ucid"`
+	BaseAssetName             string           `json:"base_asset_name"`
+	BaseAssetSymbol           string           `json:"base_asset_symbol"`
+	BaseAssetContractAddress  string           `json:"base_asset_contract_address"`
+	QuoteAssetID              string           `json:"quote_asset_id"`
+	QuoteAssetUCID            string           `json:"quote_asset_ucid"`
+	QuoteAssetName            string           `json:"quote_asset_name"`
+	QuoteAssetSymbol          string           `json:"quote_asset_symbol"`
+	QuoteAssetContractAddress string           `json:"quote_asset_contract_address"`
+	DexID                     string           `json:"dex_id"`
+	DexSlug                   string           `json:"dex_slug"`
+	NetworkID                 string           `json:"network_id"`
+	NetworkSlug               string           `json:"network_slug"`
+	LastUpdated               time.Time        `json:"last_updated"`
+	CreatedAt                 time.Time        `json:"created_at"`
+}
+
+type DexMarketQuote struct {
+	Price                 float64   `json:"price"`
+	PriceByQuoteAsset     float64   `json:"price_by_quote_asset"`
+	LastUpdated           time.Time `json:"last_updated"`
+	Volume24H             float64   `json:"volume_24h"`
+	PercentChangePriceH1  float64   `json:"percent_change_price_1h"`
+	PercentChangePrice24H float64   `json:"percent_change_price_24h"`
+	Liquidity             float64   `json:"liquidity"`
+	FullyDilutedValue     float64   `json:"fully_diluted_value"`
+}
+
 // FiatResponse is the response returned by the CoinMarketCap API for the
 //
 // https://pro-api.coinmarketcap.com/v1/fiat/map
@@ -1198,11 +1298,6 @@ type Platform struct {
 		Slug   string `json:"slug"`
 	} `json:"coin"`
 }
-
-const (
-	exchangeStatusActive   = 1
-	exchangeStatusInactive = 0
-)
 
 type Status struct {
 	Timestamp    time.Time `json:"timestamp"`

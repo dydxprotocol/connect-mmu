@@ -45,7 +45,8 @@ type generateUpsertsFlags struct {
 	marketExclusionsOutPath   string
 	overrideMarketMapOutPath  string
 	marketMapRemovalsOutPath  string
-	upsertsOutPath            string
+	updatesOutPath            string
+	additionsOutPath          string
 
 	writeIntermediate      bool
 	warnOnInvalidMarketMap bool
@@ -64,7 +65,8 @@ func generateUpsertsConfigureFlags(cmd *cobra.Command, flags *generateUpsertsFla
 	cmd.Flags().StringVar(&flags.marketExclusionsOutPath, basic.MarketMapExclusionsOutPathFlag, basic.MarketMapExclusionsOutPathDefault, basic.MarketMapExclusionsOutPathDescription)
 	cmd.Flags().StringVar(&flags.overrideMarketMapOutPath, basic.MarketMapOutPathOverrideFlag, basic.MarketMapOutPathOverrideDefault, basic.MarketMapOutPathOverrideDescription)
 	cmd.Flags().StringVar(&flags.marketMapRemovalsOutPath, basic.MarketMapRemovalsOutPathFlag, basic.MarketMapRemovalsOutPathDefault, basic.MarketMapRemovalsOutPathDescription)
-	cmd.Flags().StringVar(&flags.upsertsOutPath, basic.UpsertsOutPathFlag, basic.UpsertsOutPathDefault, basic.UpsertsOutPathDescription)
+	cmd.Flags().StringVar(&flags.updatesOutPath, basic.UpdatesOutPathFlag, basic.UpdatesOutPathDefault, basic.UpdatesOutPathDescription)
+	cmd.Flags().StringVar(&flags.additionsOutPath, basic.AdditionsOutPathFlag, basic.AdditionsOutPathDefault, basic.AdditionsOutPathDescription)
 
 	cmd.Flags().BoolVar(&flags.writeIntermediate, WriteIntermediateFlag, WriteIntermediateDefault, WriteIntermediateDescription)
 }
@@ -144,7 +146,7 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 		return errors.New("upsert configuration missing from mmu config")
 	}
 
-	upserts, err := basic.UpsertsFromConfigs(
+	updates, additions, err := basic.UpsertsFromConfigs(
 		ctx,
 		logger,
 		overriddenMarketMap,
@@ -156,11 +158,17 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 		return err
 	}
 
-	err = file.WriteJSONToFile(flags.upsertsOutPath, upserts)
+	err = file.WriteJSONToFile(flags.updatesOutPath, updates)
 	if err != nil {
-		return fmt.Errorf("failed to write upserts: %w", err)
+		return fmt.Errorf("failed to write updates: %w", err)
 	}
-	logger.Info("upserts written to file", zap.String("file", flags.upsertsOutPath))
+	logger.Info("updates written to file", zap.String("file", flags.updatesOutPath))
+
+	err = file.WriteJSONToFile(flags.additionsOutPath, additions)
+	if err != nil {
+		return fmt.Errorf("failed to write additions: %w", err)
+	}
+	logger.Info("additions written to file", zap.String("file", flags.additionsOutPath))
 
 	return nil
 }

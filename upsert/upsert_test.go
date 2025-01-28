@@ -151,7 +151,7 @@ func TestRemoveFromUpserts(t *testing.T) {
 				markets[i] = mmtypes.Market{Ticker: mmtypes.Ticker{CurrencyPair: pair}}
 			}
 
-			updated := removeFromUpserts(markets, tc.remove)
+			updated := removeFromUpdates(markets, tc.remove)
 			require.Len(t, updated, len(tc.expected))
 			for i, market := range updated {
 				require.Equal(t, tc.expected[i], market.Ticker.String())

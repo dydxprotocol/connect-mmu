@@ -13,16 +13,16 @@ import (
 	"github.com/skip-mev/connect-mmu/testutil/markets"
 )
 
-func TestConvertUpsertsToMessages(t *testing.T) {
+func TestConvertUpdatesToMessages(t *testing.T) {
 	tests := []struct {
 		name    string
 		cfg     config.TransactionConfig
-		upserts []mmtypes.Market
+		updates []mmtypes.Market
 		want    []sdk.Msg
 		wantErr bool
 	}{
 		{
-			name: "empty upserts",
+			name: "empty updates",
 			cfg: config.TransactionConfig{
 				MaxBytesPerTx: 2000,
 			},
@@ -33,7 +33,7 @@ func TestConvertUpsertsToMessages(t *testing.T) {
 			cfg: config.TransactionConfig{
 				MaxBytesPerTx: 0,
 			},
-			upserts: []mmtypes.Market{
+			updates: []mmtypes.Market{
 				markets.UsdtUsd,
 			},
 			want:    make([]sdk.Msg, 0),
@@ -42,7 +42,7 @@ func TestConvertUpsertsToMessages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := generator.ConvertUpsertsToMessages(zaptest.NewLogger(t), tt.cfg, config.VersionConnect, "", tt.upserts)
+			got, err := generator.ConvertUpdatesToMessages(zaptest.NewLogger(t), tt.cfg, config.VersionConnect, "", tt.updates)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
