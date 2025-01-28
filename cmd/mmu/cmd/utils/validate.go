@@ -114,7 +114,7 @@ func ValidateCmd() *cobra.Command {
 				logger.Error("FETCHING API KEYS")
 				err := fetchAPIKeysAndWriteToOracleConfig()
 				if err != nil {
-					logger.Error("failed to fetch oracle API keys", zap.Error(err))
+					logger.Error("failed to fetch and write oracle API keys", zap.Error(err))
 					return err
 				}
 			}
@@ -370,7 +370,13 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 		return err
 	}
 	fmt.Println(string(bz))
-	return os.WriteFile(fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath), bz, 0o600)
+	tmpPath := fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)
+	file, err := os.Create(tmpPath)
+	if err != nil {
+		return fmt.Errorf("error creating file %s: %w", tmpPath, err)
+	}
+	defer file.Close()
+	return os.WriteFile(tmpPath, bz, 0o600)
 }
 
 // generateErrorFromReport will generate an error based on failing and missing reports.
