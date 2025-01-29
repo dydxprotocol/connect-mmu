@@ -85,8 +85,8 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 
 	network := lambdaEvent.Network
 	supportedNetworks := consts.GetSupportedNetworks()
-	// All non-Validate commands require caller to specify a target network
-	if command != Validate && !slices.Contains(supportedNetworks, network) {
+	// All commands require caller to specify a target network
+	if !slices.Contains(supportedNetworks, network) {
 		return nil, fmt.Errorf("invalid network: %s. must be 1 of: %v", network, supportedNetworks)
 	}
 	os.Setenv("NETWORK", network)
@@ -114,7 +114,8 @@ func getArgsFromLambdaEvent(ctx context.Context, event json.RawMessage) ([]strin
 	case Override:
 		args = []string{"override", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--overwrite-providers", "--update-enabled"}
 	case Validate:
-		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all", "--oracle-config", "local/fixtures/e2e/oracle.json"}
+		// Note: We have to prefix --oracle-config path with /tmp/, as API keys must be fetched/set at runtime, and /tmp/ is the only dir that is writeable within AWS Lambda filesystem
+		args = []string{"validate", "--market-map", "generated-market-map.json", "--start-delay", "10s", "--duration", "10m", "--enable-all", "--oracle-config", fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)}
 	case Upserts:
 		args = []string{"upserts", "--config", fmt.Sprintf("./local/config-dydx-%s.json", network), "--warn-on-invalid-market-map"}
 	case Diff:
