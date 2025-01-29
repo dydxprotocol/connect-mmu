@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -16,7 +18,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/utils/validate"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/validator"
 	validatortypes "github.com/skip-mev/connect-mmu/validator/types"
@@ -58,6 +62,8 @@ func ValidateCmd() *cobra.Command {
 		Example: "validate --market-map marketmap.json --oracle-config oracle.json --start-delay 10s --duration 1m",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			logger := logging.Logger(cmd.Context())
+
 			if err := checkInstalled("sentry"); err != nil {
 				return err
 			}
@@ -77,6 +83,16 @@ func ValidateCmd() *cobra.Command {
 
 			cmd.Printf("running validation for %d markets\n", len(mm.Markets))
 
+			// Fetch API keys from Secrets Manager and write them to oracle.json
+			// That file will be passed to sentry via the --oracle-config flag
+			if aws.IsLambda() {
+				err := fetchAPIKeysAndWriteToOracleConfig()
+				if err != nil {
+					logger.Error("failed to fetch and write oracle API keys", zap.Error(err))
+					return err
+				}
+			}
+
 			cmcAPIKey := flags.cmcAPIKey
 			if cmcAPIKey == "" {
 				cmcAPIKey = os.Getenv(cmcKeyEnvVar)
@@ -89,9 +105,12 @@ func ValidateCmd() *cobra.Command {
 
 			cmd.Printf("removing sidecar log file %s\n", flags.sidecarLogFile)
 
-			// Remove sidecar.log file if one exists
-			if err := os.Remove(flags.sidecarLogFile); err != nil && !errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("error removing sidecar log file %s: %w", flags.sidecarLogFile, err)
+			// Remove sidecar.log file if running locally, and if one exists.
+			// This is unnecessary when running in Lambda, as each invocation will have a new instance + sidecar image (and filesystem is read-only anyways)
+			if !aws.IsLambda() {
+				if err := os.Remove(flags.sidecarLogFile); err != nil && !errors.Is(err, os.ErrNotExist) {
+					return fmt.Errorf("error removing sidecar log file %s: %w", flags.sidecarLogFile, err)
+				}
 			}
 
 			// write this new marketmap to a temp file, so we can pass the filepath to connect.
@@ -203,7 +222,6 @@ func ValidateCmd() *cobra.Command {
 
 			allErrs := generateErrorFromReport(mm, summary, val.MissingReports(health))
 
-			logger := logging.Logger(cmd.Context())
 			logger.Info("validation errors", zap.Bool("slack_report", true), zap.Errors("errors", allErrs))
 
 			err = errors.Join(allErrs...)
@@ -279,6 +297,72 @@ func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
 
 	cmd.MarkFlagRequired(flagMarketmap)
 	cmd.MarkFlagsMutuallyExclusive(flagEnableMarkets, flagEnableOnly, flagEnableAll)
+}
+
+func fetchAPIKeysAndWriteToOracleConfig() error {
+	// Load local oracle.json config file
+	bz, err := os.ReadFile(consts.OracleConfigFilePath)
+	if err != nil {
+		return err
+	}
+	var oracleConfig map[string]interface{}
+	err = json.Unmarshal(bz, &oracleConfig)
+	if err != nil {
+		return err
+	}
+
+	// Get map of URL --> secret name of its API key in Secrets Manager
+	apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
+	if err != nil {
+		return err
+	}
+
+	// Fetch secrets to create map of URL --> API key
+	apiKeyMap := make(map[string]string)
+	for url, secretName := range apiKeySecretsMap {
+		secret, err := aws.GetSecret(context.Background(), secretName)
+		if err != nil {
+			return err
+		}
+		apiKeyMap[url] = secret
+	}
+
+	// Iterate through oracle config to set the API key for each endpoint
+	// Note: Lots of clunky type assertions, alternative would be to parse oracle config JSON to a struct and use reflection to set values, which is even more clunky + error-prone
+	for _, provider := range oracleConfig["providers"].(map[string]interface{}) {
+		for _, endpoint := range provider.(map[string]interface{})["api"].(map[string]interface{})["endpoints"].([]interface{}) {
+			url := endpoint.(map[string]interface{})["url"].(string)
+			if apiKey, ok := apiKeyMap[url]; ok {
+				endpoint.(map[string]interface{})["authentication"].(map[string]interface{})["apiKey"] = apiKey
+			} else {
+				return fmt.Errorf("failed to find API key for endpoint URL: %s", url)
+			}
+		}
+	}
+
+	// Create temp dirs and file in /tmp/{OracleConfigFilePath} if they don't already exist
+	// Note: We have to write to /tmp/, as that is the only dir that is writeable within AWS Lambda filesystem
+	tmpPath := fmt.Sprintf("/tmp/%s", consts.OracleConfigFilePath)
+	baseDir := path.Dir(tmpPath)
+	info, err := os.Stat(baseDir)
+	if err != nil || !info.IsDir() {
+		err = os.MkdirAll(baseDir, 0o755)
+		if err != nil {
+			return err
+		}
+	}
+	file, err := os.Create(tmpPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Write the completed oracle config, with API keys populated, back to oracle.json file
+	bz, err = json.MarshalIndent(oracleConfig, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(tmpPath, bz, 0o600)
 }
 
 // generateErrorFromReport will generate an error based on failing and missing reports.
