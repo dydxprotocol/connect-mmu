@@ -31,6 +31,7 @@ func New(logger *zap.Logger, providerStore provider.Store) Generator {
 func (g *Generator) GenerateMarketMap(
 	ctx context.Context,
 	cfg config.GenerateConfig,
+	onChainMarketMap mmtypes.MarketMap,
 ) (mmtypes.MarketMap, types.ExclusionReasons, error) {
 	feeds, err := g.q.Feeds(ctx, cfg)
 	if err != nil {
@@ -40,7 +41,8 @@ func (g *Generator) GenerateMarketMap(
 
 	g.logger.Info("queried", zap.Int("feeds", len(feeds)))
 
-	transformed, dropped, err := g.t.TransformFeeds(ctx, cfg, feeds)
+	// Transform Feeds
+	transformed, dropped, err := g.t.TransformFeeds(ctx, cfg, feeds, onChainMarketMap)
 	if err != nil {
 		g.logger.Error("Unable to transform feeds", zap.Error(err))
 		return mmtypes.MarketMap{}, nil, err
@@ -48,6 +50,7 @@ func (g *Generator) GenerateMarketMap(
 
 	g.logger.Info("feed transforms complete", zap.Int("remaining feeds", len(transformed)))
 
+	// Transform Assets (requires additional data about the asset)
 	g.logger.Info("transforming assets", zap.Int("markets", len(transformed)))
 	cmcIDToAssetInfo, err := g.q.CMCIDToAssetInfo(ctx, cfg)
 	if err != nil {
@@ -62,6 +65,7 @@ func (g *Generator) GenerateMarketMap(
 	}
 	dropped.Merge(droppedMarkets)
 
+	// Transform Market Map
 	mm, err := transformed.ToMarketMap()
 	if err != nil {
 		g.logger.Error("Unable to transform feeds to a MarketMap", zap.Error(err))

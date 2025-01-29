@@ -61,7 +61,7 @@ func (o *CoreOverride) OverrideGeneratedMarkets(
 ) (mmtypes.MarketMap, []string, error) {
 	logger.Info("overriding markets", zap.Any("options", options))
 
-	appendedMarketMap, removals, err := update.CombineMarketMaps(logger, actual, generated, options)
+	appendedMarketMap, removals, err := update.CombineMarketMaps(logger, actual, generated, options, nil)
 	if err != nil {
 		logger.Error("failed to update to market map", zap.Error(err))
 		return mmtypes.MarketMap{}, []string{}, fmt.Errorf("failed to update to market map: %w", err)
@@ -98,16 +98,6 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 ) (mmtypes.MarketMap, []string, error) {
 	logger.Info("overriding markets for dydx", zap.Any("options", options))
 
-	// first append to the actual market map
-	combinedMarketMap, removals, err := update.CombineMarketMaps(logger, actual, generated, options)
-	if err != nil {
-		logger.Error("failed to update to market map", zap.Error(err))
-		return mmtypes.MarketMap{}, []string{}, fmt.Errorf("failed to update to market map: %w", err)
-	}
-
-	logger.Info("combined actual and generated market maps", zap.Int("markets", len(combinedMarketMap.Markets)))
-
-	// filter away all markets that are cross-margined
 	perpsResp, err := o.client.AllPerpetuals(ctx)
 	if err != nil {
 		return mmtypes.MarketMap{}, []string{}, err
@@ -119,11 +109,20 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 
 	logger.Info("got perpetuals", zap.Int("count", len(perpsResp.Perpetuals)))
 
-	perpetualIDToClobPair, err := o.getPerpetualIDToClobPair(ctx, logger)
+	// first append to the actual market map
+	combinedMarketMap, removals, err := update.CombineMarketMaps(logger, actual, generated, options, perpsResp.Perpetuals)
+	if err != nil {
+		logger.Error("failed to update to market map", zap.Error(err))
+		return mmtypes.MarketMap{}, []string{}, fmt.Errorf("failed to update to market map: %w", err)
+	}
+
+	logger.Info("combined actual and generated market maps", zap.Int("markets", len(combinedMarketMap.Markets)))
+
+	perpetualIDToClobPair, err := o.client.GetPerpetualIDToClobPair(ctx)
 	if err != nil {
 		return mmtypes.MarketMap{}, []string{}, err
 	}
-	// for each perpetual, identify if there's a corresponding ticker in the market-map, and set it equal
+	// for each CROSS-MARGINED perpetual, identify if there's a corresponding ticker in the market-map, and set it equal
 	// to the corresponding market in actual
 	for _, perpetual := range perpsResp.Perpetuals {
 		connectTicker, err := libdydx.MarketPairToCurrencyPair(perpetual.Params.Ticker)
@@ -178,33 +177,6 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	return combinedMarketMap, removals, nil
 }
 
-func (o *DyDxOverride) getPerpetualIDToClobPair(
-	ctx context.Context,
-	logger *zap.Logger,
-) (map[uint64]dydx.ClobPair, error) {
-	clobPairsResp, err := o.client.AllClobPairs(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if clobPairsResp == nil {
-		return nil, fmt.Errorf("nil clob pairs response")
-	}
-
-	logger.Info("got clob pairs", zap.Int("count", len(clobPairsResp.ClobPairs)))
-
-	perpetualIDToClobPair := make(map[uint64]dydx.ClobPair, len(clobPairsResp.ClobPairs))
-	for _, clobPair := range clobPairsResp.ClobPairs {
-		perpetualID := clobPair.PerpetualClobMetadata.PerpetualID
-		if _, ok := perpetualIDToClobPair[perpetualID]; ok {
-			return nil, fmt.Errorf("duplicate perpetual id: %d", perpetualID)
-		}
-		perpetualIDToClobPair[perpetualID] = clobPair
-	}
-
-	return perpetualIDToClobPair, nil
-}
-
 // ConsolidateDeFiMarkets takes a generated marketmap and attempts to move any DeFi markets to normal markets if the generated market
 // has the same CMC ID as a normal market in actual.
 //
@@ -244,7 +216,12 @@ func ConsolidateDeFiMarkets(logger *zap.Logger, generated, actual mmtypes.Market
 					generatedMarket.Ticker.CurrencyPair = pair
 					generated.Markets[actualTicker] = generatedMarket
 					delete(generated.Markets, generatedTicker)
-				} else if isDefiTicker(actualTicker) { // If marketmap already contains a DeFi ticker, consolidate to that
+				} else if isDefiTicker(actualTicker) { // If marketmap already contains a DeFi ticker and it's enabled, consolidate to that
+					// if actual market with defi ticker is not enabled, we should remove it and add the generated market with normal ticker
+					actualMarket := actual.Markets[actualTicker]
+					if !actualMarket.Ticker.Enabled {
+						continue
+					}
 					logger.Debug("consolidating ticker to existing defi ticker", zap.String("generated", generatedTicker), zap.String("actual", actualTicker))
 					generatedMarket := generated.Markets[generatedTicker]
 					pair, err := connecttypes.CurrencyPairFromString(actualTicker)

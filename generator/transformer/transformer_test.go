@@ -69,11 +69,12 @@ func TestDefaultTransformer_TransformFeeds(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		cfg     config.GenerateConfig
-		feeds   types.Feeds
-		want    types.Feeds
-		wantErr bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		want             types.Feeds
+		wantErr          bool
 	}{
 		{
 			name: "no transforms for one valid feed",
@@ -457,7 +458,7 @@ func TestDefaultTransformer_TransformFeeds(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := transformer.New(zaptest.NewLogger(t))
-			got, _, err := d.TransformFeeds(context.Background(), tt.cfg, tt.feeds)
+			got, _, err := d.TransformFeeds(context.Background(), tt.cfg, tt.feeds, tt.onChainMarketMap)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -799,11 +800,12 @@ func TestDefaultTransformer_TransformMarketMap(t *testing.T) {
 
 func TestPruneByProviderLiquidity(t *testing.T) {
 	tests := []struct {
-		name            string
-		feeds           types.Feeds
-		config          config.GenerateConfig
-		expectedFeeds   types.Feeds
-		expectedRemoved int
+		name             string
+		feeds            types.Feeds
+		config           config.GenerateConfig
+		onChainMarketMap mmtypes.MarketMap
+		expectedFeeds    types.Feeds
+		expectedRemoved  int
 	}{
 		{
 			name: "provider ignores liquidity filter",
@@ -906,7 +908,7 @@ func TestPruneByProviderLiquidity(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			logger := zaptest.NewLogger(t)
 			transform := transformer.PruneByProviderLiquidity()
-			feeds, removals, err := transform(context.Background(), logger, tc.config, tc.feeds)
+			feeds, removals, err := transform(context.Background(), logger, tc.config, tc.feeds, tc.onChainMarketMap)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedFeeds, feeds)
 			require.Equal(t, tc.expectedRemoved, len(removals))
@@ -916,11 +918,12 @@ func TestPruneByProviderLiquidity(t *testing.T) {
 
 func TestPruneByProviderUsdVolume(t *testing.T) {
 	tests := []struct {
-		name            string
-		feeds           types.Feeds
-		config          config.GenerateConfig
-		expectedFeeds   types.Feeds
-		expectedRemoved int
+		name             string
+		feeds            types.Feeds
+		config           config.GenerateConfig
+		onChainMarketMap mmtypes.MarketMap
+		expectedFeeds    types.Feeds
+		expectedRemoved  int
 	}{
 		{
 			name: "provider ignores volume filter",
@@ -1013,7 +1016,7 @@ func TestPruneByProviderUsdVolume(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			logger := zaptest.NewLogger(t)
 			transform := transformer.PruneByProviderUsdVolume()
-			feeds, removals, err := transform(context.Background(), logger, tc.config, tc.feeds)
+			feeds, removals, err := transform(context.Background(), logger, tc.config, tc.feeds, tc.onChainMarketMap)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedFeeds, feeds)
 			require.Equal(t, tc.expectedRemoved, len(removals))

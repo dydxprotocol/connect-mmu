@@ -114,3 +114,27 @@ func (c *HTTPClient) AllClobPairs(ctx context.Context) (*AllClobPairsResponse, e
 
 	return &actualResult, nil
 }
+
+func (c *HTTPClient) GetPerpetualIDToClobPair(
+	ctx context.Context,
+) (map[uint64]ClobPair, error) {
+	clobPairsResp, err := c.AllClobPairs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if clobPairsResp == nil {
+		return nil, fmt.Errorf("nil clob pairs response")
+	}
+
+	perpetualIDToClobPair := make(map[uint64]ClobPair, len(clobPairsResp.ClobPairs))
+	for _, clobPair := range clobPairsResp.ClobPairs {
+		perpetualID := clobPair.PerpetualClobMetadata.PerpetualID
+		if _, ok := perpetualIDToClobPair[perpetualID]; ok {
+			return nil, fmt.Errorf("duplicate perpetual id: %d", perpetualID)
+		}
+		perpetualIDToClobPair[perpetualID] = clobPair
+	}
+
+	return perpetualIDToClobPair, nil
+}

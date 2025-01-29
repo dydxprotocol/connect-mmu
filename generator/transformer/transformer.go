@@ -47,7 +47,7 @@ func New(logger *zap.Logger) Transformer {
 			PruneMarkets(),
 			ExcludeDisabledProviders(),
 			EnableMarkets(),
-			ProcessDefiMarkets(),
+			// ProcessDefiMarkets(),
 			PruneInsufficientlyProvidedMarkets(),
 			OverrideMinProviderCount(),
 			// always override after transforms so they are not overwritten
@@ -57,11 +57,11 @@ func New(logger *zap.Logger) Transformer {
 }
 
 // TransformFeeds runs all feed transformers that are assigned to the Transformer.
-func (d *Transformer) TransformFeeds(ctx context.Context, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
+func (d *Transformer) TransformFeeds(ctx context.Context, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error) {
 	dropped := types.NewExclusionReasons()
 
 	for _, t := range d.feedTransforms {
-		transformFeeds, transformDrops, err := t(ctx, d.logger, cfg, feeds)
+		transformFeeds, transformDrops, err := t(ctx, d.logger, cfg, feeds, onChainMarketMap)
 		if err != nil {
 			return nil, nil, err
 		}
