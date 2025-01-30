@@ -3,11 +3,12 @@ package update
 import (
 	"testing"
 
-	"github.com/skip-mev/connect-mmu/client/dydx"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	"github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/skip-mev/connect-mmu/client/dydx"
 )
 
 func TestCombineMarketMap(t *testing.T) {

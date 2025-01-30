@@ -10,11 +10,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
+	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/generator"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/store/provider"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 )
 
 const (
