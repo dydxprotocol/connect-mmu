@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"go.uber.org/zap"
 
@@ -146,23 +145,4 @@ func EnableMarkets() TransformMarketMap {
 
 		return mm, nil, nil
 	}
-}
-
-// replaceNormalizeBy finds all instances of oldNormalizeBy and replaces them with newNormalizeBy in the marketmap.
-func replaceNormalizeBy(mm mmtypes.MarketMap, oldNormalizeBy, newNormalizeBy connecttypes.CurrencyPair) mmtypes.MarketMap {
-	for key, market := range mm.Markets {
-		for i, pc := range market.ProviderConfigs {
-			if pc.NormalizeByPair != nil {
-				if pc.NormalizeByPair.Equal(oldNormalizeBy) {
-					pc.NormalizeByPair = &newNormalizeBy
-				}
-			}
-
-			market.ProviderConfigs[i] = pc
-		}
-
-		mm.Markets[key] = market
-	}
-
-	return mm
 }

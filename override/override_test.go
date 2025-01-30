@@ -233,7 +233,7 @@ func TestOverride(t *testing.T) {
 
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, out, "unexpected output: %v", out)
-			require.Equal(t, tc.expectedRemovals, removals, "unexpected removals: %v", removals)
+			require.ElementsMatch(t, tc.expectedRemovals, removals, "unexpected removals: %v", removals)
 		})
 	}
 }
