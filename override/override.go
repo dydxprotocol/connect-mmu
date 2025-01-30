@@ -216,7 +216,12 @@ func ConsolidateDeFiMarkets(logger *zap.Logger, generated, actual mmtypes.Market
 					generatedMarket.Ticker.CurrencyPair = pair
 					generated.Markets[actualTicker] = generatedMarket
 					delete(generated.Markets, generatedTicker)
-				} else if isDefiTicker(actualTicker) { // If marketmap already contains a DeFi ticker, consolidate to that
+				} else if isDefiTicker(actualTicker) { // If marketmap already contains a DeFi ticker and it's enabled, consolidate to that
+					actualMarket := actual.Markets[actualTicker]
+					// if actual market with defi ticker is not enabled, we should remove it and add the generated market with normal ticker
+					if !actualMarket.Ticker.Enabled {
+						continue
+					}
 					logger.Debug("consolidating ticker to existing defi ticker", zap.String("generated", generatedTicker), zap.String("actual", actualTicker))
 					generatedMarket := generated.Markets[generatedTicker]
 					pair, err := connecttypes.CurrencyPairFromString(actualTicker)

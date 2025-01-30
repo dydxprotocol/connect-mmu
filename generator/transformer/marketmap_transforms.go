@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"go.uber.org/zap"
 
@@ -144,68 +143,6 @@ func EnableMarkets() TransformMarketMap {
 			return mm, nil, nil
 		}
 
-		return mm, nil, nil
-	}
-}
-
-// replaceNormalizeBy finds all instances of oldNormalizeBy and replaces them with newNormalizeBy in the marketmap.
-func replaceNormalizeBy(mm mmtypes.MarketMap, oldNormalizeBy, newNormalizeBy connecttypes.CurrencyPair) mmtypes.MarketMap {
-	for key, market := range mm.Markets {
-		for i, pc := range market.ProviderConfigs {
-			if pc.NormalizeByPair != nil {
-				if pc.NormalizeByPair.Equal(oldNormalizeBy) {
-					pc.NormalizeByPair = &newNormalizeBy
-				}
-			}
-
-			market.ProviderConfigs[i] = pc
-		}
-
-		mm.Markets[key] = market
-	}
-
-	return mm
-}
-
-// ProcessDefiMarkets adds defi tickers to markets that are defi and only have one provider.
-func ProcessDefiMarkets() TransformMarketMap {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig,
-		mm mmtypes.MarketMap,
-	) (mmtypes.MarketMap, types.ExclusionReasons, error) {
-		logger.Info("processing defi markets", zap.Int("num markets", len(mm.Markets)))
-
-		for name, market := range mm.Markets {
-			if len(market.ProviderConfigs) == 1 && cfg.IsProviderDefi(market.ProviderConfigs[0].Name) {
-				// cache the old ticker string and use to resolve any dangling normalizations
-				oldCp := market.Ticker.CurrencyPair
-
-				pc := market.ProviderConfigs[0]
-				cp, err := connecttypes.CurrencyPairFromString(pc.OffChainTicker)
-				if err != nil {
-					logger.Debug("failed to create currency pair", zap.String("offchain tickers", pc.OffChainTicker),
-						zap.Error(err))
-					delete(mm.Markets, name)
-					continue
-				}
-
-				// put market under new key
-				delete(mm.Markets, name)
-
-				if pc.Invert {
-					cp = cp.Invert()
-				}
-
-				if pc.NormalizeByPair != nil {
-					cp.Quote = pc.NormalizeByPair.Quote
-				}
-
-				market.Ticker.CurrencyPair = cp
-				mm.Markets[market.Ticker.String()] = market
-				mm = replaceNormalizeBy(mm, oldCp, cp)
-			}
-		}
-
-		logger.Info("processed defi markets", zap.Int("num markets", len(mm.Markets)))
 		return mm, nil, nil
 	}
 }
