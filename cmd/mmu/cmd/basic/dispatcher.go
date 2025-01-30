@@ -303,17 +303,19 @@ func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
 	// Get target network of the current MMU run
 	network := os.Getenv("NETWORK")
 
-	// Construct full API URL to fetch the latest transactions, incl. network query param
+	// Construct full API URL to fetch the latest transactions for the target network,
+	// and construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
 	var baseAPIURL string
+	var slackWebhookURLSecretNameModifier string
 	if mmuEnv == "staging" {
 		baseAPIURL = consts.StagingAPIURL
+		slackWebhookURLSecretNameModifier = "internal"
 	} else if mmuEnv == "mainnet" {
 		baseAPIURL = consts.ProdAPIURL
+		slackWebhookURLSecretNameModifier = "external"
 	}
 	fullAPIURL := fmt.Sprintf("%s?network=%s", baseAPIURL, network)
-
-	// Construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
-	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, network)
+	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, slackWebhookURLSecretNameModifier)
 
 	// Send notif to Slack
 	return slack.SendNotification(fmt.Sprintf("New Market Map Transaction available for %s: %s", network, fullAPIURL), slackWebhookURLSecretName)

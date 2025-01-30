@@ -26,7 +26,7 @@ func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (ev
 	}
 	os.Setenv("NETWORK", network)
 
-	txJSON, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
+	_, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
@@ -36,7 +36,7 @@ func lambdaHandler(_ context.Context, request events.APIGatewayProxyRequest) (ev
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       string(txJSON),
+		Body:       request.Resource, // string(txJSON),
 	}, nil
 }
 

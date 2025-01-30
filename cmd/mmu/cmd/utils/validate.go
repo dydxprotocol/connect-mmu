@@ -346,6 +346,7 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 	baseDir := path.Dir(tmpPath)
 	info, err := os.Stat(baseDir)
 	if err != nil || !info.IsDir() {
+		// Create dirs with file perms 755: anyone can read/execute, owner can write
 		err = os.MkdirAll(baseDir, 0o755)
 		if err != nil {
 			return err
