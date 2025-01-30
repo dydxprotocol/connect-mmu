@@ -162,11 +162,12 @@ func TestNormalizeBy(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		expectErr        bool
 	}{
 		{
 			name:        "valid no markets",
@@ -247,7 +248,7 @@ func TestNormalizeBy(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			transformed, _, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds)
+			transformed, _, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds, tc.onChainMarketMap)
 			if tc.expectErr {
 				require.Error(t, err)
 				return
@@ -264,11 +265,12 @@ func TestResolveProviderConflicts(t *testing.T) {
 	numIters := 100
 
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		expectErr        bool
 	}{
 		{
 			name: "valid no markets",
@@ -362,7 +364,7 @@ func TestResolveProviderConflicts(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			for range numIters {
-				transformed, _, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds)
+				transformed, _, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds, tc.onChainMarketMap)
 				if tc.expectErr {
 					require.Error(t, err)
 					return
@@ -377,12 +379,13 @@ func TestResolveProviderConflicts(t *testing.T) {
 
 func TestDropFeeds(t *testing.T) {
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		dropped     []string
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		dropped          []string
+		expectErr        bool
 	}{
 		{
 			name: "valid no markets",
@@ -451,7 +454,7 @@ func TestDropFeeds(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			transformed, dropped, err := transform(ctx, zap.NewNop(), tc.cfg, tc.feeds)
+			transformed, dropped, err := transform(ctx, zap.NewNop(), tc.cfg, tc.feeds, tc.onChainMarketMap)
 			if tc.expectErr {
 				require.Error(t, err)
 				return
@@ -470,12 +473,13 @@ func TestDropFeeds(t *testing.T) {
 
 func TestInvert(t *testing.T) {
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		dropped     []string
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		dropped          []string
+		expectErr        bool
 	}{
 		{
 			name: "valid no markets",
@@ -727,7 +731,7 @@ func TestInvert(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds)
+			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds, tc.onChainMarketMap)
 			if tc.expectErr {
 				require.Error(t, err)
 				return
@@ -746,12 +750,13 @@ func TestInvert(t *testing.T) {
 
 func TestPruneByQuoteVolume(t *testing.T) {
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		dropped     []string
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		dropped          []string
+		expectErr        bool
 	}{
 		{
 			name: "valid no markets",
@@ -847,7 +852,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds)
+			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds, tc.onChainMarketMap)
 			if tc.expectErr {
 				require.Error(t, err)
 				return
@@ -866,12 +871,13 @@ func TestPruneByQuoteVolume(t *testing.T) {
 
 func TestPruneByLiquidity(t *testing.T) {
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		dropped     []string
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		dropped          []string
+		expectErr        bool
 	}{
 		{
 			name: "valid no markets",
@@ -975,7 +981,7 @@ func TestPruneByLiquidity(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds)
+			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds, tc.onChainMarketMap)
 			if tc.expectErr {
 				require.Error(t, err)
 				return
@@ -1013,12 +1019,13 @@ func TestTopMarketsForProvider(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
-		feeds          types.Feeds
-		cfg            config.GenerateConfig
-		want           types.Feeds
-		wantExclusions types.ExclusionReasons
-		wantErr        bool
+		name             string
+		feeds            types.Feeds
+		cfg              config.GenerateConfig
+		onChainMarketMap mmtypes.MarketMap
+		want             types.Feeds
+		wantExclusions   types.ExclusionReasons
+		wantErr          bool
 	}{
 		{
 			name: "return nothing for no invalid provider configs",
@@ -1173,7 +1180,7 @@ func TestTopMarketsForProvider(t *testing.T) {
 		transform := transformer.TopFeedsForProvider()
 
 		t.Run(tt.name, func(t *testing.T) {
-			got, exclusions, err := transform(context.Background(), zap.NewNop(), tt.cfg, tt.feeds)
+			got, exclusions, err := transform(context.Background(), zap.NewNop(), tt.cfg, tt.feeds, tt.onChainMarketMap)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -1188,12 +1195,13 @@ func TestTopMarketsForProvider(t *testing.T) {
 
 func TestResolveNamingAliases(t *testing.T) {
 	tests := []struct {
-		name        string
-		cfg         config.GenerateConfig
-		feeds       types.Feeds
-		transformed types.Feeds
-		dropped     []string
-		expectErr   bool
+		name             string
+		cfg              config.GenerateConfig
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		transformed      types.Feeds
+		dropped          []string
+		expectErr        bool
 	}{
 		{
 			name:        "valid no markets",
@@ -1339,6 +1347,57 @@ func TestResolveNamingAliases(t *testing.T) {
 			dropped:   []string{marketBtcUsdt.Ticker.String()},
 			expectErr: false,
 		},
+		{
+			name: "enabled market exists on chain and valid two markets that intersect on TickerString, but do not for CMC Info - prune 1 (choosing the one on chain)",
+			cfg:  config.GenerateConfig{},
+			feeds: []types.Feed{
+				types.NewFeed(
+					marketBtcUsdt.Ticker,
+					marketBtcUsdNormalized.ProviderConfigs[0],
+					100000.0,
+					100000.0,
+					20000.0,
+					liquidityInfo2000,
+					cmcInfoA,
+				),
+				types.NewFeed(
+					marketBtcUsdt.Ticker,
+					marketBtcUsdt.ProviderConfigs[0],
+					200000.0,
+					200000.0,
+					20000.0,
+					liquidityInfo2000,
+					cmcInfoB,
+				),
+			},
+			onChainMarketMap: mmtypes.MarketMap{
+				Markets: map[string]mmtypes.Market{
+					marketBtcUsd.Ticker.String(): {
+						Ticker: mmtypes.Ticker{
+							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							Decimals:         8,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"3\"}]}", // CMC ID matching BaseID of cmcInfoB
+						},
+						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+					},
+				},
+			},
+			transformed: []types.Feed{
+				types.NewFeed(
+					marketBtcUsdt.Ticker,
+					marketBtcUsdt.ProviderConfigs[0],
+					200000.0,
+					200000.0,
+					20000.0,
+					liquidityInfo2000,
+					cmcInfoB,
+				),
+			},
+			dropped:   []string{marketBtcUsdt.Ticker.String()},
+			expectErr: false,
+		},
 	}
 
 	transform := transformer.ResolveNamingAliases()
@@ -1346,7 +1405,7 @@ func TestResolveNamingAliases(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds)
+			transformed, dropped, err := transform(ctx, zaptest.NewLogger(t), tc.cfg, tc.feeds, tc.onChainMarketMap)
 			if tc.expectErr {
 				require.Error(t, err)
 				return
@@ -1366,9 +1425,10 @@ func TestResolveNamingAliases(t *testing.T) {
 
 func TestResolveCMCConflictsForMarket(t *testing.T) {
 	tests := []struct {
-		name          string
-		feeds         types.Feeds
-		expectedFeeds types.Feeds
+		name             string
+		feeds            types.Feeds
+		onChainMarketMap mmtypes.MarketMap
+		expectedFeeds    types.Feeds
 	}{
 		{
 			name: "no conflicts - single feed",
@@ -1540,7 +1600,7 @@ func TestResolveCMCConflictsForMarket(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			transform := transformer.ResolveCMCConflictsForMarket()
-			result, _, err := transform(context.Background(), zaptest.NewLogger(t), config.GenerateConfig{}, tc.feeds)
+			result, _, err := transform(context.Background(), zaptest.NewLogger(t), config.GenerateConfig{}, tc.feeds, tc.onChainMarketMap)
 			require.NoError(t, err)
 			require.ElementsMatch(t, tc.expectedFeeds, result)
 		})

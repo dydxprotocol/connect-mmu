@@ -1,8 +1,13 @@
 package update
 
 import (
+	"fmt"
+
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
+
+	"github.com/skip-mev/connect-mmu/client/dydx"
 )
 
 type Options struct {
@@ -20,6 +25,7 @@ func CombineMarketMaps(
 	logger *zap.Logger,
 	actual, generated mmtypes.MarketMap,
 	options Options,
+	perps []dydx.Perpetual,
 ) (mmtypes.MarketMap, []string, error) {
 	// allow for the input of fully empty market maps.  It is a valid case if the on-chain or generated market map is empty.
 	if actual.Markets == nil {
@@ -33,6 +39,8 @@ func CombineMarketMaps(
 	combined := mmtypes.MarketMap{
 		Markets: make(map[string]mmtypes.Market),
 	}
+
+	tickerToPerpetual := getTickerToPerpetual(perps)
 
 	// update the enabled field of each market in the generated market-map
 	for ticker, market := range generated.Markets {
@@ -48,6 +56,17 @@ func CombineMarketMaps(
 		}
 
 		if found {
+			// Skip if generated market's CMC ID does not match the actual market's and actual market is enabled
+			perp := tickerToPerpetual[ticker]
+			skip, err := newMarketHasDifferentCMCID(logger, ticker, actualMarket, market, perp)
+			if err != nil {
+				return mmtypes.MarketMap{}, []string{}, err
+			}
+			if skip {
+				combined.Markets[ticker] = actualMarket
+				continue
+			}
+
 			if actualMarket.Ticker.Enabled && !options.UpdateEnabled {
 				// if the market is enabled, but we are NOT updating enabled, keep it the set to actual
 				logger.Debug("not updating market because it is already in the actual market map",
@@ -101,6 +120,50 @@ func CombineMarketMaps(
 	}
 
 	return combined, removals, nil
+}
+
+func getTickerToPerpetual(perps []dydx.Perpetual) map[string]dydx.Perpetual {
+	tickerToPerpetual := make(map[string]dydx.Perpetual)
+	for _, p := range perps {
+		tickerToPerpetual[p.Params.Ticker] = p
+	}
+	return tickerToPerpetual
+}
+
+func newMarketHasDifferentCMCID(logger *zap.Logger, ticker string, actualMarket, newMarket mmtypes.Market, perp dydx.Perpetual) (bool, error) {
+	if actualMarket.Ticker.Enabled {
+		actualMetadataJSON := actualMarket.Ticker.GetMetadata_JSON()
+		if actualMetadataJSON == "" {
+			if perp.Params.MarketType == dydx.PERPETUAL_MARKET_TYPE_CROSS {
+				return false, nil
+			}
+			logger.Warn("empty ticker metadata for existing market", zap.String("ticker", ticker))
+			return false, nil
+		}
+		actualMetadata, err := tickermetadata.DyDxFromJSONString(actualMetadataJSON)
+		if err != nil {
+			return false, err
+		}
+
+		generatedMetadataJSON := newMarket.Ticker.GetMetadata_JSON()
+		if generatedMetadataJSON == "" {
+			return false, fmt.Errorf("empty ticker metadata for market %s", ticker)
+		}
+		generatedMetadata, err := tickermetadata.DyDxFromJSONString(generatedMetadataJSON)
+		if err != nil {
+			return false, err
+		}
+
+		if generatedMetadata.AggregateIDs[0].ID != actualMetadata.AggregateIDs[0].ID {
+			logger.Warn("not adding market because the generated market has a different CMC ID than the actual market",
+				zap.String("ticker", ticker),
+				zap.String("generated_cmc_id", generatedMetadata.AggregateIDs[0].ID),
+				zap.String("actual_cmc_id", actualMetadata.AggregateIDs[0].ID),
+			)
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func appendToProviders(actual, generated mmtypes.Market) []mmtypes.ProviderConfig {

@@ -425,7 +425,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -473,7 +473,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -521,7 +521,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -552,7 +552,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -600,7 +600,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -665,7 +665,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -730,7 +730,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -795,7 +795,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -860,7 +860,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -925,7 +925,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -994,7 +994,7 @@ func TestOverrideMarketMap(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -1076,12 +1076,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1103,9 +1101,7 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{},
-				}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			updateEnabled: false,
 			wantErr:       true,
@@ -1125,15 +1121,12 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							ID: 1,
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 1,
-							},
-							Status: dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT,
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					1: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 1,
 						},
+						Status: dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT,
 					},
 				}, nil).Once()
 			},
@@ -1156,12 +1149,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1238,14 +1229,12 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
-							Status: dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT,
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
+						Status: dydx.CLOB_PAIR_STATUS_FINAL_SETTLEMENT,
 					},
 				}, nil).Once()
 			},
@@ -1321,12 +1310,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1403,12 +1390,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1485,12 +1470,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1567,12 +1550,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1649,12 +1630,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1731,12 +1710,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1813,12 +1790,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1903,12 +1878,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -1993,12 +1966,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -2083,12 +2054,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -2169,12 +2138,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -2255,12 +2222,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -2341,12 +2306,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -2427,12 +2390,10 @@ func TestOverrideMarketMap(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -2588,7 +2549,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -2636,7 +2597,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2684,7 +2645,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2715,7 +2676,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{},
 			generated: types.MarketMap{
@@ -2763,7 +2724,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2828,7 +2789,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2893,7 +2854,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -2958,7 +2919,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3023,7 +2984,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3088,7 +3049,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3153,7 +3114,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 			client: mockClient,
 			expect: func(_ dydx.Client) {
 				mockClient.EXPECT().AllPerpetuals(mock.Anything).Return(&dydx.AllPerpetualsResponse{}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			actual: types.MarketMap{
 				Markets: map[string]types.Market{
@@ -3235,12 +3196,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3263,9 +3222,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{},
-				}, nil).Once()
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{}, nil).Once()
 			},
 			updateEnabled: false,
 			wantErr:       true,
@@ -3284,12 +3241,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3366,12 +3321,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3448,12 +3401,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3530,12 +3481,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3612,12 +3561,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3694,12 +3641,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3776,12 +3721,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3866,12 +3809,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -3956,12 +3897,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -4046,12 +3985,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -4132,12 +4069,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -4218,12 +4153,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -4304,12 +4237,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()
@@ -4390,12 +4321,10 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 						},
 					},
 				}, nil).Once()
-				mockClient.EXPECT().AllClobPairs(mock.Anything).Return(&dydx.AllClobPairsResponse{
-					ClobPairs: []dydx.ClobPair{
-						{
-							PerpetualClobMetadata: dydx.PerpetualClobMetadata{
-								PerpetualID: 0,
-							},
+				mockClient.EXPECT().GetPerpetualIDToClobPair(mock.Anything).Return(map[uint64]dydx.ClobPair{
+					0: {
+						PerpetualClobMetadata: dydx.PerpetualClobMetadata{
+							PerpetualID: 0,
 						},
 					},
 				}, nil).Once()

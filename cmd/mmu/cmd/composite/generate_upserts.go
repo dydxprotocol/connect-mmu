@@ -87,7 +87,7 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 		return errors.New("generate configuration missing from mmu config")
 	}
 
-	generated, exclusionReasons, err := basic.GenerateFromConfig(ctx, logger, *cfg.Generate, flags.providerDataPath)
+	generated, exclusionReasons, err := basic.GenerateFromConfig(ctx, logger, *cfg.Generate, *cfg.Chain, flags.providerDataPath)
 	if err != nil {
 		logger.Error("failed to generate marketmap", zap.Error(err))
 		return err

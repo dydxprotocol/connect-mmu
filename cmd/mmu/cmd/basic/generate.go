@@ -10,6 +10,7 @@ import (
 
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 
+	marketmapclient "github.com/skip-mev/connect-mmu/client/marketmap"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/diffs"
@@ -44,7 +45,7 @@ func GenerateCmd() *cobra.Command {
 
 			logger.Info("successfully read config", zap.String("path", flags.configPath))
 
-			mm, exclusionReasons, err := GenerateFromConfig(ctx, logger, *cfg.Generate, flags.providerDataPath)
+			mm, exclusionReasons, err := GenerateFromConfig(ctx, logger, *cfg.Generate, *cfg.Chain, flags.providerDataPath)
 			if err != nil {
 				logger.Error("failed to generate marketmap", zap.Error(err))
 				return err
@@ -93,6 +94,7 @@ func GenerateFromConfig(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg config.GenerateConfig,
+	chainConfig config.ChainConfig,
 	providerPath string,
 ) (mmtypes.MarketMap, types.ExclusionReasons, error) {
 	providerStore, err := provider.NewMemoryStoreFromFile(providerPath)
@@ -100,8 +102,23 @@ func GenerateFromConfig(
 		return mmtypes.MarketMap{}, nil, err
 	}
 
+	mmClient, err := marketmapclient.NewClientFromChainConfig(logger, chainConfig)
+	if err != nil {
+		logger.Error("failed to create marketmap client", zap.Error(err))
+		return mmtypes.MarketMap{}, nil, err
+	}
+
+	onChainMarketMap, err := mmClient.GetMarketMap(ctx)
+	if err != nil {
+		logger.Error("failed to get marketmap from chain", zap.Error(err))
+		return mmtypes.MarketMap{}, nil, err
+	}
+
+	logger.Info("successfully got on chain marketmap", zap.Int("num markets", len(onChainMarketMap.Markets)))
+
 	g := generator.New(logger, providerStore)
-	mm, exclusionReasons, err := g.GenerateMarketMap(ctx, cfg)
+
+	mm, exclusionReasons, err := g.GenerateMarketMap(ctx, cfg, onChainMarketMap)
 	if err != nil {
 		return mmtypes.MarketMap{}, nil, err
 	}

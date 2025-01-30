@@ -12,6 +12,7 @@ var _ Client = &HTTPClient{}
 type Client interface {
 	AllPerpetuals(ctx context.Context) (*AllPerpetualsResponse, error)
 	AllClobPairs(ctx context.Context) (*AllClobPairsResponse, error)
+	GetPerpetualIDToClobPair(ctx context.Context) (map[uint64]ClobPair, error)
 }
 
 // HTTPClient represents a client for interacting with the dYdX API.

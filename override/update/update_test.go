@@ -7,6 +7,8 @@ import (
 	"github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/skip-mev/connect-mmu/client/dydx"
 )
 
 func TestCombineMarketMap(t *testing.T) {
@@ -15,6 +17,7 @@ func TestCombineMarketMap(t *testing.T) {
 		actual       types.MarketMap
 		generated    types.MarketMap
 		options      Options
+		perpetuals   []dydx.Perpetual
 		want         types.MarketMap
 		wantRemovals []string
 		wantErr      bool
@@ -615,10 +618,72 @@ func TestCombineMarketMap(t *testing.T) {
 			wantRemovals: []string{},
 			wantErr:      false,
 		},
+		{
+			name: "Generated market has different CMC ID than enabled actual market, keep actual market",
+			actual: types.MarketMap{
+				Markets: map[string]types.Market{
+					"BTC/USD": {
+						Ticker: types.Ticker{
+							CurrencyPair:     connecttypes.NewCurrencyPair("BTC", "USD"),
+							Decimals:         10,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":2168271396,\"liquidity\":6916367,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
+						},
+						ProviderConfigs: []types.ProviderConfig{
+							{
+								Name:           "test",
+								OffChainTicker: "test_offchain",
+							},
+						},
+					},
+				},
+			},
+			generated: types.MarketMap{
+				Markets: map[string]types.Market{
+					"BTC/USD": {
+						Ticker: types.Ticker{
+							CurrencyPair:     connecttypes.NewCurrencyPair("BTC", "USD"),
+							Decimals:         10,
+							MinProviderCount: 1,
+							Enabled:          false,
+							Metadata_JSON:    "{\"reference_price\":2168271396,\"liquidity\":6916367,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"2\"}]}",
+						},
+						ProviderConfigs: []types.ProviderConfig{
+							{
+								Name:           "test_new",
+								OffChainTicker: "test_offchain_new",
+							},
+						},
+					},
+				},
+			},
+			want: types.MarketMap{
+				Markets: map[string]types.Market{
+					"BTC/USD": {
+						Ticker: types.Ticker{
+							CurrencyPair:     connecttypes.NewCurrencyPair("BTC", "USD"),
+							Decimals:         10,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":2168271396,\"liquidity\":6916367,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
+						},
+						ProviderConfigs: []types.ProviderConfig{
+							{
+								Name:           "test",
+								OffChainTicker: "test_offchain",
+							},
+						},
+					},
+				},
+			},
+			wantRemovals: []string{},
+			wantErr:      false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, removals, err := CombineMarketMaps(zaptest.NewLogger(t), tt.actual, tt.generated, tt.options)
+			got, removals, err := CombineMarketMaps(zaptest.NewLogger(t), tt.actual, tt.generated, tt.options, tt.perpetuals)
 			if tt.wantErr {
 				require.Error(t, err)
 				return

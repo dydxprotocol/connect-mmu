@@ -5,18 +5,31 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 	"strings"
 
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/generator/types"
+	"github.com/skip-mev/connect-mmu/lib/file"
 )
 
+const NON_EXISTENT_CMC_ID = int64(-1)
+
 // TransformFeed is a function that performs some transformation on the given input markets.
-type TransformFeed func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error)
+type TransformFeed func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error)
+
+// WithoutMarketMap wraps a transform function that doesn't need the on chain market map
+func WithoutMarketMap(fn func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error)) TransformFeed {
+	return func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, _ mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error) {
+		return fn(ctx, logger, cfg, feeds)
+	}
+}
 
 // NormalizeBy returns a TransformFeed that adds NormalizeBy feeds to all configured markets based on an input config.
 //
@@ -24,7 +37,7 @@ type TransformFeed func(ctx context.Context, logger *zap.Logger, cfg config.Gene
 // - add a NormalizeByPair to the ProviderConfig of USDT/USD.
 // - change the ticker to be BTC/USD.
 func NormalizeBy() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
 		logger.Info("adding normalize by pairs", zap.Int("feeds", len(feeds)))
 
 		avgRefPrices, err := types.CalculateAverageReferencePrices(feeds)
@@ -75,7 +88,7 @@ func NormalizeBy() TransformFeed {
 
 		logger.Info("added normalize by pairs", zap.Int("remaining feeds", len(feeds)))
 		return transformedFeeds, nil, nil
-	}
+	})
 }
 
 // ResolveCMCConflictsForMarket resolves issues where the feeds for a market may be referring to different
@@ -88,7 +101,7 @@ func NormalizeBy() TransformFeed {
 // For each market, we sort the feeds and select the base asset's CMC ID of the first sorted feed. This
 // will have the best CMC rank. We then filter out all feeds for this market that do not match this CMC ID.
 func ResolveCMCConflictsForMarket() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, _ config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, _ config.GenerateConfig, feeds types.Feeds) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("resolving CMC conflicts", zap.Int("feeds", len(feeds)))
@@ -124,8 +137,8 @@ func ResolveCMCConflictsForMarket() TransformFeed {
 
 		logger.Info("resolved CMC conflicts", zap.Int("remaining feeds", len(out)))
 
-		return out, nil, nil
-	}
+		return out, exclusions, nil
+	})
 }
 
 // ResolveConflictsForProvider resolves all conflicts between feeds.  Conflicts arise when the feeds have overlapping CurrencyPairs.
@@ -137,7 +150,7 @@ func ResolveCMCConflictsForMarket() TransformFeed {
 // This conflict would have been created in the NormalizeBy transform, and we must choose one of the feeds for this
 // given provider. We choose based on comparing the Liquidity and 24HR Volume for each feed.
 func ResolveConflictsForProvider() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, _ config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, _ config.GenerateConfig, feeds types.Feeds) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("resolving conflicts", zap.Int("feeds", len(feeds)))
@@ -168,7 +181,7 @@ func ResolveConflictsForProvider() TransformFeed {
 		types.Feeds(out).Sort()
 
 		return out, nil, nil
-	}
+	})
 }
 
 // DropFeedsWithoutAggregatorIDs drops feeds based on the given config.
@@ -176,7 +189,7 @@ func ResolveConflictsForProvider() TransformFeed {
 // Feeds can be dropped if:
 // - We require AggregatorIDs (coinmarketcap, etc) for the feeds provider, but it does not have any.
 func DropFeedsWithoutAggregatorIDs() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("dropping feeds", zap.Int("num feeds", len(feeds)))
@@ -198,7 +211,7 @@ func DropFeedsWithoutAggregatorIDs() TransformFeed {
 
 		logger.Info("dropped feeds", zap.Int("remaining feeds", len(out)))
 		return out, exclusions, nil
-	}
+	})
 }
 
 // InvertOrDrop attempts to invert any potential feeds that could be inverted to a desired quote config to be valid.
@@ -211,7 +224,7 @@ func DropFeedsWithoutAggregatorIDs() TransformFeed {
 //
 // Feeds whose base AND quote fall outside the target quotes are dropped.
 func InvertOrDrop() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("inverting feeds", zap.Int("feeds", len(feeds)))
@@ -258,7 +271,7 @@ func InvertOrDrop() TransformFeed {
 
 		logger.Info("inverted", zap.Int("feeds remaining", len(out)))
 		return out, exclusions, nil
-	}
+	})
 }
 
 // PruneByLiquidity excludes feeds that do not have an associated quote config.
@@ -266,7 +279,7 @@ func InvertOrDrop() TransformFeed {
 // If the market has a quote config, the following checks are performed:
 // - check if 24hr liquidity in USD is sufficient.
 func PruneByLiquidity() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		out := make([]types.Feed, 0, len(feeds))
@@ -306,7 +319,7 @@ func PruneByLiquidity() TransformFeed {
 		logger.Info("pruned feeds by liquidity", zap.Int("feeds", len(feeds)))
 
 		return out, exclusions, nil
-	}
+	})
 }
 
 // PruneByQuoteVolume excludes feeds that do not have an associated quote config.
@@ -314,7 +327,7 @@ func PruneByLiquidity() TransformFeed {
 // If the market has a quote config, the following checks are performed:
 // - check if 24hr quote volume is sufficient.
 func PruneByQuoteVolume() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("pruning feeds by quote volume", zap.Int("feeds", len(feeds)))
@@ -347,9 +360,9 @@ func PruneByQuoteVolume() TransformFeed {
 			logger.Debug("dropping feed", zap.Any("feed", feed))
 		}
 
-		logger.Info("pruned feeds by quote volume", zap.Int("feeds remaining", len(out)))
+		logger.Info("pruned feeds by quote volume", zap.Int("remaining feeds", len(out)))
 		return out, exclusions, nil
-	}
+	})
 }
 
 // ResolveNamingAliases chooses a canonical set of Feeds that have the same TickerString()
@@ -358,7 +371,7 @@ func PruneByQuoteVolume() TransformFeed {
 // - differentiate between the feeds using CoinMarketCap identifiers.
 // - choose one CoinMarketCap identifier group per TickerString()
 func ResolveNamingAliases() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, _ config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return func(_ context.Context, logger *zap.Logger, _ config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("resolving ticker string naming aliases", zap.Int("feeds", len(feeds)))
@@ -379,7 +392,11 @@ func ResolveNamingAliases() TransformFeed {
 		for tickerString, feedGroups := range feedGroupsPerTicker {
 			logger.Debug("resolving ticker string naming aliases", zap.String("ticker", tickerString))
 
-			bestGroupID, err := getHighestRankFeedGroup(feedGroups)
+			onChainBaseAssetID, err := getOnChainBaseAssetID(tickerString, onChainMarketMap, logger)
+			if err != nil {
+				return nil, nil, err
+			}
+			bestGroupID, err := getHighestRankFeedGroup(feedGroups, onChainBaseAssetID)
 			if err != nil {
 				logger.Info("no group found for ticker", zap.String("ticker", tickerString), zap.Error(err))
 				continue
@@ -410,15 +427,48 @@ func ResolveNamingAliases() TransformFeed {
 		out.Sort()
 		logger.Info("resolved ticker string naming aliases", zap.Int("feeds", len(out)))
 
+		file.CreateAndWriteJSONToFile("tmp_feeds.json", out)
 		return out, exclusions, nil
 	}
 }
 
+// If the ticker string exists in the on-chain market map and is enabled, get the CMC ID for the base asset of this ticker
+func getOnChainBaseAssetID(tickerString string, onChainMarketMap mmtypes.MarketMap, logger *zap.Logger) (int64, error) {
+	onChainBaseAssetID := NON_EXISTENT_CMC_ID
+	parts := strings.Split(tickerString, "/")
+	mmTicker := parts[0] + "/USD" // the feed may have a different quote asset like USDT, but the marketmap quote will always be USD
+	existingMarket, ok := onChainMarketMap.Markets[mmTicker]
+	if ok {
+		if existingMarket.Ticker.Enabled {
+			existingMetadataJSON := existingMarket.Ticker.GetMetadata_JSON()
+			if existingMetadataJSON == "" {
+				logger.Warn("empty ticker metadata for existing market", zap.String("ticker", tickerString))
+			} else {
+				existingMetadata, err := tickermetadata.DyDxFromJSONString(existingMetadataJSON)
+				if err != nil {
+					return onChainBaseAssetID, err
+				}
+
+				onChainBaseAssetID, err = strconv.ParseInt(existingMetadata.AggregateIDs[0].ID, 10, 64)
+				if err != nil {
+					return onChainBaseAssetID, fmt.Errorf("failed to parse CMC ID: %w", err)
+				}
+			}
+		}
+	}
+	return onChainBaseAssetID, nil
+}
+
 // getHighestRankFeedGroup uses CMC Rank information to choose which set of feeds
 // is "best" for generation.
+//
+// If the base asset for this set of feeds exists on chain and is enabled, use
+// that CMC ID as the key to choose the best group so that the providers will always
+// refer to the same market.
+//
 // The input data to this function should be a map[CMCIds] -> feeds with the _same_ CMC Info.
 // The set of feeds with the _lowest_ BaseAssetRank will be chosen.
-func getHighestRankFeedGroup(feedGroups map[string]types.Feeds) (string, error) {
+func getHighestRankFeedGroup(feedGroups map[string]types.Feeds, onChainBaseAssetID int64) (string, error) {
 	if len(feedGroups) == 0 {
 		return "", fmt.Errorf("no feed groups found")
 	}
@@ -436,6 +486,13 @@ func getHighestRankFeedGroup(feedGroups map[string]types.Feeds) (string, error) 
 		// if we don't have ranking info, don't consider
 		if !feed.CMCInfo.HasRank() {
 			continue
+		}
+
+		// If the base asset is enabled on chain, only consider feeds that match its CMC ID
+		if onChainBaseAssetID != NON_EXISTENT_CMC_ID {
+			if feed.CMCInfo.BaseID != onChainBaseAssetID {
+				continue
+			}
 		}
 
 		// all items in this group have the same CMC Rank, so we just use item 0
@@ -463,7 +520,7 @@ func getHighestRankFeedGroup(feedGroups map[string]types.Feeds) (string, error) 
 // The feeds are sorted by the base asset's CMC rank and then the top N are chosen.
 // If no filter is set, the feeds are sorted, but no feeds will be excluded.
 func TopFeedsForProvider() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds,
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds,
 	) (types.Feeds, types.ExclusionReasons, error) {
 		provFeeds := feeds.ToProviderFeeds()
 
@@ -503,13 +560,13 @@ func TopFeedsForProvider() TransformFeed {
 		}
 
 		return provFeeds.ToFeeds(), exclusions, nil
-	}
+	})
 }
 
 // PruneByProviderLiquidity excludes feeds that don't meet provider-specific liquidity thresholds.
 // Each provider can specify a min_provider_liquidity threshold in the config.
 func PruneByProviderLiquidity() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
 		logger.Info("pruning by provider liquidity", zap.Int("feeds", len(feeds)))
 
 		out := make([]types.Feed, 0, len(feeds))
@@ -547,13 +604,13 @@ func PruneByProviderLiquidity() TransformFeed {
 
 		logger.Info("pruned feeds by provider liquidity", zap.Int("feeds remaining", len(out)))
 		return out, exclusions, nil
-	}
+	})
 }
 
 // PruneByProviderUsdVolume excludes feeds that don't meet provider-specific USD volume thresholds.
 // Each provider can specify a min_provider_volume threshold in the config.
 func PruneByProviderUsdVolume() TransformFeed {
-	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
+	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
 		logger.Info("pruning by provider volume", zap.Int("feeds", len(feeds)))
 
 		out := make([]types.Feed, 0, len(feeds))
@@ -588,7 +645,7 @@ func PruneByProviderUsdVolume() TransformFeed {
 
 		logger.Info("pruned feeds by provider volume", zap.Int("feeds remaining", len(out)))
 		return out, exclusions, nil
-	}
+	})
 }
 
 func keyCurrencyPairProviderName(cp, provider string) string {

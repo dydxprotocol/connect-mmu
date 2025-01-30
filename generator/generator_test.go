@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
+	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/generator"
 	"github.com/skip-mev/connect-mmu/lib/file"
@@ -40,11 +42,12 @@ func TestGenerationDeterminisimFromIndexedFile(t *testing.T) {
 	require.NoError(t, generationConfig.Validate())
 
 	// generate twice and check determinism
-	mm1, removals1, err := gen.GenerateMarketMap(context.Background(), generationConfig)
+	onChainMarketMap := mmtypes.MarketMap{}
+	mm1, removals1, err := gen.GenerateMarketMap(context.Background(), generationConfig, onChainMarketMap)
 	require.NoError(t, err)
 
 	for range numIters {
-		mm2, removals2, err := gen.GenerateMarketMap(context.Background(), generationConfig)
+		mm2, removals2, err := gen.GenerateMarketMap(context.Background(), generationConfig, onChainMarketMap)
 		require.NoError(t, err)
 
 		if !mm1.Equal(mm2) {
