@@ -116,15 +116,12 @@ func DiffCmd() *cobra.Command {
 
 			var newMarketsString string
 			if len(newMarkets) > 0 {
-				newMarketsTickers := make([]string, 0)
-
 				colorDefault := "\033[0m"
 				colorGreen := "\033[32m"
 
 				b := bytes.NewBuffer(nil)
 				b.WriteString(fmt.Sprintf("\n\n=== ADDING %d NEW MARKETS ===\n\n ", len(newMarkets)))
 				for _, newMarket := range newMarkets {
-					newMarketsTickers = append(newMarketsTickers, newMarket.Ticker.String())
 					b.WriteString(colorGreen)
 					b.WriteString("+ ")
 					b.WriteString(newMarket.Ticker.String())
