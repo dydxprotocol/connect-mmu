@@ -2,6 +2,7 @@ package basic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -11,8 +12,10 @@ import (
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 
 	"github.com/skip-mev/connect-mmu/client/marketmap"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/config"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/upsert"
 )
@@ -73,6 +76,23 @@ func UpsertsCmd() *cobra.Command {
 				return fmt.Errorf("failed to write additions: %w", err)
 			}
 			logger.Info("additions written to file", zap.String("file", flags.additionsOutPath))
+
+			if aws.IsLambda() {
+				outputs := map[string]any{
+					consts.LatestUpdatedMarketsFilename: updates,
+					consts.LatestNewMarketsFilename:     additions,
+				}
+				for filename, data := range outputs {
+					latestJSON, err := json.MarshalIndent(data, "", "  ")
+					if err != nil {
+						return err
+					}
+					err = aws.WriteToS3(filename, latestJSON, false)
+					if err != nil {
+						return err
+					}
+				}
+			}
 
 			return nil
 		},
