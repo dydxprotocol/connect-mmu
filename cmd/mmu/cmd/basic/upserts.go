@@ -63,8 +63,6 @@ func UpsertsCmd() *cobra.Command {
 				return fmt.Errorf("failed to read upsert config at %s: %w", flags.configPath, err)
 			}
 
-			// TODO write to Latest also (where do removals get written?)
-			// Should you add a func in file module to write latest (or a new param, writeLatest)?
 			err = file.WriteJSONToFile(flags.updatesOutPath, updates)
 			if err != nil {
 				return fmt.Errorf("failed to write updates: %w", err)
@@ -77,6 +75,7 @@ func UpsertsCmd() *cobra.Command {
 			}
 			logger.Info("additions written to file", zap.String("file", flags.additionsOutPath))
 
+			// Write latest-updated-markets.json and latest-new-markets.json
 			if aws.IsLambda() {
 				outputs := map[string]any{
 					consts.LatestUpdatedMarketsFilename: updates,
