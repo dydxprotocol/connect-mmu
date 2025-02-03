@@ -20,7 +20,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/skip-mev/connect-mmu/client/marketmap"
-	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/lib/file"
 )
 
@@ -140,9 +139,6 @@ func DiffCmd() *cobra.Command {
 				}
 				newMarketsString = b.String()
 				fmt.Println(newMarketsString)
-
-				logger := logging.Logger(cmd.Context())
-				logger.Info("new markets", zap.Bool("slack_report", true), zap.Strings("markets", newMarketsTickers))
 			} else {
 				fmt.Printf("\n\n=== NO NEW MARKETS ADDED ===\n\n")
 			}

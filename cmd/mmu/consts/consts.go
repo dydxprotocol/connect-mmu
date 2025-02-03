@@ -6,8 +6,13 @@ import (
 	"slices"
 )
 
-// Filename of the file to write to S3 containing the latest MM transactions
+// Filenames of the files to write to S3 containing the latest MM transactions, validation errors, etc.
 const LatestTransactionsFilename = "latest-transactions.json"
+const LatestValidationErrorsFilename = "latest-validation-errors.json"
+const LatestHealthReportsFilename = "latest-health-reports.json"
+const LatestNewMarketsFilename = "latest-new-markets.json"
+const LatestRemovedMarketsFilename = "latest-removed-markets.json"
+const LatestUpdatedMarketsFilename = "latest-updated-markets.json"
 
 // URL to fetch the latest transactions output by the Staging MMU.
 // Only used for internal dev / testing of the MMU itself.

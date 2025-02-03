@@ -222,7 +222,23 @@ func ValidateCmd() *cobra.Command {
 
 			allErrs := generateErrorFromReport(mm, summary, val.MissingReports(health))
 
-			logger.Info("validation errors", zap.Bool("slack_report", true), zap.Errors("errors", allErrs))
+			// Write latest-validation-errors.json and latest-health-reports.json
+			if aws.IsLambda() {
+				outputs := map[string]any{
+					consts.LatestValidationErrorsFilename: allErrs,
+					consts.LatestHealthReportsFilename:    summary,
+				}
+				for filename, data := range outputs {
+					latestJSON, err := json.MarshalIndent(data, "", "  ")
+					if err != nil {
+						return err
+					}
+					err = aws.WriteToS3(filename, latestJSON, false)
+					if err != nil {
+						return err
+					}
+				}
+			}
 
 			err = errors.Join(allErrs...)
 			return err
