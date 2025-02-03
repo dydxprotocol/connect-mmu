@@ -2,6 +2,7 @@ package update
 
 import (
 	"fmt"
+	"strings"
 
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
@@ -125,7 +126,9 @@ func CombineMarketMaps(
 func getTickerToPerpetual(perps []dydx.Perpetual) map[string]dydx.Perpetual {
 	tickerToPerpetual := make(map[string]dydx.Perpetual)
 	for _, p := range perps {
-		tickerToPerpetual[p.Params.Ticker] = p
+		tickerParts := strings.Split(p.Params.Ticker, "-")
+		mmTicker := strings.Join(tickerParts, "/")
+		tickerToPerpetual[mmTicker] = p
 	}
 	return tickerToPerpetual
 }
