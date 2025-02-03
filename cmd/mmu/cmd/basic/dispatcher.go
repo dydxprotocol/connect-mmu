@@ -327,17 +327,27 @@ func notifySlack() error {
 	}
 	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, slackWebhookURLSecretNameModifier)
 
-	apiEndpointToLinkText := map[string]string{
-		"tx":                "Transaction",
-		"new-markets":       "New Markets",
-		"removed-markets":   "Removed Markets",
-		"updated-markets":   "Updated Markets",
-		"validation-errors": "Validation Errors",
-		"health-reports":    "Health Reports",
+	apiEndpoints := []string{
+		"tx",
+		"new-markets",
+		"removed-markets",
+		"updated-markets",
+		"validation-errors",
+		"health-reports",
+	}
+
+	linkTexts := []string{
+		"Transaction",
+		"New Markets",
+		"Removed Markets",
+		"Updated Markets",
+		"Validation Errors",
+		"Health Reports",
 	}
 
 	slackMsg := fmt.Sprintf("New Market Map TX available for %s:", strings.ToUpper(network))
-	for apiEndpoint, linkText := range apiEndpointToLinkText {
+	for idx, apiEndpoint := range apiEndpoints {
+		linkText := linkTexts[idx]
 		apiURLFull := fmt.Sprintf("%s/%s?network=%s", apiURLBase, apiEndpoint, network)
 		slackMsg += fmt.Sprintf("\n- <%s|%s>\n", apiURLFull, linkText)
 	}
