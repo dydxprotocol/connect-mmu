@@ -2,6 +2,7 @@ package basic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,8 +13,10 @@ import (
 
 	"github.com/skip-mev/connect-mmu/client/dydx"
 	marketmapclient "github.com/skip-mev/connect-mmu/client/marketmap"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
 	"github.com/skip-mev/connect-mmu/config"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/override"
 	"github.com/skip-mev/connect-mmu/override/update"
@@ -80,6 +83,18 @@ func OverrideCmd() *cobra.Command {
 				return err
 			}
 			logger.Info("successfully wrote marketmap removals", zap.String("path", flags.marketMapRemovalsOutPath))
+
+			// Write latest-removed-markets.json
+			if aws.IsLambda() {
+				latestJSON, err := json.MarshalIndent(removals, "", "  ")
+				if err != nil {
+					return err
+				}
+				err = aws.WriteToS3(consts.LatestRemovedMarketsFilename, latestJSON, false)
+				if err != nil {
+					return err
+				}
+			}
 
 			return nil
 		},

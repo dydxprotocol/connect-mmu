@@ -224,10 +224,17 @@ func ValidateCmd() *cobra.Command {
 
 			// Write latest-validation-errors.json and latest-health-reports.json
 			if aws.IsLambda() {
+				// Convert error types to error strings
+				allErrStrs := make([]string, len(allErrs))
+				for _, err := range allErrs {
+					allErrStrs = append(allErrStrs, err.Error())
+				}
+
 				outputs := map[string]any{
-					consts.LatestValidationErrorsFilename: allErrs,
+					consts.LatestValidationErrorsFilename: allErrStrs,
 					consts.LatestHealthReportsFilename:    summary,
 				}
+
 				for filename, data := range outputs {
 					latestJSON, err := json.MarshalIndent(data, "", "  ")
 					if err != nil {

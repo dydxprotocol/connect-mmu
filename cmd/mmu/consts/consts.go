@@ -18,11 +18,11 @@ const (
 
 // URL to fetch the latest transactions output by the Staging MMU.
 // Only used for internal dev / testing of the MMU itself.
-const StagingAPIURL = "https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1/tx"
+const StagingAPIURL = "https://ievd6jluve.execute-api.ap-northeast-1.amazonaws.com/staging/market-map-updater/v1"
 
 // URL to fetch the latest transactions output by the Prod MMU.
 // Used by external MM Operator to fetch transactions for updating Testnet and Mainnet MMs.
-const ProdAPIURL = "https://fdviqy4mbk.execute-api.ap-northeast-1.amazonaws.com/mainnet/market-map-updater/v1/tx"
+const ProdAPIURL = "https://fdviqy4mbk.execute-api.ap-northeast-1.amazonaws.com/mainnet/market-map-updater/v1"
 
 // Path of the oracle config file used by the validate command
 const OracleConfigFilePath = "local/fixtures/e2e/oracle.json"

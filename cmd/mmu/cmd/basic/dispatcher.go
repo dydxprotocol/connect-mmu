@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -121,7 +122,11 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 			}
 
 			if aws.IsLambda() {
-				return writeLatestTransactionsAndNotifySlack(decodedTxs)
+				err = writeLatestTransactions(decodedTxs)
+				if err != nil {
+					return err
+				}
+				return notifySlack()
 			}
 
 			return nil
@@ -280,7 +285,8 @@ func getSignerAddress(ctx context.Context, signer signing.SigningAgent) (string,
 	return baseAcc.Address, nil
 }
 
-func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
+// Write latest-transactions.json to S3 for the MM Operator
+func writeLatestTransactions(decodedTxs []DecodedTx) error {
 	// Check if new transactions differ from the existing "latest-transactions.json" in S3
 	newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
 	if err != nil {
@@ -297,6 +303,11 @@ func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
 		return err
 	}
 
+	return nil
+}
+
+// Send a Slack message with links to latest transaction + pipeline data
+func notifySlack() error {
 	// Get current env of the MMU itself
 	mmuEnv := os.Getenv("ENVIRONMENT")
 
@@ -305,20 +316,44 @@ func writeLatestTransactionsAndNotifySlack(decodedTxs []DecodedTx) error {
 
 	// Construct full API URL to fetch the latest transactions for the target network,
 	// and construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
-	var baseAPIURL string
+	var apiURLBase string
 	var slackWebhookURLSecretNameModifier string
 	if mmuEnv == "staging" {
-		baseAPIURL = consts.StagingAPIURL
+		apiURLBase = consts.StagingAPIURL
 		slackWebhookURLSecretNameModifier = "internal"
 	} else if mmuEnv == "mainnet" {
-		baseAPIURL = consts.ProdAPIURL
+		apiURLBase = consts.ProdAPIURL
 		slackWebhookURLSecretNameModifier = "external"
 	}
-	fullAPIURL := fmt.Sprintf("%s?network=%s", baseAPIURL, network)
 	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, slackWebhookURLSecretNameModifier)
 
+	apiEndpoints := []string{
+		"tx",
+		"new-markets",
+		"removed-markets",
+		"updated-markets",
+		"validation-errors",
+		"health-reports",
+	}
+
+	linkTexts := []string{
+		"Transaction",
+		"New Markets",
+		"Removed Markets",
+		"Updated Markets",
+		"Validation Errors",
+		"Health Reports",
+	}
+
+	slackMsg := fmt.Sprintf("New Market Map TX available for %s:", strings.ToUpper(network))
+	for idx, apiEndpoint := range apiEndpoints {
+		linkText := linkTexts[idx]
+		apiURLFull := fmt.Sprintf("%s/%s?network=%s", apiURLBase, apiEndpoint, network)
+		slackMsg += fmt.Sprintf("\n- <%s|%s>\n", apiURLFull, linkText)
+	}
+
 	// Send notif to Slack
-	return slack.SendNotification(fmt.Sprintf("New Market Map Transaction available for %s: %s", network, fullAPIURL), slackWebhookURLSecretName)
+	return slack.SendNotification(slackMsg, slackWebhookURLSecretName)
 }
 
 type dispatchCmdFlags struct {
