@@ -247,7 +247,12 @@ func ValidateCmd() *cobra.Command {
 				}
 			}
 
+			logger.Error("All Errs: ", zap.Errors("errors", allErrs))
+
 			err = errors.Join(allErrs...)
+
+			logger.Error("All Errs Joined: ", zap.Error(err))
+
 			return err
 		},
 	}
