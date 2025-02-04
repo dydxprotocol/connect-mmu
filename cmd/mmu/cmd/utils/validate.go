@@ -249,7 +249,7 @@ func ValidateCmd() *cobra.Command {
 				// Log failed reports for monitoring / alerting
 				if len(failedReports) > 0 {
 					logger.Error("Failed reports", zap.Bool("slack_report", true), zap.Any("failed_reports", failedReports))
-					return fmt.Errorf("Failed reports", failedReports)
+					return fmt.Errorf("Failed reports: %v", failedReports)
 				}
 
 				return nil
