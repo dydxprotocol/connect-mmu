@@ -248,7 +248,7 @@ func ValidateCmd() *cobra.Command {
 
 				// Log failed reports for monitoring / alerting
 				if len(failedReports) > 0 {
-					logger.Error("failed reports", zap.Bool("slack_report", true), zap.Any("failed_reports", failedReports))
+					logger.Error("failed reports", zap.Bool("mmu_datadog", true), zap.Any("failed_reports", failedReports))
 					return fmt.Errorf("failed reports: %v", failedReports)
 				}
 
