@@ -220,12 +220,12 @@ func ValidateCmd() *cobra.Command {
 				cmd.Println("failed to write report file: ", err.Error())
 			}
 
-			allErrs := generateErrorFromReport(mm, summary, val.MissingReports(health))
+			allErrs, failedReports := generateErrorFromReport(mm, summary, val.MissingReports(health))
 
 			// Write latest-validation-errors.json and latest-health-reports.json
 			if aws.IsLambda() {
 				// Convert error types to error strings
-				allErrStrs := make([]string, len(allErrs))
+				allErrStrs := make([]string, 0)
 				for _, err := range allErrs {
 					allErrStrs = append(allErrStrs, err.Error())
 				}
@@ -244,6 +244,11 @@ func ValidateCmd() *cobra.Command {
 					if err != nil {
 						return err
 					}
+				}
+
+				// Log failed reports for monitoring / alerting
+				if len(failedReports) > 0 {
+					logger.Error("Failed reports", zap.Any("reports", failedReports))
 				}
 			}
 
@@ -395,15 +400,19 @@ func fetchAPIKeysAndWriteToOracleConfig() error {
 }
 
 // generateErrorFromReport will generate an error based on failing and missing reports.
-func generateErrorFromReport(mm types.MarketMap, reports validatortypes.Reports, missing map[string][]string) []error {
+func generateErrorFromReport(mm types.MarketMap, reports validatortypes.Reports, missing map[string][]string) ([]error, []validatortypes.Report) {
 	allErrs := make([]error, 0)
 	for ticker, providers := range missing {
 		allErrs = append(allErrs,
 			fmt.Errorf("missing %s from: %s", ticker, strings.Join(providers, ",")),
 		)
 	}
+	failedReports := make([]validatortypes.Report, 0)
 	reportErrs := make([]error, 0)
 	for _, report := range reports.Reports {
+		if report.Status == validatortypes.StatusFailed {
+			failedReports = append(failedReports, report)
+		}
 		providerErrs := make([]error, 0)
 		for _, providerReport := range report.ProviderReports {
 			if providerReport.Grade == validatortypes.GradeFailed {
@@ -434,9 +443,10 @@ func generateErrorFromReport(mm types.MarketMap, reports validatortypes.Reports,
 			)
 		}
 	}
+
 	allErrs = append(allErrs, reportErrs...)
 
-	return allErrs
+	return allErrs, failedReports
 }
 
 // getMarketMapFromFlags will get a marketmap based on the flags passed.
