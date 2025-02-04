@@ -159,13 +159,8 @@ func lambdaHandler(ctx context.Context, event json.RawMessage) (resp LambdaRespo
 	rootCmd := cmd.RootCmd(r)
 	rootCmd.SetArgs(args)
 	if err := rootCmd.Execute(); err != nil {
-		logger.Error("command returned errors", zap.Strings("command", args), zap.Error(err))
-		// Return errors for all commands other than "validate".
-		// It is expected that "validate" may output errors; these errors do not indicate job failure (ex. transient provider issues, etc.)
-		// If these errors are returned from the Lambda handler, the Lambda run will be considered a failure and subsequent jobs in the Step Function will not run.
-		if args[0] != "validate" {
-			return resp, err
-		}
+		logger.Error("command returned errors", zap.Bool("mmu_datadog", true), zap.Strings("command", args), zap.Error(err))
+		return resp, err
 	}
 
 	return LambdaResponse{
