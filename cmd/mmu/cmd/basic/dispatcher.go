@@ -346,14 +346,17 @@ func notifySlack() error {
 	}
 
 	slackMsg := fmt.Sprintf("New Market Map TX available for %s:", strings.ToUpper(network))
-	for idx, apiEndpoint := range apiEndpoints {
-		linkText := linkTexts[idx]
-		apiURLFull := fmt.Sprintf("%s/%s?network=%s", apiURLBase, apiEndpoint, network)
-		slackMsg += fmt.Sprintf("\n- <%s|%s>\n", apiURLFull, linkText)
-	}
+	slackMsg += fmt.Sprintf("\n- %s", constructSlackTextLink(apiURLBase, "tx", network, "Transaction"))
+	slackMsg += fmt.Sprintf("\n- Markets: %s, %s, %s", constructSlackTextLink(apiURLBase, "new-markets", network, "New"), constructSlackTextLink(apiURLBase, "removed-markets", network, "Removed"), constructSlackTextLink(apiURLBase, "updated-markets", network, "Updated"))
+	slackMsg += fmt.Sprintf("\n- Validation: %s, %s", constructSlackTextLink(apiURLBase, "validation-errors", network, "Errors"), constructSlackTextLink(apiURLBase, "health-reports", network, "Health Reports"))
 
 	// Send notif to Slack
 	return slack.SendNotification(slackMsg, slackWebhookURLSecretName)
+}
+
+func constructSlackTextLink(apiURLBase string, apiEndpoint string, network string, linkText string) string {
+	apiURLFull := fmt.Sprintf("%s/%s?network=%s", apiURLBase, apiEndpoint, network)
+	return fmt.Sprintf("<%s|%s>", apiURLFull, linkText)
 }
 
 type dispatchCmdFlags struct {
