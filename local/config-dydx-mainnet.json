@@ -395,7 +395,7 @@
     "signing": {
       "type": "simulate_agent",
       "config": {
-        "address": "dydx13zhrlrc98w6gszwml6xpym8mtlcyrrq4javkje"
+        "address": "dydx1cd9256yf7dw0ztc9l2dgasadsx6l26tcq0an3s"
       }
     },
     "submitter": {
