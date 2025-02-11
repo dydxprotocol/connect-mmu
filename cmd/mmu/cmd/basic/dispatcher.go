@@ -328,7 +328,7 @@ func notifySlack() error {
 	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, slackWebhookURLSecretNameModifier)
 
 	slackMsg := fmt.Sprintf("New Market Map TX available for `%s`:", strings.ToUpper(network))
-	slackMsg += fmt.Sprintf("\n- Transaction: %s", constructSlackTextLink(apiURLBase, "tx", network, "TX"))
+	slackMsg += fmt.Sprintf("\n- Transactions: %s", constructSlackTextLink(apiURLBase, "tx", network, "TXs"))
 	slackMsg += fmt.Sprintf("\n- Markets: %s, %s, %s", constructSlackTextLink(apiURLBase, "new-markets", network, "New"), constructSlackTextLink(apiURLBase, "removed-markets", network, "Removed"), constructSlackTextLink(apiURLBase, "updated-markets", network, "Updated"))
 	slackMsg += fmt.Sprintf("\n- Validation: %s, %s", constructSlackTextLink(apiURLBase, "validation-errors", network, "Errors"), constructSlackTextLink(apiURLBase, "health-reports", network, "Reports"))
 
