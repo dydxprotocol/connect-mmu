@@ -6,7 +6,7 @@ import (
 	"maps"
 	"strconv"
 
-	"github.com/skip-mev/connect-mmu/lib/slices"
+	skipslices "github.com/skip-mev/connect-mmu/lib/slices"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
 
 	"go.uber.org/zap"
@@ -92,7 +92,7 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 
 	const reqSize = 1000
 	infoDataMap := make(cmc.InfoDataMap, len(resp.Data))
-	splitIDs := slices.Chunk(ids, reqSize)
+	splitIDs := skipslices.Chunk(ids, reqSize)
 	for _, split := range splitIDs {
 		infoResp, err := i.client.Info(ctx, split)
 		if err != nil {
@@ -143,7 +143,7 @@ func (i *Indexer) FiatIDMap(ctx context.Context) (FiatIDMap, error) {
 }
 
 func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) error {
-	for _, chunk := range slices.Chunk(ids, 1000) {
+	for _, chunk := range skipslices.Chunk(ids, 1000) {
 		resp, err := i.Quotes(ctx, chunk)
 		if err != nil {
 			return err
@@ -177,15 +177,18 @@ func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteD
 	quotes := make(map[int64]cmc.QuoteData)
 	for _, id := range ids {
 		data, ok := resp.Data[fmt.Sprintf("%d", id)]
-		if !ok {
+		if ok {
+			quotes[id] = data
+		} else {
 			i.logger.Error("desired symbol not found - retrying", zap.Int64("id", id))
 			data, err = i.Quote(ctx, id)
 			if err != nil {
 				i.logger.Error("unable to fetch quote data", zap.Int64("id", id), zap.Error(err))
-				return nil, fmt.Errorf("unable to fetch quote data for id %d: %w", id, err)
+				// return nil, fmt.Errorf("unable to fetch quote data for id %d: %w", id, err)
+			} else {
+				quotes[id] = data
 			}
 		}
-		quotes[id] = data
 	}
 
 	return quotes, nil
