@@ -108,7 +108,6 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 			idx.logger.Warn("Failed to fetch quote for Quote asset, removing pair from cmcMarketPairs", zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("pair", key))
 			delete(cmcMarketPairs.Data, key)
 		}
-		// TODO add some kind of error logging for mmu_datadog?
 	}
 
 	for _, pair := range cmcMarketPairs.Data {
