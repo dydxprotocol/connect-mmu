@@ -100,12 +100,12 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 
 	for key, pair := range cmcMarketPairs.Data {
 		if _, failedBaseQuote := failedQuotes[pair.CMCInfo.BaseID]; failedBaseQuote {
-			idx.logger.Warn("Failed to fetch quote for Base asset, removing pair from cmcMarketPairs", zap.Int64("baseID", pair.CMCInfo.BaseID), zap.String("pair", key))
+			idx.logger.Warn("Failed to fetch quote for Base asset, removing pair from cmcMarketPairs", zap.Bool("mmu_datadog", true), zap.Int64("baseID", pair.CMCInfo.BaseID), zap.String("failedPair", key))
 			delete(cmcMarketPairs.Data, key)
 			continue
 		}
 		if _, failedQuoteQuote := failedQuotes[pair.CMCInfo.QuoteID]; failedQuoteQuote {
-			idx.logger.Warn("Failed to fetch quote for Quote asset, removing pair from cmcMarketPairs", zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("pair", key))
+			idx.logger.Warn("Failed to fetch quote for Quote asset, removing pair from cmcMarketPairs", zap.Bool("mmu_datadog", true), zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("failedPair", key))
 			delete(cmcMarketPairs.Data, key)
 		}
 	}
