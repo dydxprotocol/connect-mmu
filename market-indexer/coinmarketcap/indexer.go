@@ -154,8 +154,8 @@ func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) (map[int64]struc
 			i.quotes[id] = data
 		}
 
-		if failedQuotesChunk != nil && len(failedQuotesChunk) > 0 {
-			for id, _ := range failedQuotesChunk {
+		if len(failedQuotesChunk) > 0 {
+			for id := range failedQuotesChunk {
 				failedQuotes[id] = struct{}{}
 			}
 		}
