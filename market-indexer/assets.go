@@ -93,8 +93,22 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 		idSet[pair.CMCInfo.QuoteID] = struct{}{}
 	}
 	ids := maps.Keys(idSet)
-	if err := idx.cmcIndexer.CacheQuotes(ctx, ids); err != nil {
+	failedQuotes, err := idx.cmcIndexer.CacheQuotes(ctx, ids)
+	if err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
+	for key, pair := range cmcMarketPairs.Data {
+		if _, failedBaseQuote := failedQuotes[pair.CMCInfo.BaseID]; failedBaseQuote {
+			idx.logger.Warn("Failed to fetch quote for Base asset, removing pair from cmcMarketPairs", zap.Int64("baseID", pair.CMCInfo.BaseID), zap.String("pair", key))
+			delete(cmcMarketPairs.Data, key)
+			continue
+		}
+		if _, failedQuoteQuote := failedQuotes[pair.CMCInfo.QuoteID]; failedQuoteQuote {
+			idx.logger.Warn("Failed to fetch quote for Quote asset, removing pair from cmcMarketPairs", zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("pair", key))
+			delete(cmcMarketPairs.Data, key)
+		}
+		// TODO add some kind of error logging for mmu_datadog?
 	}
 
 	for _, pair := range cmcMarketPairs.Data {

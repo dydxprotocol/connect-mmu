@@ -142,56 +142,62 @@ func (i *Indexer) FiatIDMap(ctx context.Context) (FiatIDMap, error) {
 	return resp.Data, nil
 }
 
-func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) error {
+func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) (map[int64]struct{}, error) {
+	failedQuotes := make(map[int64]struct{}, 0)
 	for _, chunk := range skipslices.Chunk(ids, 1000) {
-		resp, err := i.Quotes(ctx, chunk)
+		resp, failedQuotesChunk, err := i.Quotes(ctx, chunk)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for id, data := range resp {
 			i.quotes[id] = data
 		}
+
+		if failedQuotesChunk != nil && len(failedQuotesChunk) > 0 {
+			for id, _ := range failedQuotesChunk {
+				failedQuotes[id] = struct{}{}
+			}
+		}
 	}
 
-	return nil
+	return failedQuotes, nil
 }
 
 // Quotes fetches the QuoteData for the given CMC IDs and returns them as a map.
 // If a desired ID is not returned, we fall back to individually fetch the data for the ID,
 // and return an error if that fails.
-func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteData, error) {
+func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteData, map[int64]struct{}, error) {
 	i.logger.Debug("fetching quote data", zap.Any("cmc ids", ids))
 
 	resp, err := i.client.Quotes(ctx, ids)
 	if err != nil {
 		i.logger.Error("unable to fetch quote data", zap.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = resp.Status.Validate(); err != nil {
 		i.logger.Error("failed to validate response", zap.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	quotes := make(map[int64]cmc.QuoteData)
+	failedQuotes := make(map[int64]struct{}, 0)
 	for _, id := range ids {
 		data, ok := resp.Data[fmt.Sprintf("%d", id)]
-		if ok {
-			quotes[id] = data
-		} else {
+		if !ok {
 			i.logger.Error("desired symbol not found - retrying", zap.Int64("id", id))
 			data, err = i.Quote(ctx, id)
 			if err != nil {
 				i.logger.Error("unable to fetch quote data", zap.Int64("id", id), zap.Error(err))
-				// return nil, fmt.Errorf("unable to fetch quote data for id %d: %w", id, err)
-			} else {
-				quotes[id] = data
+				failedQuotes[id] = struct{}{}
+				continue
 			}
 		}
+		quotes[id] = data
 	}
 
-	return quotes, nil
+	return quotes, failedQuotes, nil
 }
 
 // Quote returns a quote from the CMC ID and symbol using its underlying client.
