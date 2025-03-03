@@ -98,16 +98,19 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 		return coinmarketcap.ProviderMarketPairs{}, err
 	}
 
+	failedQuotePairs := make([]string, 0)
 	for key, pair := range cmcMarketPairs.Data {
-		if _, failedBaseQuote := failedQuotes[pair.CMCInfo.BaseID]; failedBaseQuote {
-			idx.logger.Warn("Failed to fetch quote for Base asset, removing pair from cmcMarketPairs", zap.Bool("mmu_datadog", true), zap.Int64("baseID", pair.CMCInfo.BaseID), zap.String("failedPair", key))
+		_, baseQuoteFetchFailed := failedQuotes[pair.CMCInfo.BaseID]
+		_, quoteQuoteFetchFailed := failedQuotes[pair.CMCInfo.QuoteID]
+
+		if baseQuoteFetchFailed || quoteQuoteFetchFailed {
+			idx.logger.Warn("removing pair from indexed cmcMarketPairs due to failure to fetch quote", zap.Int64("baseID", pair.CMCInfo.BaseID), zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("failedPair", key))
 			delete(cmcMarketPairs.Data, key)
-			continue
+			failedQuotePairs = append(failedQuotePairs, key)
 		}
-		if _, failedQuoteQuote := failedQuotes[pair.CMCInfo.QuoteID]; failedQuoteQuote {
-			idx.logger.Warn("Failed to fetch quote for Quote asset, removing pair from cmcMarketPairs", zap.Bool("mmu_datadog", true), zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("failedPair", key))
-			delete(cmcMarketPairs.Data, key)
-		}
+	}
+	if len(failedQuotePairs) > 0 {
+		idx.logger.Error("excluded pairs from indexed cmcMarketPairs due to failure to fetch quote(s)", zap.Bool("mmu_datadog", true), zap.Strings("failedPairs", failedQuotePairs))
 	}
 
 	for _, pair := range cmcMarketPairs.Data {
