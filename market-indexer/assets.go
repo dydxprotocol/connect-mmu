@@ -112,9 +112,9 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 	}
 
 	// Monitoring: Log IDs for which we failed to fetch quotes, and any associated market pairs that were excluded as a result
-	if len(failedQuoteIDs) > 0 || len(failedQuotePairs) > 0 {
+	if len(failedQuoteIDs) > 0 {
 		failedQuoteIDsKeys := maps.Keys(failedQuoteIDs)
-		idx.logger.Error("excluded pairs from indexed cmcMarketPairs due to failure to fetch quote(s) for ID(s)", zap.Bool("mmu_datadog", true), zap.Int64s("failedIDs", failedQuoteIDsKeys), zap.Strings("failedPairs", failedQuotePairs))
+		idx.logger.Error("failed to fetch quote(s) for some CMC ID(s), excluding associated market pairs from index results", zap.Bool("mmu_datadog", true), zap.Int64s("failedIDs", failedQuoteIDsKeys), zap.Strings("failedPairs", failedQuotePairs))
 	}
 
 	for _, pair := range cmcMarketPairs.Data {
