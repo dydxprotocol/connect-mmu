@@ -143,7 +143,7 @@ func (i *Indexer) FiatIDMap(ctx context.Context) (FiatIDMap, error) {
 }
 
 func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) (map[int64]struct{}, error) {
-	failedQuoteIDs := make(map[int64]struct{}, 0)
+	failedQuoteIDs := make(map[int64]struct{})
 	for _, chunk := range skipslices.Chunk(ids, 1000) {
 		resp, failedQuoteIDsChunk, err := i.Quotes(ctx, chunk)
 		if err != nil {
