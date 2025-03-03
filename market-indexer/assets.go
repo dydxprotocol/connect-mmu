@@ -93,8 +93,28 @@ func (idx *Indexer) IndexKnownAssetInfo(ctx context.Context) (coinmarketcap.Prov
 		idSet[pair.CMCInfo.QuoteID] = struct{}{}
 	}
 	ids := maps.Keys(idSet)
-	if err := idx.cmcIndexer.CacheQuotes(ctx, ids); err != nil {
+	failedQuoteIDs, err := idx.cmcIndexer.CacheQuotes(ctx, ids)
+	if err != nil {
 		return coinmarketcap.ProviderMarketPairs{}, err
+	}
+
+	// Remove market pairs for which we failed to fetch a quote
+	failedQuotePairs := make([]string, 0)
+	for key, pair := range cmcMarketPairs.Data {
+		_, baseQuoteFetchFailed := failedQuoteIDs[pair.CMCInfo.BaseID]
+		_, quoteQuoteFetchFailed := failedQuoteIDs[pair.CMCInfo.QuoteID]
+
+		if baseQuoteFetchFailed || quoteQuoteFetchFailed {
+			idx.logger.Warn("removing pair from indexed cmcMarketPairs due to failure to fetch quote", zap.Int64("baseID", pair.CMCInfo.BaseID), zap.Int64("quoteID", pair.CMCInfo.QuoteID), zap.String("failedPair", key))
+			delete(cmcMarketPairs.Data, key)
+			failedQuotePairs = append(failedQuotePairs, key)
+		}
+	}
+
+	// Monitoring: Log IDs for which we failed to fetch quotes, and any associated market pairs that were excluded as a result
+	if len(failedQuoteIDs) > 0 {
+		failedQuoteIDsKeys := maps.Keys(failedQuoteIDs)
+		idx.logger.Error("failed to fetch quote(s) for some CMC ID(s), excluding associated market pairs from index results", zap.Bool("mmu_datadog", true), zap.Int64s("failedIDs", failedQuoteIDsKeys), zap.Strings("failedPairs", failedQuotePairs))
 	}
 
 	for _, pair := range cmcMarketPairs.Data {

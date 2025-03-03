@@ -6,7 +6,7 @@ import (
 	"maps"
 	"strconv"
 
-	"github.com/skip-mev/connect-mmu/lib/slices"
+	skipslices "github.com/skip-mev/connect-mmu/lib/slices"
 	"github.com/skip-mev/connect-mmu/lib/symbols"
 
 	"go.uber.org/zap"
@@ -92,7 +92,7 @@ func (i *Indexer) CryptoIDMap(ctx context.Context) (CryptoIDMap, error) {
 
 	const reqSize = 1000
 	infoDataMap := make(cmc.InfoDataMap, len(resp.Data))
-	splitIDs := slices.Chunk(ids, reqSize)
+	splitIDs := skipslices.Chunk(ids, reqSize)
 	for _, split := range splitIDs {
 		infoResp, err := i.client.Info(ctx, split)
 		if err != nil {
@@ -142,39 +142,47 @@ func (i *Indexer) FiatIDMap(ctx context.Context) (FiatIDMap, error) {
 	return resp.Data, nil
 }
 
-func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) error {
-	for _, chunk := range slices.Chunk(ids, 1000) {
-		resp, err := i.Quotes(ctx, chunk)
+func (i *Indexer) CacheQuotes(ctx context.Context, ids []int64) (map[int64]struct{}, error) {
+	failedQuoteIDs := make(map[int64]struct{})
+	for _, chunk := range skipslices.Chunk(ids, 1000) {
+		resp, failedQuoteIDsChunk, err := i.Quotes(ctx, chunk)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for id, data := range resp {
 			i.quotes[id] = data
 		}
+
+		if len(failedQuoteIDsChunk) > 0 {
+			for id := range failedQuoteIDsChunk {
+				failedQuoteIDs[id] = struct{}{}
+			}
+		}
 	}
 
-	return nil
+	return failedQuoteIDs, nil
 }
 
 // Quotes fetches the QuoteData for the given CMC IDs and returns them as a map.
-// If a desired ID is not returned, we fall back to individually fetch the data for the ID,
-// and return an error if that fails.
-func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteData, error) {
+// If a desired ID is not returned, we fall back to individually fetch the data for the ID.
+// If that fails, it usually indicates that the CMC ID is invalid, so we add the ID to a set of failed quotes to be returned and logged for monitoring.
+func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteData, map[int64]struct{}, error) {
 	i.logger.Debug("fetching quote data", zap.Any("cmc ids", ids))
 
 	resp, err := i.client.Quotes(ctx, ids)
 	if err != nil {
 		i.logger.Error("unable to fetch quote data", zap.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = resp.Status.Validate(); err != nil {
 		i.logger.Error("failed to validate response", zap.Error(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	quotes := make(map[int64]cmc.QuoteData)
+	failedQuoteIDs := make(map[int64]struct{})
 	for _, id := range ids {
 		data, ok := resp.Data[fmt.Sprintf("%d", id)]
 		if !ok {
@@ -182,13 +190,14 @@ func (i *Indexer) Quotes(ctx context.Context, ids []int64) (map[int64]cmc.QuoteD
 			data, err = i.Quote(ctx, id)
 			if err != nil {
 				i.logger.Error("unable to fetch quote data", zap.Int64("id", id), zap.Error(err))
-				return nil, fmt.Errorf("unable to fetch quote data for id %d: %w", id, err)
+				failedQuoteIDs[id] = struct{}{}
+				continue
 			}
 		}
 		quotes[id] = data
 	}
 
-	return quotes, nil
+	return quotes, failedQuoteIDs, nil
 }
 
 // Quote returns a quote from the CMC ID and symbol using its underlying client.
