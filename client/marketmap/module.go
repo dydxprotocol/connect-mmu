@@ -56,7 +56,7 @@ func NewSlinkyModuleMarketMapClient(marketMapModuleClient slinkymmtypes.QueryCli
 
 // GetMarketMap retrieves a market-map from the x/marketmap module.
 func (s *SlinkyModuleMarketMapClient) GetMarketMap(ctx context.Context) (mmtypes.MarketMap, error) {
-	var backoffSchedule = []time.Duration{
+	backoffSchedule := []time.Duration{
 		1 * time.Second,
 		3 * time.Second,
 		10 * time.Second,
