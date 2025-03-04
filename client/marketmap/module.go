@@ -3,6 +3,7 @@ package marketmap
 import (
 	"context"
 	"fmt"
+	"time"
 
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
@@ -55,11 +56,29 @@ func NewSlinkyModuleMarketMapClient(marketMapModuleClient slinkymmtypes.QueryCli
 
 // GetMarketMap retrieves a market-map from the x/marketmap module.
 func (s *SlinkyModuleMarketMapClient) GetMarketMap(ctx context.Context) (mmtypes.MarketMap, error) {
-	// get the market-map from x/marketmap
-	// TODO(nikhil): consider handling last-updated here
-	mm, err := s.marketMapModuleClient.MarketMap(ctx, &slinkymmtypes.MarketMapRequest{})
+	backoffSchedule := []time.Duration{
+		1 * time.Second,
+		3 * time.Second,
+		10 * time.Second,
+		30 * time.Second,
+		90 * time.Second,
+	}
+
+	var mm *slinkymmtypes.MarketMapResponse
+	var err error
+	for _, backoff := range backoffSchedule {
+		// get the market-map from x/marketmap
+		mm, err = s.marketMapModuleClient.MarketMap(ctx, &slinkymmtypes.MarketMapRequest{})
+
+		if err == nil {
+			break
+		}
+
+		s.logger.Error("error fetching market-map from slinky x/marketmap, retrying", zap.Error(err), zap.Duration("retryBackoff", backoff))
+		time.Sleep(backoff)
+	}
+
 	if err != nil {
-		s.logger.Error("error fetching market-map from slinky x/marketmap", zap.Error(err))
 		return mmtypes.MarketMap{}, fmt.Errorf("error fetching market-map from slinky x/marketmap: %w", err)
 	}
 
