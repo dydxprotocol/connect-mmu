@@ -68,7 +68,6 @@ func (s *SlinkyModuleMarketMapClient) GetMarketMap(ctx context.Context) (mmtypes
 	var err error
 	for _, backoff := range backoffSchedule {
 		// get the market-map from x/marketmap
-		// TODO(nikhil): consider handling last-updated here
 		mm, err = s.marketMapModuleClient.MarketMap(ctx, &slinkymmtypes.MarketMapRequest{})
 
 		if err == nil {
