@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
@@ -117,6 +118,24 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	}
 
 	logger.Info("combined actual and generated market maps", zap.Int("markets", len(combinedMarketMap.Markets)))
+
+	// Add cross_launch=true field to market map metadata JSON for allowlisted CMC IDs
+	if len(options.CrossLaunchIDs) > 0 {
+		for _, market := range combinedMarketMap.Markets {
+			metadataJSON, err := tickermetadata.DyDxFromJSONString(market.Ticker.Metadata_JSON)
+			if err != nil {
+				return mmtypes.MarketMap{}, []string{}, err
+			}
+			aggregateIDs := metadataJSON.AggregateIDs
+			for _, aggregateID := range aggregateIDs {
+				if aggregateID.Venue == "cmc" && slices.Contains(options.CrossLaunchIDs, aggregateID.ID) {
+					// TODO Add cross_launch=true flag and update combinedMarketMap
+					// This will require you to pull in the new version of Connect (that you just merged) first
+				}
+			}
+		}
+		logger.Info("added cross_launch=true field to market map metadata JSON for allowlisted CMC IDs", zap.Strings("crossLaunchIDs", options.CrossLaunchIDs))
+	}
 
 	perpetualIDToClobPair, err := o.client.GetPerpetualIDToClobPair(ctx)
 	if err != nil {

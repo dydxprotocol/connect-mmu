@@ -110,6 +110,7 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 		return errors.New("chain configuration missing from mmu config")
 	}
 
+	// TODO add crossLaunchIDs here too
 	overriddenMarketMap, removals, err := basic.OverrideMarketsFromConfig(
 		ctx,
 		logger,

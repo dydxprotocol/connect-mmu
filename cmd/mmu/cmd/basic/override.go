@@ -63,6 +63,7 @@ func OverrideCmd() *cobra.Command {
 				flags.overwriteProviders,
 				flags.existingOnly,
 				flags.disableDeFiMarketMerging,
+				flags.crossLaunchIDs,
 			)
 			if err != nil {
 				return err
@@ -114,6 +115,7 @@ type overrideCmdFlags struct {
 	overwriteProviders       bool
 	existingOnly             bool
 	disableDeFiMarketMerging bool
+	crossLaunchIDs           []string
 }
 
 func overrideCmdConfigureFlags(cmd *cobra.Command, flags *overrideCmdFlags) {
@@ -123,6 +125,7 @@ func overrideCmdConfigureFlags(cmd *cobra.Command, flags *overrideCmdFlags) {
 	cmd.Flags().BoolVar(&flags.overwriteProviders, OverwriteProvidersFlag, OverwriteProvidersDefault, OverwriteProvidersDescription)
 	cmd.Flags().BoolVar(&flags.existingOnly, ExistingOnlyFlag, ExistingOnlyDefault, ExistingOnlyDescription)
 	cmd.Flags().BoolVar(&flags.disableDeFiMarketMerging, DisableDeFiMarketMerging, DisableDeFiMarketMergingDefault, DisableDeFiMarketMergingDescription)
+	cmd.Flags().StringSliceVar(&flags.crossLaunchIDs, CrossLaunchIDs, CrossLaunchIDsDefault, CrossLaunchIDsDescription)
 
 	cmd.Flags().StringVar(&flags.marketMapOutPath, MarketMapOutPathOverrideFlag, MarketMapOutPathOverrideDefault, MarketMapOutPathOverrideDescription)
 	cmd.Flags().StringVar(&flags.marketMapRemovalsOutPath, MarketMapRemovalsOutPathFlag, MarketMapRemovalsOutPathDefault, MarketMapRemovalsOutPathDescription)
@@ -133,7 +136,7 @@ func OverrideMarketsFromConfig(
 	logger *zap.Logger,
 	cfg config.ChainConfig,
 	generated mmtypes.MarketMap,
-	updateEnabled, overwriteProviders, existingOnly, disableDeFiMarketMerging bool,
+	updateEnabled, overwriteProviders, existingOnly, disableDeFiMarketMerging bool, crossLaunchIDs []string,
 ) (mmtypes.MarketMap, []string, error) {
 	// create client based on config
 	mmClient, err := marketmapclient.NewClientFromChainConfig(logger, cfg)
@@ -171,6 +174,7 @@ func OverrideMarketsFromConfig(
 			OverwriteProviders:       overwriteProviders,
 			ExistingOnly:             existingOnly,
 			DisableDeFiMarketMerging: disableDeFiMarketMerging,
+			CrossLaunchIDs:           crossLaunchIDs,
 		},
 	)
 	if err != nil {

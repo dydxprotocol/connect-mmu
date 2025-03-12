@@ -33,6 +33,10 @@ const (
 	DisableDeFiMarketMergingDefault     = false
 	DisableDeFiMarketMergingDescription = "disables the merging of DeFi markets into markets that have the same CMC ID"
 
+	CrossLaunchIDs            = "cross-launch-ids"
+	CrossLaunchIDsDefault     = nil
+	CrossLaunchIDsDescription = "list of CoinMarketCap IDs of markets that should be marked as cross-margin launchable in market map"
+
 	// upserts
 	MarketMapOverrideFlag        = "market-map"
 	MarketMapOverrideDefault     = "./tmp/override-market-map.json"
