@@ -22,7 +22,7 @@ type Generator struct {
 
 func New(logger *zap.Logger, providerStore provider.Store) Generator {
 	return Generator{
-		logger: logger.With(zap.String("service", "generator")),
+		logger: logger.With(zap.String("mmu-service", "generator")),
 		q:      querier.New(logger, providerStore),
 		t:      transformer.New(logger),
 	}

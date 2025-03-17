@@ -56,7 +56,7 @@ func NewIndexer(cfg config.MarketConfig, logger *zap.Logger, writer provider.Sto
 	}
 
 	svc := Indexer{
-		logger:                   logger.With(zap.String("service", "indexer")),
+		logger:                   logger.With(zap.String("mmu-service", "indexer")),
 		providerStore:            writer,
 		cmcIndexer:               coinmarketcap.New(logger, cfg.CoinMarketCapConfig.APIKey),
 		config:                   cfg,

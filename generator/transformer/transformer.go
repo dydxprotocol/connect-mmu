@@ -26,7 +26,7 @@ type Transformer struct {
 //  2. Resolve any conflicts that may have arisen from prior transformations.
 func New(logger *zap.Logger) Transformer {
 	return Transformer{
-		logger: logger.With(zap.String("service", "transformer")),
+		logger: logger.With(zap.String("mmu-service", "transformer")),
 		feedTransforms: []TransformFeed{
 			InvertOrDrop(), // must invert before normalize
 			PruneByLiquidity(),
