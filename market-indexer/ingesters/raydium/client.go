@@ -46,6 +46,10 @@ type multiRPC struct {
 }
 
 func newMultiRPC(logger *zap.Logger, cfg config.MarketConfig) multiRPC {
+	if len(cfg.RaydiumNodes) == 0 {
+		panic("Can not instantiate multiRPC with 0 configured Raydium nodes")
+	}
+
 	mRPC := multiRPC{
 		logger: logger.Named("multi-rpc"),
 		rpcs:   make([]*rpc.Client, len(cfg.RaydiumNodes)),
