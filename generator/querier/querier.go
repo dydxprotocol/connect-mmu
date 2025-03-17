@@ -23,7 +23,7 @@ type Querier struct {
 // New creates a new Querier to read in indexed data to a MemoryStore
 func New(logger *zap.Logger, providerStore provider.Store) Querier {
 	return Querier{
-		logger:        logger.With(zap.String("service", "querier")),
+		logger:        logger.With(zap.String("mmu-service", "querier")),
 		providerStore: providerStore,
 	}
 }

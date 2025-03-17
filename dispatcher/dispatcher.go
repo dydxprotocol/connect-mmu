@@ -82,7 +82,7 @@ func NewFromClients(
 	return &Dispatcher{
 		transactionGenerator: txg,
 		transactionClient:    tc,
-		logger:               logger.With(zap.String("service", ServiceLabel)),
+		logger:               logger.With(zap.String("mmu-service", ServiceLabel)),
 		txConfig:             cfg.TxConfig,
 		signingConfig:        cfg.SigningConfig,
 	}
