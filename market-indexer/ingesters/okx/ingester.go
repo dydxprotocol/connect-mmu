@@ -80,7 +80,12 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 
 		pm, err := data.toProviderMarket(ticker)
 		if err != nil {
-			return nil, err
+			ig.logger.Warn("ignoring instrument because can not convert to provider market",
+				zap.String("exchange", Name),
+				zap.Any("instrument", data),
+				zap.Error(err),
+			)
+			continue
 		}
 
 		pms = append(pms, pm)
