@@ -118,17 +118,17 @@ func (idx *Indexer) Index(ctx context.Context) error {
 
 		ingesterMarkets, err := ingester.GetProviderMarkets(ctx)
 		if err != nil {
-			idx.logger.Error("error getting markets", zap.String("ingester", ingester.Name()), zap.Error(err))
+			idx.logger.Error("error getting markets", zap.Bool("mmu-datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
 			return err
 		}
 
 		idx.logger.Info("associating coin market cap for provider", zap.String("ingester", ingester.Name()))
 		transformed, err := idx.AssociateAggregator(ctx, ingesterMarkets, cmcMarketPairs)
 		if err != nil {
-			idx.logger.Error("error associating aggregators", zap.String("ingester", ingester.Name()), zap.Error(err))
+			idx.logger.Error("error associating aggregators", zap.Bool("mmu-datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
 			return err
 		}
-		idx.logger.Info("associated coin market cap for provider", zap.String("ingester", ingester.Name()),
+		idx.logger.Info("associated coin market cap for provider", zap.Bool("mmu-datadog", true), zap.String("ingester", ingester.Name()),
 			zap.Int("markets", len(transformed)))
 
 		for _, pm := range transformed {
