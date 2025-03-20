@@ -10,7 +10,7 @@ permissions:
 jobs:
   add-deploy-comment:
     runs-on: ubuntu-latest
-    if: github.event.review.state == 'approved' && github.event.pull_request.head.ref == 'main'
+    if: github.event.review.state == 'approved'
     steps:
       - name: Add deploy comment
         uses: actions/github-script@v6
