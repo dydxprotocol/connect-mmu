@@ -32,6 +32,8 @@ type Client interface {
 	TokenMetadata(ctx context.Context) (TokenMetadataResponse, error)
 	// GetMultipleAccounts gets multiple accounts from a solana node.
 	GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error)
+	// ValidateClientConfiguration ensures client is configured correctly.
+	ValidateClientConfiguration(ctx context.Context) error
 }
 
 type client struct {
@@ -46,10 +48,6 @@ type multiRPC struct {
 }
 
 func newMultiRPC(logger *zap.Logger, cfg config.MarketConfig) multiRPC {
-	if len(cfg.RaydiumNodes) == 0 {
-		panic("Can not instantiate multiRPC with 0 configured Raydium nodes")
-	}
-
 	mRPC := multiRPC{
 		logger: logger.Named("multi-rpc"),
 		rpcs:   make([]*rpc.Client, len(cfg.RaydiumNodes)),
@@ -101,12 +99,17 @@ func (h *client) TokenMetadata(ctx context.Context) (TokenMetadataResponse, erro
 	return tmd, nil
 }
 
-func (h *client) GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error) {
-	// choose random endpoint to use
-	cycleValue := len(h.multiRPCClient.rpcs)
-	if cycleValue == 0 {
-		return nil, fmt.Errorf("no raydium RPC nodes configured")
+func (h *client) ValidateClientConfiguration(ctx context.Context) error {
+	if len(h.multiRPCClient.rpcs) == 0 {
+		return fmt.Errorf("no raydium RPC nodes configured")
 	}
+
+	return nil
+}
+
+func (h *client) GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error) {
+	// choose random endpoint to use. pre-validate raydium client configuration with ValidateClientConfiguration.
+	cycleValue := len(h.multiRPCClient.rpcs)
 	i := rand.Intn(cycleValue)
 
 	for i < i+cycleValue {
