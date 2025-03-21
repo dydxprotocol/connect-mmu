@@ -10,8 +10,8 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 	"go.uber.org/zap"
 
-	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
+	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/http"
 )
@@ -75,10 +75,9 @@ func newMultiRPC(logger *zap.Logger, cfg config.MarketConfig) multiRPC {
 			if err != nil {
 				mRPC.logger.Error("unable to find api-key - skipping raydium node", zap.String("endpoint", node.Endpoint), zap.Error(err))
 				continue
-			} else {
-				mRPC.logger.Info("successfully instantiated raydium node", zap.String("endpoint", node.Endpoint))
 			}
 
+			mRPC.logger.Info("successfully instantiated raydium node", zap.String("endpoint", node.Endpoint))
 			mRPC.rpcs[i] = rpc.NewWithHeaders(node.Endpoint, map[string]string{
 				"x-api-key": secret,
 			})
