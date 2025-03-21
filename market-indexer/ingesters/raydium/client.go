@@ -33,7 +33,7 @@ type Client interface {
 	// GetMultipleAccounts gets multiple accounts from a solana node.
 	GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error)
 	// ValidateClientConfiguration ensures client is configured correctly.
-	ValidateClientConfiguration(ctx context.Context) error
+	ValidateClientConfiguration() error
 }
 
 type client struct {
@@ -99,7 +99,7 @@ func (h *client) TokenMetadata(ctx context.Context) (TokenMetadataResponse, erro
 	return tmd, nil
 }
 
-func (h *client) ValidateClientConfiguration(ctx context.Context) error {
+func (h *client) ValidateClientConfiguration() error {
 	if len(h.multiRPCClient.rpcs) == 0 {
 		return fmt.Errorf("no raydium RPC nodes configured")
 	}
