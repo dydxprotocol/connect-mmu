@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/http"
 )
 
@@ -51,6 +53,38 @@ func newMultiRPC(logger *zap.Logger, cfg config.MarketConfig) multiRPC {
 	mRPC := multiRPC{
 		logger: logger.Named("multi-rpc"),
 		rpcs:   make([]*rpc.Client, len(cfg.RaydiumNodes)),
+	}
+
+	if aws.IsLambda() {
+		mRPC.logger.Info("instantiating multi-rpc client for raydium with AWS keys")
+
+		apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
+		if err != nil {
+			mRPC.logger.Error("error getting oracle keys", zap.Error(err))
+			return mRPC
+		}
+
+		for i, node := range cfg.RaydiumNodes {
+			awsKey, ok := apiKeySecretsMap[node.Endpoint]
+			if !ok {
+				mRPC.logger.Error("oracle config does not contain key for endpoint", zap.String("endpoint", node.Endpoint))
+				continue
+			}
+
+			secret, err := aws.GetSecret(context.Background(), awsKey)
+			if err != nil {
+				mRPC.logger.Error("unable to find api-key - skipping raydium node", zap.String("endpoint", node.Endpoint), zap.Error(err))
+				continue
+			} else {
+				mRPC.logger.Info("successfully instantiated raydium node", zap.String("endpoint", node.Endpoint))
+			}
+
+			mRPC.rpcs[i] = rpc.NewWithHeaders(node.Endpoint, map[string]string{
+				"x-api-key": secret,
+			})
+		}
+
+		return mRPC
 	}
 
 	for i, node := range cfg.RaydiumNodes {
