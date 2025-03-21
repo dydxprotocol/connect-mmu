@@ -67,10 +67,6 @@ func (rc *RaydiumNodeConfig) Validate() error {
 		return fmt.Errorf("endpoint cannot be invalid")
 	}
 
-	// if rc.NodeKey == "" {
-	// 	return fmt.Errorf("raydium_node_key is required")
-	// }
-
 	return nil
 }
 
