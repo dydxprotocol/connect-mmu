@@ -31,6 +31,13 @@ func WithoutMarketMap(fn func(ctx context.Context, logger *zap.Logger, cfg confi
 	}
 }
 
+// WithMarketMap wraps a transform function that needs the on chain market map
+func WithMarketMap(fn func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error)) TransformFeed {
+	return func(ctx context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error) {
+		return fn(ctx, logger, cfg, feeds, onChainMarketMap)
+	}
+}
+
 // NormalizeBy returns a TransformFeed that adds NormalizeBy feeds to all configured markets based on an input config.
 //
 // For example, if we have a feed for BTC/USDT with a quote config for USDT indicating to adjustby USDT/USD:
@@ -279,7 +286,7 @@ func InvertOrDrop() TransformFeed {
 // If the market has a quote config, the following checks are performed:
 // - check if 24hr liquidity in USD is sufficient.
 func PruneByLiquidity() TransformFeed {
-	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		out := make([]types.Feed, 0, len(feeds))
@@ -296,7 +303,16 @@ func PruneByLiquidity() TransformFeed {
 
 			ticker := feed.Ticker
 			quoteConfig, found := cfg.Quotes[ticker.CurrencyPair.Quote]
-			if found && feed.LiquidityInfo.IsSufficient(quoteConfig.MinProviderLiquidity) {
+
+			minLiquidity := quoteConfig.MinProviderLiquidity
+
+			// If ticker already exists in on chain market map, use relaxed min liquidity threshold
+			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
+				logger.Info("using relaxed min liquidity threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
+				minLiquidity *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
+			}
+
+			if found && feed.LiquidityInfo.IsSufficient(minLiquidity) {
 				out = append(out, feed)
 				continue
 			}
@@ -327,7 +343,7 @@ func PruneByLiquidity() TransformFeed {
 // If the market has a quote config, the following checks are performed:
 // - check if 24hr quote volume is sufficient.
 func PruneByQuoteVolume() TransformFeed {
-	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds,
+	return WithMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds,
 		types.ExclusionReasons, error,
 	) {
 		logger.Info("pruning feeds by quote volume", zap.Int("feeds", len(feeds)))
@@ -344,8 +360,16 @@ func PruneByQuoteVolume() TransformFeed {
 			ticker := feed.Ticker
 			quoteConfig, found := cfg.Quotes[ticker.CurrencyPair.Quote]
 
+			minVolume := quoteConfig.MinProviderVolume
+
+			// If ticker already exists in on chain market map, use relaxed min volume threshold
+			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
+				logger.Info("using relaxed min quote volume threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
+				minVolume *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
+			}
+
 			dailyQuoteVolumeFloat, _ := feed.DailyQuoteVolume.Float64()
-			if found && dailyQuoteVolumeFloat >= quoteConfig.MinProviderVolume {
+			if found && dailyQuoteVolumeFloat >= minVolume {
 				out = append(out, feed)
 				continue
 			}
@@ -566,7 +590,7 @@ func TopFeedsForProvider() TransformFeed {
 // PruneByProviderLiquidity excludes feeds that don't meet provider-specific liquidity thresholds.
 // Each provider can specify a min_provider_liquidity threshold in the config.
 func PruneByProviderLiquidity() TransformFeed {
-	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
+	return WithMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error) {
 		logger.Info("pruning by provider liquidity", zap.Int("feeds", len(feeds)))
 
 		out := make([]types.Feed, 0, len(feeds))
@@ -582,7 +606,15 @@ func PruneByProviderLiquidity() TransformFeed {
 				continue
 			}
 
-			if found && feed.LiquidityInfo.IsSufficient(providerConfig.MinProviderLiquidity) {
+			minLiquidity := providerConfig.MinProviderLiquidity
+			// If ticker already exists in on chain market map, use relaxed min liquidity threshold
+			ticker := feed.Ticker
+			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
+				logger.Info("using relaxed min provider liquidity threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
+				minLiquidity *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
+			}
+
+			if found && feed.LiquidityInfo.IsSufficient(minLiquidity) {
 				out = append(out, feed)
 				continue
 			}
@@ -610,7 +642,7 @@ func PruneByProviderLiquidity() TransformFeed {
 // PruneByProviderUsdVolume excludes feeds that don't meet provider-specific USD volume thresholds.
 // Each provider can specify a min_provider_volume threshold in the config.
 func PruneByProviderUsdVolume() TransformFeed {
-	return WithoutMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds) (types.Feeds, types.ExclusionReasons, error) {
+	return WithMarketMap(func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, onChainMarketMap mmtypes.MarketMap) (types.Feeds, types.ExclusionReasons, error) {
 		logger.Info("pruning by provider volume", zap.Int("feeds", len(feeds)))
 
 		out := make([]types.Feed, 0, len(feeds))
@@ -624,8 +656,16 @@ func PruneByProviderUsdVolume() TransformFeed {
 				continue
 			}
 
+			minVolume := providerCfg.MinProviderVolume
+			// If ticker already exists in on chain market map, use relaxed min Volume threshold
+			ticker := feed.Ticker
+			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
+				logger.Info("using relaxed min provider volume threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
+				minVolume *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
+			}
+
 			dailyUsdVolumeFloat, _ := feed.DailyUsdVolume.Float64()
-			if found && dailyUsdVolumeFloat >= providerCfg.MinProviderVolume {
+			if found && dailyUsdVolumeFloat >= minVolume {
 				out = append(out, feed)
 				continue
 			}
@@ -650,4 +690,10 @@ func PruneByProviderUsdVolume() TransformFeed {
 
 func keyCurrencyPairProviderName(cp, provider string) string {
 	return strings.Join([]string{provider, cp}, "_")
+}
+
+func doesTickerExistInOnChainMarketMap(ticker mmtypes.Ticker, onChainMarketMap mmtypes.MarketMap) bool {
+	onChainTickerStr := ticker.CurrencyPair.Base + "/USD"
+	_, existsOnChain := onChainMarketMap.Markets[onChainTickerStr]
+	return existsOnChain
 }

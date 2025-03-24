@@ -102,7 +102,7 @@ func CombineMarketMaps(
 		combined.Markets[ticker] = market
 	}
 
-	// append remove markets that are in generated, but NOT actual, unless it is enabled
+	// append remove markets that are in actual, but NOT generated, unless the market is enabled
 	removals := make([]string, 0)
 	for ticker, market := range actual.Markets {
 		if _, found := generated.Markets[ticker]; !found {
