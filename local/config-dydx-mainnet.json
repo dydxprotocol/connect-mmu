@@ -379,6 +379,9 @@
     "enable_all": false,
     "min_provider_count_override": 1
   },
+  "validate": {
+    "flexible_ref_price_markets": ["CLV/USD"]
+  },
   "upsert": {
     "restricted_markets": ["USDT/USD", "ETH/USD", "BTC/USD", "SOL/USD"]
   },

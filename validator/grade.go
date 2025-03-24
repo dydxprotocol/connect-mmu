@@ -5,28 +5,35 @@ import (
 	"slices"
 
 	"github.com/skip-mev/connect-mmu/validator/types"
+	"go.uber.org/zap"
 )
 
 // CheckFailed checks a provider report and returns "true" if the report should be considered failed.
 // return false if the report passed.
-type CheckFailed func(report types.ProviderReport) bool
+type CheckFailed func(ticker string, report types.ProviderReport) bool
 
 func CheckZScore(bound float64) CheckFailed {
-	return func(report types.ProviderReport) bool {
+	return func(_ string, report types.ProviderReport) bool {
 		return report.ZScore > bound || report.ZScore < -bound
 	}
 }
 
 func CheckSuccessThreshold(bound float64) CheckFailed {
-	return func(report types.ProviderReport) bool {
+	return func(_ string, report types.ProviderReport) bool {
 		return report.SuccessRate < bound
 	}
 }
 
-func CheckReferencePrice(bound float64) CheckFailed {
-	return func(report types.ProviderReport) bool {
+func (v *Validator) CheckReferencePrice(bound float64) CheckFailed {
+	return func(ticker string, report types.ProviderReport) bool {
 		if report.ReferencePriceDiff == nil {
 			return false
+		}
+
+		if slices.Contains(v.flexibleRefPriceMarkets, ticker) {
+			doubleAllowedBound := bound * 2.0
+			v.logger.Info("using double the ref price bound", zap.Float64("refPriceDifference", *report.ReferencePriceDiff), zap.Float64("bound", doubleAllowedBound), zap.String("ticker", ticker))
+			return *report.ReferencePriceDiff > doubleAllowedBound
 		}
 		return *report.ReferencePriceDiff > bound
 	}
@@ -45,7 +52,7 @@ func (v *Validator) GradeReports(reports []types.Report, failChecks ...CheckFail
 		passed := 0
 		for j, providerReport := range report.ProviderReports {
 			for _, check := range failChecks {
-				if check(providerReport) {
+				if check(report.Ticker, providerReport) {
 					providerReport.Grade = types.GradeFailed
 					break
 				}
@@ -74,15 +81,14 @@ func (v *Validator) GradeReports(reports []types.Report, failChecks ...CheckFail
 	}
 
 	// sort so that all FAILED markets are first
-	slices.SortFunc(reports, func(a, _ types.Report) int {
-		switch a.Status {
-		case types.StatusFailed:
-			return -2
-		case types.StatusDegraded:
-			return -1
-		default:
-			return 0
+	slices.SortFunc(reports, func(a, b types.Report) int {
+		statusVal := map[string]int{
+			types.StatusFailed:   -2,
+			types.StatusDegraded: -1,
+			types.StatusValid:    0,
 		}
+
+		return statusVal[a.Status] - statusVal[b.Status]
 	})
 
 	return types.Reports{

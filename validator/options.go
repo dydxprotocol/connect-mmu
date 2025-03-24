@@ -7,3 +7,9 @@ func WithCMCKey(key string) Option {
 		v.cmcAPIKey = key
 	}
 }
+
+func WithFlexibleRefPriceMarkets(markets []string) Option {
+	return func(v *Validator) {
+		v.flexibleRefPriceMarkets = markets
+	}
+}

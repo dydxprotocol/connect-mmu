@@ -17,9 +17,11 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
+	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/basic"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/cmd/utils/validate"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/cmd/mmu/logging"
+	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/validator"
@@ -63,6 +65,14 @@ func ValidateCmd() *cobra.Command {
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			logger := logging.Logger(cmd.Context())
+			config, err := config.ReadConfig(flags.configPath)
+			if err != nil {
+				return err
+			}
+
+			if config.Validate == nil {
+				return errors.New("validate configuration missing from mmu config")
+			}
 
 			if err := checkInstalled("sentry"); err != nil {
 				return err
@@ -201,7 +211,10 @@ func ValidateCmd() *cobra.Command {
 			}
 
 			// pass info to validator, generate reports.
-			val := validator.New(mm, validator.WithCMCKey(cmcAPIKey))
+			val := validator.New(mm, logger,
+				validator.WithCMCKey(cmcAPIKey),
+				validator.WithFlexibleRefPriceMarkets(config.Validate.FlexibleRefPriceMarkets),
+			)
 			reports, err := val.Report(cmd.Context(), health)
 			if err != nil {
 				return fmt.Errorf("failed to generate report: %w", err)
@@ -213,7 +226,7 @@ func ValidateCmd() *cobra.Command {
 				reports,
 				validator.CheckZScore(flags.zScoreBound),
 				validator.CheckSuccessThreshold(float64(flags.successThreshold)),
-				validator.CheckReferencePrice(float64(flags.referencePriceAllowance)),
+				val.CheckReferencePrice(float64(flags.referencePriceAllowance)),
 			)
 
 			if err := file.WriteJSONToFile(flags.writeReportFile, summary); err != nil {
@@ -268,6 +281,8 @@ func ValidateCmd() *cobra.Command {
 
 // validateCmdFlags is a convenience container containing all flag values.
 type validateCmdFlags struct {
+	// configPath is the path to the mmu config file.
+	configPath string
 	// connectVersion to use in validation. DOCKER ONLY.
 	connectVersion string
 	// the path to read a marketmap from. this will run connect with this marketmap during the validation.
@@ -310,6 +325,7 @@ type validateCmdFlags struct {
 }
 
 func validateCmdConfigureFlags(cmd *cobra.Command, flags *validateCmdFlags) {
+	cmd.Flags().StringVar(&flags.configPath, basic.ConfigPathFlag, basic.ConfigPathDefault, basic.ConfigPathDescription)
 	cmd.Flags().IntVar(&flags.successThreshold, flagSuccessThreshold, 60, "percentage value of when a market should no longer be considered healthy. (i.e. 50 would mean the provider needs a 50/50 success/failure ratio, 100 would mean no tolerance for failures at all)")
 	cmd.Flags().DurationVar(&flags.startDelay, flagStartDelay, 1*time.Minute, "the amount of time the process will wait until it begins reading logs")
 	cmd.Flags().DurationVar(&flags.duration, flagDuration, 5*time.Minute, "the amount of time the process will run before exiting")
