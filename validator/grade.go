@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/skip-mev/connect-mmu/validator/types"
 	"go.uber.org/zap"
+
+	"github.com/skip-mev/connect-mmu/validator/types"
 )
 
 // CheckFailed checks a provider report and returns "true" if the report should be considered failed.

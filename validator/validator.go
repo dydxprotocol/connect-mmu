@@ -6,8 +6,9 @@ import (
 
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 
-	"github.com/skip-mev/connect-mmu/validator/types"
 	"go.uber.org/zap"
+
+	"github.com/skip-mev/connect-mmu/validator/types"
 )
 
 type Validator struct {
