@@ -245,6 +245,10 @@ func getTargets(pair PairData, symbolMap map[string]string) (base, quote string,
 // chunkedRequests runs GetMultipleAccounts requests chunked and in parallel.  One GetMultipleAccounts request
 // is limited to the chunkSize.
 func (ig *Ingester) chunkedRequests(ctx context.Context, pairs Pairs, chunkSize int) ([]*rpc.Account, error) {
+	if err := ig.client.ValidateClientConfiguration(); err != nil {
+		return nil, fmt.Errorf("error validating raydium client: %w", err)
+	}
+
 	totalAccounts := len(pairs)
 	respAccounts := make([]*rpc.Account, totalAccounts)
 
