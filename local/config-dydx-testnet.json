@@ -17,7 +17,24 @@
       { "name": "raydium" }
     ],
     "coinmarketcap": { "api_key": "" },
-    "raydium": [],
+    "raydium": [
+      {
+        "endpoint": "https://solana-rpc.rhino-apis.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://solana.polkachu.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://connect-solana.kingnodes.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://solana.lavenderfive.com",
+        "node_key": ""
+      }
+    ],
     "gecko_network_dex_pairs": [{ "network": "eth", "dex": "uniswap_v3" }, { "network": "base", "dex": "uniswap-v3-base" }]
   },
   "generate": {
