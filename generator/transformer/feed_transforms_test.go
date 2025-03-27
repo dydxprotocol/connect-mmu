@@ -110,6 +110,11 @@ var (
 		},
 	}
 
+	liquidityInfo500 = mmutypes.LiquidityInfo{
+		NegativeDepthTwo: 500,
+		PositiveDepthTwo: 500,
+	}
+
 	liquidityInfo1000 = mmutypes.LiquidityInfo{
 		NegativeDepthTwo: 1000,
 		PositiveDepthTwo: 1000,
@@ -860,7 +865,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 				},
 			},
 			feeds: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 100000, 20000.0, liquidityInfo2000, cmcInfoA),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 60000, 20000.0, liquidityInfo2000, cmcInfoA),
 			},
 			onChainMarketMap: mmtypes.MarketMap{
 				Markets: map[string]mmtypes.Market{
@@ -877,7 +882,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 				},
 			},
 			transformed: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 100000, 20000.0, liquidityInfo2000, cmcInfoA),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 60000, 20000.0, liquidityInfo2000, cmcInfoA),
 			},
 			expectErr: false,
 		},
@@ -896,7 +901,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 				},
 			},
 			feeds: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 40000, 100000, 20000.0, liquidityInfo2000, cmcInfoA),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 40000, 40000, 20000.0, liquidityInfo2000, cmcInfoA),
 			},
 			onChainMarketMap: mmtypes.MarketMap{
 				Markets: map[string]mmtypes.Market{
@@ -1055,12 +1060,12 @@ func TestPruneByLiquidity(t *testing.T) {
 				},
 				Quotes: map[string]config.QuoteConfig{
 					"USD": {
-						MinProviderLiquidity: 100000,
+						MinProviderLiquidity: 2000,
 					},
 				},
 			},
 			feeds: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 60000, 20000.0, liquidityInfo2000, cmcInfoNull),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo1000, cmcInfoNull),
 			},
 			onChainMarketMap: mmtypes.MarketMap{
 				Markets: map[string]mmtypes.Market{
@@ -1077,7 +1082,7 @@ func TestPruneByLiquidity(t *testing.T) {
 				},
 			},
 			transformed: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 60000, 20000.0, liquidityInfo2000, cmcInfoNull),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo2000, cmcInfoNull),
 			},
 			expectErr: false,
 		},
@@ -1091,12 +1096,12 @@ func TestPruneByLiquidity(t *testing.T) {
 				},
 				Quotes: map[string]config.QuoteConfig{
 					"USD": {
-						MinProviderLiquidity: 100000,
+						MinProviderLiquidity: 2000,
 					},
 				},
 			},
 			feeds: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 40000, 20000.0, liquidityInfo2000, cmcInfoNull),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo500, cmcInfoNull),
 			},
 			onChainMarketMap: mmtypes.MarketMap{
 				Markets: map[string]mmtypes.Market{
