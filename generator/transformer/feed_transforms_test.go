@@ -845,6 +845,77 @@ func TestPruneByQuoteVolume(t *testing.T) {
 			dropped:     []string{marketBtcUsd.Ticker.String()},
 			expectErr:   false,
 		},
+		{
+			name: "valid market that exists in on chain market map is correctly not pruned due to relaxed min volume threshold",
+			cfg: config.GenerateConfig{
+				Providers: map[string]config.ProviderConfig{
+					krakenProvider: {
+						RequireAggregateIDs: true,
+					},
+				},
+				Quotes: map[string]config.QuoteConfig{
+					"USD": {
+						MinProviderVolume: 100000,
+					},
+				},
+			},
+			feeds: []types.Feed{
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 100000, 20000.0, liquidityInfo2000, cmcInfoA),
+			},
+			onChainMarketMap: mmtypes.MarketMap{
+				Markets: map[string]mmtypes.Market{
+					marketBtcUsd.Ticker.String(): {
+						Ticker: mmtypes.Ticker{
+							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							Decimals:         8,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
+						},
+						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+					},
+				},
+			},
+			transformed: []types.Feed{
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 100000, 20000.0, liquidityInfo2000, cmcInfoA),
+			},
+			expectErr: false,
+		},
+		{
+			name: "valid market that exists in on chain market map is still correctly pruned when below relaxed min volume threshold",
+			cfg: config.GenerateConfig{
+				Providers: map[string]config.ProviderConfig{
+					krakenProvider: {
+						RequireAggregateIDs: true,
+					},
+				},
+				Quotes: map[string]config.QuoteConfig{
+					"USD": {
+						MinProviderVolume: 100000,
+					},
+				},
+			},
+			feeds: []types.Feed{
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 40000, 100000, 20000.0, liquidityInfo2000, cmcInfoA),
+			},
+			onChainMarketMap: mmtypes.MarketMap{
+				Markets: map[string]mmtypes.Market{
+					marketBtcUsd.Ticker.String(): {
+						Ticker: mmtypes.Ticker{
+							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							Decimals:         8,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
+						},
+						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+					},
+				},
+			},
+			transformed: []types.Feed{},
+			dropped:     []string{marketBtcUsd.Ticker.String()},
+			expectErr:   false,
+		},
 	}
 
 	transform := transformer.PruneByQuoteVolume()
@@ -969,6 +1040,77 @@ func TestPruneByLiquidity(t *testing.T) {
 			},
 			feeds: []types.Feed{
 				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 0, 0, 20000.0, liquidityInfo2000, cmcInfoNull),
+			},
+			transformed: []types.Feed{},
+			dropped:     []string{marketBtcUsd.Ticker.String()},
+			expectErr:   false,
+		},
+		{
+			name: "valid market that exists in on chain market map is correctly not pruned due to relaxed min liquidity threshold",
+			cfg: config.GenerateConfig{
+				Providers: map[string]config.ProviderConfig{
+					krakenProvider: {
+						RequireAggregateIDs: true,
+					},
+				},
+				Quotes: map[string]config.QuoteConfig{
+					"USD": {
+						MinProviderLiquidity: 100000,
+					},
+				},
+			},
+			feeds: []types.Feed{
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 60000, 20000.0, liquidityInfo2000, cmcInfoNull),
+			},
+			onChainMarketMap: mmtypes.MarketMap{
+				Markets: map[string]mmtypes.Market{
+					marketBtcUsd.Ticker.String(): {
+						Ticker: mmtypes.Ticker{
+							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							Decimals:         8,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
+						},
+						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+					},
+				},
+			},
+			transformed: []types.Feed{
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 60000, 20000.0, liquidityInfo2000, cmcInfoNull),
+			},
+			expectErr: false,
+		},
+		{
+			name: "valid market that exists in on chain market map is still correctly pruned when below relaxed min liquidity threshold",
+			cfg: config.GenerateConfig{
+				Providers: map[string]config.ProviderConfig{
+					krakenProvider: {
+						RequireAggregateIDs: true,
+					},
+				},
+				Quotes: map[string]config.QuoteConfig{
+					"USD": {
+						MinProviderLiquidity: 100000,
+					},
+				},
+			},
+			feeds: []types.Feed{
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 40000, 20000.0, liquidityInfo2000, cmcInfoNull),
+			},
+			onChainMarketMap: mmtypes.MarketMap{
+				Markets: map[string]mmtypes.Market{
+					marketBtcUsd.Ticker.String(): {
+						Ticker: mmtypes.Ticker{
+							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							Decimals:         8,
+							MinProviderCount: 1,
+							Enabled:          true,
+							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
+						},
+						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+					},
+				},
 			},
 			transformed: []types.Feed{},
 			dropped:     []string{marketBtcUsd.Ticker.String()},

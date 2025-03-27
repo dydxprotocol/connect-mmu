@@ -275,7 +275,7 @@ func (cfg *GenerateConfig) Validate() error {
 		return fmt.Errorf("invalid MinProviderCountOverride: must be less than %d, got %d", int(math.Min(float64(cfg.MinCexProviderCount), float64(cfg.MinDexProviderCount))), cfg.MinProviderCountOverride)
 	}
 
-	if cfg.RelaxedMinVolumeAndLiquidityFactor < 0 || cfg.RelaxedMinVolumeAndLiquidityFactor > 1 {
+	if cfg.RelaxedMinVolumeAndLiquidityFactor > 1 {
 		return fmt.Errorf("invalid RelaxedMinVolumeAndLiquidityFactor: must be between 0 and 1, got %d", cfg.RelaxedMinVolumeAndLiquidityFactor)
 	}
 
