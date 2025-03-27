@@ -276,7 +276,7 @@ func (cfg *GenerateConfig) Validate() error {
 	}
 
 	if cfg.RelaxedMinVolumeAndLiquidityFactor > 1 {
-		return fmt.Errorf("invalid RelaxedMinVolumeAndLiquidityFactor: must be between 0 and 1, got %d", cfg.RelaxedMinVolumeAndLiquidityFactor)
+		return fmt.Errorf("invalid RelaxedMinVolumeAndLiquidityFactor: must be between 0 and 1, got %f", cfg.RelaxedMinVolumeAndLiquidityFactor)
 	}
 
 	return nil
