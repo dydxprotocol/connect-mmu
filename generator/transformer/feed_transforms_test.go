@@ -863,6 +863,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 						MinProviderVolume: 100000,
 					},
 				},
+				RelaxedMinVolumeAndLiquidityFactor: 0.5,
 			},
 			feeds: []types.Feed{
 				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 60000, 60000, 20000.0, liquidityInfo2000, cmcInfoA),
@@ -871,13 +872,13 @@ func TestPruneByQuoteVolume(t *testing.T) {
 				Markets: map[string]mmtypes.Market{
 					marketBtcUsd.Ticker.String(): {
 						Ticker: mmtypes.Ticker{
-							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							CurrencyPair:     marketBtcUsd.Ticker.CurrencyPair,
 							Decimals:         8,
 							MinProviderCount: 1,
 							Enabled:          true,
 							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
 						},
-						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+						ProviderConfigs: marketBtcUsd.ProviderConfigs,
 					},
 				},
 			},
@@ -899,6 +900,7 @@ func TestPruneByQuoteVolume(t *testing.T) {
 						MinProviderVolume: 100000,
 					},
 				},
+				RelaxedMinVolumeAndLiquidityFactor: 0.5,
 			},
 			feeds: []types.Feed{
 				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 40000, 40000, 20000.0, liquidityInfo2000, cmcInfoA),
@@ -907,13 +909,13 @@ func TestPruneByQuoteVolume(t *testing.T) {
 				Markets: map[string]mmtypes.Market{
 					marketBtcUsd.Ticker.String(): {
 						Ticker: mmtypes.Ticker{
-							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							CurrencyPair:     marketBtcUsd.Ticker.CurrencyPair,
 							Decimals:         8,
 							MinProviderCount: 1,
-							Enabled:          true,
+							Enabled:          false,
 							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
 						},
-						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+						ProviderConfigs: marketBtcUsd.ProviderConfigs,
 					},
 				},
 			},
@@ -1063,6 +1065,7 @@ func TestPruneByLiquidity(t *testing.T) {
 						MinProviderLiquidity: 2000,
 					},
 				},
+				RelaxedMinVolumeAndLiquidityFactor: 0.5,
 			},
 			feeds: []types.Feed{
 				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo1000, cmcInfoNull),
@@ -1071,18 +1074,18 @@ func TestPruneByLiquidity(t *testing.T) {
 				Markets: map[string]mmtypes.Market{
 					marketBtcUsd.Ticker.String(): {
 						Ticker: mmtypes.Ticker{
-							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							CurrencyPair:     marketBtcUsd.Ticker.CurrencyPair,
 							Decimals:         8,
 							MinProviderCount: 1,
 							Enabled:          true,
 							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
 						},
-						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+						ProviderConfigs: marketBtcUsd.ProviderConfigs,
 					},
 				},
 			},
 			transformed: []types.Feed{
-				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo2000, cmcInfoNull),
+				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo1000, cmcInfoNull),
 			},
 			expectErr: false,
 		},
@@ -1099,6 +1102,7 @@ func TestPruneByLiquidity(t *testing.T) {
 						MinProviderLiquidity: 2000,
 					},
 				},
+				RelaxedMinVolumeAndLiquidityFactor: 0.5,
 			},
 			feeds: []types.Feed{
 				types.NewFeed(marketBtcUsd.Ticker, marketBtcUsd.ProviderConfigs[0], 100000, 100000, 20000.0, liquidityInfo500, cmcInfoNull),
@@ -1107,13 +1111,13 @@ func TestPruneByLiquidity(t *testing.T) {
 				Markets: map[string]mmtypes.Market{
 					marketBtcUsd.Ticker.String(): {
 						Ticker: mmtypes.Ticker{
-							CurrencyPair:     marketBtcUsdt.Ticker.CurrencyPair,
+							CurrencyPair:     marketBtcUsd.Ticker.CurrencyPair,
 							Decimals:         8,
 							MinProviderCount: 1,
 							Enabled:          true,
 							Metadata_JSON:    "{\"reference_price\":0,\"liquidity\":0,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"1\"}]}",
 						},
-						ProviderConfigs: marketBtcUsdt.ProviderConfigs,
+						ProviderConfigs: marketBtcUsd.ProviderConfigs,
 					},
 				},
 			},

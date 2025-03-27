@@ -365,7 +365,7 @@ func PruneByQuoteVolume() TransformFeed {
 			// If ticker already exists in on chain market map, use relaxed min volume threshold
 			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
 				logger.Info("using relaxed min quote volume threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
-				minVolume *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
+				minVolume *= cfg.RelaxedMinVolumeAndLiquidityFactor
 			}
 
 			dailyQuoteVolumeFloat, _ := feed.DailyQuoteVolume.Float64()

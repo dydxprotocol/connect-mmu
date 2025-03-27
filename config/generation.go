@@ -150,7 +150,7 @@ type GenerateConfig struct {
 	// This is used to avoid "thrashy" Market Map updates, where MMU repeatedly adds then removes the same market(s) multiple times
 	// This tends to happen when market(s) are hovering right around the min vol/liq thresholds (i.e. are above the threshold on one run, then below the threshold on next run)
 	// Range: 0 <= RelaxedMinVolumeAndLiquidityFactor <= 1 (i.e. relaxed min vol / liq thresholds should always be less than or equal to the original thresholds)
-	RelaxedMinVolumeAndLiquidityFactor uint64 `json:"relaxed_min_volume_and_liquidity_factor" mapstructure:"relaxed_min_volume_and_liquidity_factor"`
+	RelaxedMinVolumeAndLiquidityFactor float64 `json:"relaxed_min_volume_and_liquidity_factor" mapstructure:"relaxed_min_volume_and_liquidity_factor"`
 }
 
 var defaultProviders = map[string]ProviderConfig{
