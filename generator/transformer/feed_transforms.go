@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/docker/docker/daemon/logger"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
@@ -304,13 +305,7 @@ func PruneByLiquidity() TransformFeed {
 			ticker := feed.Ticker
 			quoteConfig, found := cfg.Quotes[ticker.CurrencyPair.Quote]
 
-			minLiquidity := quoteConfig.MinProviderLiquidity
-
-			// If ticker already exists in on chain market map, use relaxed min liquidity threshold
-			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
-				logger.Info("using relaxed min liquidity threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
-				minLiquidity *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
-			}
+			minLiquidity := getThreshold(ticker, quoteConfig.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
 
 			if found && feed.LiquidityInfo.IsSufficient(minLiquidity) {
 				out = append(out, feed)
@@ -360,13 +355,7 @@ func PruneByQuoteVolume() TransformFeed {
 			ticker := feed.Ticker
 			quoteConfig, found := cfg.Quotes[ticker.CurrencyPair.Quote]
 
-			minVolume := quoteConfig.MinProviderVolume
-
-			// If ticker already exists in on chain market map, use relaxed min volume threshold
-			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
-				logger.Info("using relaxed min quote volume threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
-				minVolume *= cfg.RelaxedMinVolumeAndLiquidityFactor
-			}
+			minVolume := getThreshold(ticker, quoteConfig.MinProviderVolume, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
 
 			dailyQuoteVolumeFloat, _ := feed.DailyQuoteVolume.Float64()
 			if found && dailyQuoteVolumeFloat >= minVolume {
@@ -606,14 +595,7 @@ func PruneByProviderLiquidity() TransformFeed {
 				continue
 			}
 
-			minLiquidity := providerConfig.MinProviderLiquidity
-
-			// If ticker already exists in on chain market map, use relaxed min liquidity threshold
-			ticker := feed.Ticker
-			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
-				logger.Info("using relaxed min provider liquidity threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
-				minLiquidity *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
-			}
+			minLiquidity := getThreshold(feed.Ticker, providerConfig.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
 
 			if found && feed.LiquidityInfo.IsSufficient(minLiquidity) {
 				out = append(out, feed)
@@ -657,14 +639,7 @@ func PruneByProviderUsdVolume() TransformFeed {
 				continue
 			}
 
-			minVolume := providerCfg.MinProviderVolume
-
-			// If ticker already exists in on chain market map, use relaxed min Volume threshold
-			ticker := feed.Ticker
-			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
-				logger.Info("using relaxed min provider volume threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
-				minVolume *= float64(cfg.RelaxedMinVolumeAndLiquidityFactor)
-			}
+			minVolume := getThreshold(feed.Ticker, providerCfg.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
 
 			dailyUsdVolumeFloat, _ := feed.DailyUsdVolume.Float64()
 			if found && dailyUsdVolumeFloat >= minVolume {
@@ -694,8 +669,13 @@ func keyCurrencyPairProviderName(cp, provider string) string {
 	return strings.Join([]string{provider, cp}, "_")
 }
 
-func doesTickerExistInOnChainMarketMap(ticker mmtypes.Ticker, onChainMarketMap mmtypes.MarketMap) bool {
+func getThreshold(ticker mmtypes.Ticker, threshold float64, relaxedThresholdFactor float64, onChainMarketMap mmtypes.MarketMap) float64 {
+	// If ticker already exists in on chain market map, use relaxed min vol / liquidity threshold
 	onChainTickerStr := ticker.CurrencyPair.Base + "/USD"
 	_, existsOnChain := onChainMarketMap.Markets[onChainTickerStr]
-	return existsOnChain
+	if existsOnChain {
+		logger.Info("using relaxed min liquidity / volume threshold for ticker that already exists on chain", zap.String("ticker", ticker.CurrencyPair.Base))
+		threshold *= relaxedThresholdFactor
+	}
+	return threshold
 }
