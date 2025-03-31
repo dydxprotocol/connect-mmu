@@ -607,6 +607,7 @@ func PruneByProviderLiquidity() TransformFeed {
 			}
 
 			minLiquidity := providerConfig.MinProviderLiquidity
+
 			// If ticker already exists in on chain market map, use relaxed min liquidity threshold
 			ticker := feed.Ticker
 			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {
@@ -657,6 +658,7 @@ func PruneByProviderUsdVolume() TransformFeed {
 			}
 
 			minVolume := providerCfg.MinProviderVolume
+
 			// If ticker already exists in on chain market map, use relaxed min Volume threshold
 			ticker := feed.Ticker
 			if doesTickerExistInOnChainMarketMap(ticker, onChainMarketMap) {

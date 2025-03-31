@@ -146,9 +146,8 @@ type GenerateConfig struct {
 	// which would be unable to post prices ever.
 	MinProviderCountOverride uint64 `json:"min_provider_count_override" mapstructure:"min_provider_count_override"`
 
-	// RelaxedMinVolumeAndLiquidityFactor is the factor by which to multiply min volume and liquidity thresholds for markets that already exist on chain
-	// This is used to avoid "thrashy" Market Map updates, where MMU repeatedly adds then removes the same market(s) multiple times
-	// This tends to happen when market(s) are hovering right around the min vol/liq thresholds (i.e. are above the threshold on one run, then below the threshold on next run)
+	// RelaxedMinVolumeAndLiquidityFactor is the factor (<1) by which to multiply min volume and liquidity thresholds for markets that already exist on chain
+	// This is used to avoid "thrashy" Market Map updates, where MMU repeatedly adds then removes a market that is hovering right around the min vol/liq thresholds
 	// Range: 0 <= RelaxedMinVolumeAndLiquidityFactor <= 1 (i.e. relaxed min vol / liq thresholds should always be less than or equal to the original thresholds)
 	RelaxedMinVolumeAndLiquidityFactor float64 `json:"relaxed_min_volume_and_liquidity_factor" mapstructure:"relaxed_min_volume_and_liquidity_factor"`
 }
