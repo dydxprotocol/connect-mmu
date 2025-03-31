@@ -639,7 +639,7 @@ func PruneByProviderUsdVolume() TransformFeed {
 				continue
 			}
 
-			minVolume := getMinThreshold(feed.Ticker, providerCfg.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
+			minVolume := getMinThreshold(feed.Ticker, providerCfg.MinProviderVolume, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
 
 			dailyUsdVolumeFloat, _ := feed.DailyUsdVolume.Float64()
 			if found && dailyUsdVolumeFloat >= minVolume {
