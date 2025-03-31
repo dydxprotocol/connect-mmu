@@ -8,12 +8,13 @@ import (
 type Config struct {
 	Index    *MarketConfig   `json:"index,omitempty"`
 	Generate *GenerateConfig `json:"generate,omitempty"`
+	Validate *ValidateConfig `json:"validate,omitempty"`
 	Upsert   *UpsertConfig   `json:"upsert,omitempty"`
 	Dispatch *DispatchConfig `json:"dispatch,omitempty"`
 	Chain    *ChainConfig    `json:"chain,omitempty"`
 }
 
-func (c *Config) Validate() error {
+func (c *Config) ValidateAllConfigs() error {
 	if c.Index != nil {
 		if err := c.Index.Validate(); err != nil {
 			return err
@@ -22,6 +23,12 @@ func (c *Config) Validate() error {
 
 	if c.Generate != nil {
 		if err := c.Generate.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if c.Validate != nil {
+		if err := c.Validate.Validate(); err != nil {
 			return err
 		}
 	}
@@ -51,6 +58,7 @@ func DefaultConfig() Config {
 	return Config{
 		Index:    &[]MarketConfig{DefaultMarketConfig()}[0],
 		Generate: &[]GenerateConfig{DefaultGenerateConfig()}[0],
+		Validate: &[]ValidateConfig{DefaultValidateConfig()}[0],
 		Upsert:   &[]UpsertConfig{DefaultUpsertConfig()}[0],
 		Dispatch: &[]DispatchConfig{DefaultDispatchConfig()}[0],
 		Chain:    &[]ChainConfig{DefaultChainConfig()}[0],
@@ -76,5 +84,5 @@ func ReadConfig(path string) (Config, error) {
 		return cfg, err
 	}
 
-	return cfg, cfg.Validate()
+	return cfg, cfg.ValidateAllConfigs()
 }

@@ -5,6 +5,7 @@ import (
 
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/validator/types"
 )
@@ -19,7 +20,7 @@ func TestMissingReports(t *testing.T) {
 		ProviderConfigs: []mmtypes.ProviderConfig{{Name: "foobar"}},
 	}
 
-	v := New(mm)
+	v := New(mm, zap.NewNop())
 	missing := v.MissingReports(health)
 	_, ok := missing["FOO/BAR"]
 	require.True(t, ok)

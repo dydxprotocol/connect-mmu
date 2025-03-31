@@ -6,18 +6,26 @@ import (
 
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 
+	"go.uber.org/zap"
+
 	"github.com/skip-mev/connect-mmu/validator/types"
 )
 
 type Validator struct {
-	mm        mmtypes.MarketMap
-	cmcAPIKey string
+	mm                      mmtypes.MarketMap
+	cmcAPIKey               string
+	flexibleRefPriceMarkets []string
+	logger                  *zap.Logger
 }
 
 // New returns a new Validator. A CMC API key may be optionally passed in to generate reference price checks for
 // markets that have a CMC ID in their metadata.
-func New(mm mmtypes.MarketMap, opts ...Option) *Validator {
-	v := &Validator{mm: mm}
+func New(mm mmtypes.MarketMap, logger *zap.Logger, opts ...Option) *Validator {
+	v := &Validator{
+		mm:     mm,
+		logger: logger.With(zap.String("mmu-service", "validator")),
+	}
+
 	for _, opt := range opts {
 		opt(v)
 	}
