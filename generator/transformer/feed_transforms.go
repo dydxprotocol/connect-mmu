@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/daemon/logger"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
 	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
@@ -305,7 +304,7 @@ func PruneByLiquidity() TransformFeed {
 			ticker := feed.Ticker
 			quoteConfig, found := cfg.Quotes[ticker.CurrencyPair.Quote]
 
-			minLiquidity := getMinThreshold(ticker, quoteConfig.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
+			minLiquidity := getMinThreshold(ticker, quoteConfig.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap, logger)
 
 			if found && feed.LiquidityInfo.IsSufficient(minLiquidity) {
 				out = append(out, feed)
@@ -355,7 +354,7 @@ func PruneByQuoteVolume() TransformFeed {
 			ticker := feed.Ticker
 			quoteConfig, found := cfg.Quotes[ticker.CurrencyPair.Quote]
 
-			minVolume := getMinThreshold(ticker, quoteConfig.MinProviderVolume, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
+			minVolume := getMinThreshold(ticker, quoteConfig.MinProviderVolume, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap, logger)
 
 			dailyQuoteVolumeFloat, _ := feed.DailyQuoteVolume.Float64()
 			if found && dailyQuoteVolumeFloat >= minVolume {
@@ -595,7 +594,7 @@ func PruneByProviderLiquidity() TransformFeed {
 				continue
 			}
 
-			minLiquidity := getMinThreshold(feed.Ticker, providerConfig.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
+			minLiquidity := getMinThreshold(feed.Ticker, providerConfig.MinProviderLiquidity, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap, logger)
 
 			if found && feed.LiquidityInfo.IsSufficient(minLiquidity) {
 				out = append(out, feed)
@@ -639,7 +638,7 @@ func PruneByProviderUsdVolume() TransformFeed {
 				continue
 			}
 
-			minVolume := getMinThreshold(feed.Ticker, providerCfg.MinProviderVolume, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap)
+			minVolume := getMinThreshold(feed.Ticker, providerCfg.MinProviderVolume, cfg.RelaxedMinVolumeAndLiquidityFactor, onChainMarketMap, logger)
 
 			dailyUsdVolumeFloat, _ := feed.DailyUsdVolume.Float64()
 			if found && dailyUsdVolumeFloat >= minVolume {
@@ -669,7 +668,7 @@ func keyCurrencyPairProviderName(cp, provider string) string {
 	return strings.Join([]string{provider, cp}, "_")
 }
 
-func getMinThreshold(ticker mmtypes.Ticker, threshold float64, relaxedThresholdFactor float64, onChainMarketMap mmtypes.MarketMap) float64 {
+func getMinThreshold(ticker mmtypes.Ticker, threshold float64, relaxedThresholdFactor float64, onChainMarketMap mmtypes.MarketMap, logger *zap.Logger) float64 {
 	// If ticker already exists in on chain market map, use relaxed min vol / liquidity threshold
 	onChainTickerStr := ticker.CurrencyPair.Base + "/USD"
 	_, existsOnChain := onChainMarketMap.Markets[onChainTickerStr]
