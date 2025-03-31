@@ -358,7 +358,8 @@
       }
     },
     "enable_all": false,
-    "min_provider_count_override": 1
+    "min_provider_count_override": 1,
+    "relaxed_min_volume_and_liquidity_factor": 0.5
   },
   "upsert": {
     "restricted_markets": ["USDT/USD", "ETH/USD", "BTC/USD", "SOL/USD"]
