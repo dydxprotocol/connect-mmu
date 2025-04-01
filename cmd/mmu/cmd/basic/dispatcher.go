@@ -108,7 +108,9 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				txs = append(txs, removalTxs...)
+				if removalTxs != nil {
+					txs = append(txs, removalTxs...)
+				}
 			}
 
 			decodedTxs, err := decodeTxs(txs)
@@ -213,6 +215,10 @@ func generateRemovalTransactions(
 	removals, err := file.ReadJSONFromFile[[]string](removalsPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read marketmap removals file: %w", err)
+	}
+
+	if len(removals) == 0 {
+		return nil, nil
 	}
 
 	removalMsgs, err := generator.ConvertRemovalsToMessages(
