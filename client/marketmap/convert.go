@@ -1,7 +1,6 @@
 package marketmap
 
 import (
-	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
 	slinkytypes "github.com/dydxprotocol/slinky/pkg/types"
 	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
@@ -18,7 +17,7 @@ func SlinkyToConnectMarket(market mmtypes.Market) mmtypes.Market {
 		}
 
 		if providerConfig.NormalizeByPair != nil {
-			convertedProviderConfig.NormalizeByPair = &connecttypes.CurrencyPair{
+			convertedProviderConfig.NormalizeByPair = &slinkytypes.CurrencyPair{
 				Base:  providerConfig.NormalizeByPair.Base,
 				Quote: providerConfig.NormalizeByPair.Quote,
 			}
@@ -29,7 +28,7 @@ func SlinkyToConnectMarket(market mmtypes.Market) mmtypes.Market {
 
 	newMarket := mmtypes.Market{
 		Ticker: mmtypes.Ticker{
-			CurrencyPair: connecttypes.CurrencyPair{
+			CurrencyPair: slinkytypes.CurrencyPair{
 				Base:  market.Ticker.CurrencyPair.Base,
 				Quote: market.Ticker.CurrencyPair.Quote,
 			},

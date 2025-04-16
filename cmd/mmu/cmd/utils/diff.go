@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	marketmaptypes "github.com/dydxprotocol/slinky/x/marketmap/types"
-	slinkymarketmaptypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	"github.com/josephburnett/jd/v2"
 	"github.com/spf13/cobra"
@@ -195,7 +194,7 @@ func getMarketMap(ctx context.Context, grpcURL string, useSlinky bool) (marketma
 
 	var client marketmap.Client
 	if useSlinky {
-		client = marketmap.NewSlinkyModuleMarketMapClient(slinkymarketmaptypes.NewQueryClient(c), zap.NewNop())
+		client = marketmap.NewSlinkyModuleMarketMapClient(marketmaptypes.NewQueryClient(c), zap.NewNop())
 	} else {
 		client = marketmap.NewConnectModuleMarketMapClient(marketmaptypes.NewQueryClient(c), zap.NewNop())
 	}
