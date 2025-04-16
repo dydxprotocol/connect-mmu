@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 
 	"github.com/skip-mev/connect-mmu/generator/types"
 	"github.com/skip-mev/connect-mmu/lib/file"

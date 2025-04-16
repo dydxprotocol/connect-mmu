@@ -7,7 +7,7 @@ import (
 
 	"github.com/skip-mev/connect-mmu/lib/aws"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 /*

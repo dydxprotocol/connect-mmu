@@ -3,7 +3,7 @@ package marketmap
 import (
 	"context"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 // Client is a client that provides a market-map from an external source.

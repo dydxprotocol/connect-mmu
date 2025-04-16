@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,7 +28,7 @@ func NewClientFromChainConfig(logger *zap.Logger, cfg config.ChainConfig) (Clien
 	var client Client
 	switch cfg.Version {
 	case config.VersionSlinky:
-		client = NewSlinkyModuleMarketMapClient(slinkymmtypes.NewQueryClient(cc), logger)
+		client = NewSlinkyModuleMarketMapClient(mmtypes.NewQueryClient(cc), logger)
 	case config.VersionConnect:
 		client = NewConnectModuleMarketMapClient(mmtypes.NewQueryClient(cc), logger)
 	default:
@@ -42,12 +41,12 @@ func NewClientFromChainConfig(logger *zap.Logger, cfg config.ChainConfig) (Clien
 // SlinkyModuleMarketMapClient is a market-map provider that is capable of fetching market-maps from
 // the x/marketmap module.
 type SlinkyModuleMarketMapClient struct {
-	marketMapModuleClient slinkymmtypes.QueryClient
+	marketMapModuleClient mmtypes.QueryClient
 	logger                *zap.Logger
 }
 
 // NewSlinkyModuleMarketMapClient creates a new SlinkyModuleMarketMapClient.
-func NewSlinkyModuleMarketMapClient(marketMapModuleClient slinkymmtypes.QueryClient, logger *zap.Logger) *SlinkyModuleMarketMapClient {
+func NewSlinkyModuleMarketMapClient(marketMapModuleClient mmtypes.QueryClient, logger *zap.Logger) *SlinkyModuleMarketMapClient {
 	return &SlinkyModuleMarketMapClient{
 		marketMapModuleClient: marketMapModuleClient,
 		logger:                logger,
@@ -56,8 +55,8 @@ func NewSlinkyModuleMarketMapClient(marketMapModuleClient slinkymmtypes.QueryCli
 
 // GetMarketMap retrieves a market-map from the x/marketmap module.
 func (s *SlinkyModuleMarketMapClient) GetMarketMap(ctx context.Context) (mmtypes.MarketMap, error) {
-	operation := func() (*slinkymmtypes.MarketMapResponse, error) {
-		return s.marketMapModuleClient.MarketMap(ctx, &slinkymmtypes.MarketMapRequest{})
+	operation := func() (*mmtypes.MarketMapResponse, error) {
+		return s.marketMapModuleClient.MarketMap(ctx, &mmtypes.MarketMapRequest{})
 	}
 
 	opts := retry.NewOptions(func(attempt int, err error) {
@@ -73,7 +72,7 @@ func (s *SlinkyModuleMarketMapClient) GetMarketMap(ctx context.Context) (mmtypes
 
 	// if entry is nil, return an empty market-map
 	if mm.MarketMap.Markets == nil {
-		mm.MarketMap.Markets = make(map[string]slinkymmtypes.Market)
+		mm.MarketMap.Markets = make(map[string]mmtypes.Market)
 	}
 
 	// now convert to connect type

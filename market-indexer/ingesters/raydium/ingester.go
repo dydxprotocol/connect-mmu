@@ -7,11 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	connectraydium "github.com/dydxprotocol/slinky/providers/apis/defi/raydium"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	connectraydium "github.com/skip-mev/connect/v2/providers/apis/defi/raydium"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"

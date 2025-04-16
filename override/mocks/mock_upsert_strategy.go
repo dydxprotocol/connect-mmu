@@ -7,7 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	types "github.com/skip-mev/connect/v2/x/marketmap/types"
+	types "github.com/dydxprotocol/slinky/x/marketmap/types"
 
 	update "github.com/skip-mev/connect-mmu/override/update"
 

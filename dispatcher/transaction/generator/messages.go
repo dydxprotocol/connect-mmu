@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/client/marketmap"
@@ -51,7 +50,7 @@ func ConvertUpdatesToMessages(
 			var msg sdk.Msg
 			switch version {
 			case config.VersionSlinky:
-				msg = &slinkymmtypes.MsgUpdateMarkets{
+				msg = &mmtypes.MsgUpdateMarkets{
 					Authority:     authorityAddress,
 					UpdateMarkets: marketmap.ConnectToSlinkyMarkets(updates),
 				}
@@ -80,7 +79,7 @@ func ConvertUpdatesToMessages(
 		var msg sdk.Msg
 		switch version {
 		case config.VersionSlinky:
-			msg = &slinkymmtypes.MsgUpdateMarkets{
+			msg = &mmtypes.MsgUpdateMarkets{
 				Authority:     authorityAddress,
 				UpdateMarkets: marketmap.ConnectToSlinkyMarkets(updates[start:]),
 			}
@@ -138,7 +137,7 @@ func ConvertAdditionsToMessages(
 			var msg sdk.Msg
 			switch version {
 			case config.VersionSlinky:
-				msg = &slinkymmtypes.MsgCreateMarkets{
+				msg = &mmtypes.MsgCreateMarkets{
 					Authority:     authorityAddress,
 					CreateMarkets: marketmap.ConnectToSlinkyMarkets(txMarkets),
 				}
@@ -167,7 +166,7 @@ func ConvertAdditionsToMessages(
 		var msg sdk.Msg
 		switch version {
 		case config.VersionSlinky:
-			msg = &slinkymmtypes.MsgCreateMarkets{
+			msg = &mmtypes.MsgCreateMarkets{
 				Authority:     authorityAddress,
 				CreateMarkets: marketmap.ConnectToSlinkyMarkets(additions[start:]),
 			}
@@ -196,7 +195,7 @@ func ConvertRemovalsToMessages(
 	var msg sdk.Msg
 	switch version {
 	case config.VersionSlinky:
-		msg = &slinkymmtypes.MsgRemoveMarkets{
+		msg = &mmtypes.MsgRemoveMarkets{
 			Authority: authorityAddress,
 			Markets:   removals,
 		}
