@@ -317,8 +317,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dydxprotocol/slinky v1.3.1 h1:TQNTNiTkqrmV1GMdMMMwkLB9JKmLowWHD91iyYdH5PU=
-github.com/dydxprotocol/slinky v1.3.1/go.mod h1:OCFxYHUBDeVe2kXBVmHSoEl/bmupthpBXuwl0phmeqo=
+github.com/dydxprotocol/slinky v1.3.2 h1:JSMKq37MDlei28ec4o6sB2RaihWPL1xQ8BoH9wGxg9w=
+github.com/dydxprotocol/slinky v1.3.2/go.mod h1:OCFxYHUBDeVe2kXBVmHSoEl/bmupthpBXuwl0phmeqo=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=

@@ -24,7 +24,7 @@ require (
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/dydxprotocol/slinky v1.3.1
+	github.com/dydxprotocol/slinky v1.3.2
 	github.com/gagliardetto/binary v0.8.0
 	github.com/gagliardetto/solana-go v1.12.0
 	github.com/golangci/golangci-lint v1.62.2
