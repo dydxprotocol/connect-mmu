@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"sync"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	"github.com/skip-mev/connect/v2/x/marketmap/types/tickermetadata"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	"golang.org/x/exp/maps"
 	"golang.org/x/sync/errgroup"
 

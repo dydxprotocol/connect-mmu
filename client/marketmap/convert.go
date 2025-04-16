@@ -1,13 +1,12 @@
 package marketmap
 
 import (
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
 	slinkytypes "github.com/dydxprotocol/slinky/pkg/types"
-	slinkymmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
-func SlinkyToConnectMarket(market slinkymmtypes.Market) mmtypes.Market {
+func SlinkyToConnectMarket(market mmtypes.Market) mmtypes.Market {
 	convertedProviderConfigs := make([]mmtypes.ProviderConfig, 0)
 
 	for _, providerConfig := range market.ProviderConfigs {
@@ -45,7 +44,7 @@ func SlinkyToConnectMarket(market slinkymmtypes.Market) mmtypes.Market {
 	return newMarket
 }
 
-func SlinkyToConnectMarkets(markets []slinkymmtypes.Market) []mmtypes.Market {
+func SlinkyToConnectMarkets(markets []mmtypes.Market) []mmtypes.Market {
 	convertedMarkets := make([]mmtypes.Market, len(markets))
 	for i, market := range markets {
 		convertedMarkets[i] = SlinkyToConnectMarket(market)
@@ -54,7 +53,7 @@ func SlinkyToConnectMarkets(markets []slinkymmtypes.Market) []mmtypes.Market {
 	return convertedMarkets
 }
 
-func SlinkyToConnectMarketMap(marketMap slinkymmtypes.MarketMap) mmtypes.MarketMap {
+func SlinkyToConnectMarketMap(marketMap mmtypes.MarketMap) mmtypes.MarketMap {
 	mm := mmtypes.MarketMap{
 		Markets: make(map[string]mmtypes.Market),
 	}
@@ -67,11 +66,11 @@ func SlinkyToConnectMarketMap(marketMap slinkymmtypes.MarketMap) mmtypes.MarketM
 	return mm
 }
 
-func ConnectToSlinkyMarket(market mmtypes.Market) slinkymmtypes.Market {
-	convertedProviderConfigs := make([]slinkymmtypes.ProviderConfig, 0)
+func ConnectToSlinkyMarket(market mmtypes.Market) mmtypes.Market {
+	convertedProviderConfigs := make([]mmtypes.ProviderConfig, 0)
 
 	for _, providerConfig := range market.ProviderConfigs {
-		convertedProviderConfig := slinkymmtypes.ProviderConfig{
+		convertedProviderConfig := mmtypes.ProviderConfig{
 			Name:           providerConfig.Name,
 			OffChainTicker: providerConfig.OffChainTicker,
 			Invert:         providerConfig.Invert,
@@ -88,8 +87,8 @@ func ConnectToSlinkyMarket(market mmtypes.Market) slinkymmtypes.Market {
 		convertedProviderConfigs = append(convertedProviderConfigs, convertedProviderConfig)
 	}
 
-	newMarket := slinkymmtypes.Market{
-		Ticker: slinkymmtypes.Ticker{
+	newMarket := mmtypes.Market{
+		Ticker: mmtypes.Ticker{
 			CurrencyPair: slinkytypes.CurrencyPair{
 				Base:  market.Ticker.CurrencyPair.Base,
 				Quote: market.Ticker.CurrencyPair.Quote,
@@ -105,8 +104,8 @@ func ConnectToSlinkyMarket(market mmtypes.Market) slinkymmtypes.Market {
 	return newMarket
 }
 
-func ConnectToSlinkyMarkets(markets []mmtypes.Market) []slinkymmtypes.Market {
-	convertedMarkets := make([]slinkymmtypes.Market, len(markets))
+func ConnectToSlinkyMarkets(markets []mmtypes.Market) []mmtypes.Market {
+	convertedMarkets := make([]mmtypes.Market, len(markets))
 	for i, market := range markets {
 		convertedMarkets[i] = ConnectToSlinkyMarket(market)
 	}
@@ -114,9 +113,9 @@ func ConnectToSlinkyMarkets(markets []mmtypes.Market) []slinkymmtypes.Market {
 	return convertedMarkets
 }
 
-func ConnectToSlinkyMarketMap(marketMap mmtypes.MarketMap) slinkymmtypes.MarketMap {
-	mm := slinkymmtypes.MarketMap{
-		Markets: make(map[string]slinkymmtypes.Market),
+func ConnectToSlinkyMarketMap(marketMap mmtypes.MarketMap) mmtypes.MarketMap {
+	mm := mmtypes.MarketMap{
+		Markets: make(map[string]mmtypes.Market),
 	}
 
 	for _, market := range marketMap.Markets {

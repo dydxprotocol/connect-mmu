@@ -5,8 +5,8 @@ import (
 	"math"
 	"strings"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	"github.com/skip-mev/connect/v2/x/marketmap/types"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 // ValidateProviderName checks if the name is valid.

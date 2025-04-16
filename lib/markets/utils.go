@@ -1,7 +1,7 @@
 package markets
 
 import (
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 // FindRemovedMarkets finds all markets that exist in actual but are not in generated.

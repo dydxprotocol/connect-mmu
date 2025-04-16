@@ -17,8 +17,7 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	gogoproto "github.com/cosmos/gogoproto/proto"
-	slinkymmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 // Codec returns a codec for signing with the given address prefix.
@@ -39,7 +38,6 @@ func Codec(prefix string) (*codec.ProtoCodec, error) {
 	authtypes.RegisterInterfaces(ir)
 	cryptocodec.RegisterInterfaces(ir)
 	mmtypes.RegisterInterfaces(ir)
-	slinkymmtypes.RegisterInterfaces(ir)
 
 	return codec.NewProtoCodec(ir), nil
 }

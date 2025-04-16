@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	"github.com/skip-mev/connect/v2/x/marketmap/types/tickermetadata"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/generator/types"

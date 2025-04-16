@@ -9,10 +9,10 @@ import (
 	"sort"
 	"strings"
 
+	marketmaptypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	slinkymarketmaptypes "github.com/dydxprotocol/slinky/x/marketmap/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	"github.com/josephburnett/jd/v2"
-	marketmaptypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	"github.com/skip-mev/connect/v2/x/marketmap/types/tickermetadata"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"

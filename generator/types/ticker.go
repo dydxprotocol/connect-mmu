@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/skip-mev/connect/v2/x/marketmap/types/tickermetadata"
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 
 	"github.com/skip-mev/connect-mmu/types"
 )

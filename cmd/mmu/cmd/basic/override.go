@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 
 	"github.com/skip-mev/connect-mmu/client/dydx"
 	marketmapclient "github.com/skip-mev/connect-mmu/client/marketmap"

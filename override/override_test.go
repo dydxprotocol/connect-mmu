@@ -6,8 +6,8 @@ import (
 
 	"github.com/skip-mev/connect-mmu/override/update"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	"github.com/skip-mev/connect/v2/x/marketmap/types"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"

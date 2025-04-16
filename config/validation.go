@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
 )
 
 type ValidateConfig struct {

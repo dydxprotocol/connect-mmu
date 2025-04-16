@@ -14,8 +14,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	slinkymmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
@@ -262,7 +261,7 @@ func decodeTxs(txs []cmttypes.Tx) ([]DecodedTx, error) {
 	cdc := codec.NewProtoCodec(registry)
 	decoder := auth.DefaultTxDecoder(cdc)
 	jsonEncoder := auth.DefaultJSONTxEncoder(cdc)
-	slinkymmtypes.RegisterInterfaces(registry)
+	mmtypes.RegisterInterfaces(registry)
 
 	decodedTxs := make([]DecodedTx, len(txs))
 
