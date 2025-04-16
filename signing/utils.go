@@ -17,8 +17,8 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	gogoproto "github.com/cosmos/gogoproto/proto"
+	slinkymmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
 )
 
 // Codec returns a codec for signing with the given address prefix.

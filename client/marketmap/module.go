@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	slinkymmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

@@ -1,10 +1,10 @@
 package marketmap
 
 import (
+	slinkytypes "github.com/dydxprotocol/slinky/pkg/types"
+	slinkymmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	slinkytypes "github.com/skip-mev/slinky/pkg/types"
-	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
 )
 
 func SlinkyToConnectMarket(market slinkymmtypes.Market) mmtypes.Market {

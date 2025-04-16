@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/client/dydx"

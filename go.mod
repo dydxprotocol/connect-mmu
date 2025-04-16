@@ -30,7 +30,7 @@ require (
 	github.com/josephburnett/jd/v2 v2.0.0-20240818191833-6125a15c637a
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/skip-mev/connect/v2 v2.2.1
-	github.com/skip-mev/slinky v1.1.0
+	github.com/dydxprotocol/slinky v1.3.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.10.0
@@ -380,5 +380,3 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/skip-mev/slinky => github.com/dydxprotocol/slinky v1.3.0
