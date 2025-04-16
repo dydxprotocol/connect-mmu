@@ -17,7 +17,24 @@
       { "name": "raydium" }
     ],
     "coinmarketcap": { "api_key": "" },
-    "raydium": [],
+    "raydium": [
+      {
+        "endpoint": "https://solana-rpc.rhino-apis.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://solana.polkachu.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://connect-solana.kingnodes.com",
+        "node_key": ""
+      },
+      {
+        "endpoint": "https://solana.lavenderfive.com",
+        "node_key": ""
+      }
+    ],
     "gecko_network_dex_pairs": [{ "network": "eth", "dex": "uniswap_v3" }, { "network": "base", "dex": "uniswap-v3-base" }]
   },
   "generate": {
@@ -377,7 +394,11 @@
       }
     },
     "enable_all": false,
-    "min_provider_count_override": 1
+    "min_provider_count_override": 1,
+    "relaxed_min_volume_and_liquidity_factor": 0.5
+  },
+  "validate": {
+    "flexible_ref_price_markets": ["CLV/USD"]
   },
   "upsert": {
     "restricted_markets": ["USDT/USD", "ETH/USD", "BTC/USD", "SOL/USD"]

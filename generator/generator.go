@@ -3,7 +3,7 @@ package generator
 import (
 	"context"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
@@ -22,7 +22,7 @@ type Generator struct {
 
 func New(logger *zap.Logger, providerStore provider.Store) Generator {
 	return Generator{
-		logger: logger.With(zap.String("service", "generator")),
+		logger: logger.With(zap.String("mmu-service", "generator")),
 		q:      querier.New(logger, providerStore),
 		t:      transformer.New(logger),
 	}

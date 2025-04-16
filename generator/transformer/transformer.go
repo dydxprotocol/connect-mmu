@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
@@ -26,7 +26,7 @@ type Transformer struct {
 //  2. Resolve any conflicts that may have arisen from prior transformations.
 func New(logger *zap.Logger) Transformer {
 	return Transformer{
-		logger: logger.With(zap.String("service", "transformer")),
+		logger: logger.With(zap.String("mmu-service", "transformer")),
 		feedTransforms: []TransformFeed{
 			InvertOrDrop(), // must invert before normalize
 			PruneByLiquidity(),

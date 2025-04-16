@@ -10,7 +10,9 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 	"go.uber.org/zap"
 
+	"github.com/skip-mev/connect-mmu/cmd/mmu/consts"
 	"github.com/skip-mev/connect-mmu/config"
+	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/http"
 )
 
@@ -32,6 +34,8 @@ type Client interface {
 	TokenMetadata(ctx context.Context) (TokenMetadataResponse, error)
 	// GetMultipleAccounts gets multiple accounts from a solana node.
 	GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error)
+	// ValidateClientConfiguration ensures client is configured correctly.
+	ValidateClientConfiguration() error
 }
 
 type client struct {
@@ -49,6 +53,37 @@ func newMultiRPC(logger *zap.Logger, cfg config.MarketConfig) multiRPC {
 	mRPC := multiRPC{
 		logger: logger.Named("multi-rpc"),
 		rpcs:   make([]*rpc.Client, len(cfg.RaydiumNodes)),
+	}
+
+	if aws.IsLambda() {
+		mRPC.logger.Info("instantiating multi-rpc client for raydium with AWS keys")
+
+		apiKeySecretsMap, err := consts.GetOracleAPIKeySecretNames()
+		if err != nil {
+			mRPC.logger.Error("error getting oracle keys", zap.Error(err))
+			return mRPC
+		}
+
+		for i, node := range cfg.RaydiumNodes {
+			awsKey, ok := apiKeySecretsMap[node.Endpoint]
+			if !ok {
+				mRPC.logger.Error("oracle config does not contain key for endpoint", zap.String("endpoint", node.Endpoint))
+				continue
+			}
+
+			secret, err := aws.GetSecret(context.Background(), awsKey)
+			if err != nil {
+				mRPC.logger.Error("unable to find api-key - skipping raydium node", zap.String("endpoint", node.Endpoint), zap.Error(err))
+				continue
+			}
+
+			mRPC.logger.Info("successfully instantiated raydium node", zap.String("endpoint", node.Endpoint))
+			mRPC.rpcs[i] = rpc.NewWithHeaders(node.Endpoint, map[string]string{
+				"x-api-key": secret,
+			})
+		}
+
+		return mRPC
 	}
 
 	for i, node := range cfg.RaydiumNodes {
@@ -97,12 +132,17 @@ func (h *client) TokenMetadata(ctx context.Context) (TokenMetadataResponse, erro
 	return tmd, nil
 }
 
-func (h *client) GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error) {
-	// choose random endpoint to use
-	cycleValue := len(h.multiRPCClient.rpcs)
-	if cycleValue == 0 {
-		return nil, fmt.Errorf("no raydium RPC nodes configured")
+func (h *client) ValidateClientConfiguration() error {
+	if len(h.multiRPCClient.rpcs) == 0 {
+		return fmt.Errorf("no raydium RPC nodes configured")
 	}
+
+	return nil
+}
+
+func (h *client) GetMultipleAccounts(ctx context.Context, accounts []solana.PublicKey) ([]*rpc.Account, error) {
+	// choose random endpoint to use. pre-validate raydium client configuration with ValidateClientConfiguration.
+	cycleValue := len(h.multiRPCClient.rpcs)
 	i := rand.Intn(cycleValue)
 
 	for i < i+cycleValue {

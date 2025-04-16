@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 
@@ -23,7 +23,7 @@ type Querier struct {
 // New creates a new Querier to read in indexed data to a MemoryStore
 func New(logger *zap.Logger, providerStore provider.Store) Querier {
 	return Querier{
-		logger:        logger.With(zap.String("service", "querier")),
+		logger:        logger.With(zap.String("mmu-service", "querier")),
 		providerStore: providerStore,
 	}
 }

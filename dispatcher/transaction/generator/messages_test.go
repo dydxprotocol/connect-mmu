@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 

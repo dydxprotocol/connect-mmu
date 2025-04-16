@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/skip-mev/connect/v2/providers/apis/defi/uniswapv3"
+	"github.com/dydxprotocol/slinky/providers/apis/defi/uniswapv3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 

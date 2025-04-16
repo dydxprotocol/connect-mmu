@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"slices"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 // ApplyOptionsToMarketMap applies the options to the marketmap.

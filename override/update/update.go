@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	"github.com/skip-mev/slinky/x/marketmap/types/tickermetadata"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/client/dydx"
@@ -103,7 +103,7 @@ func CombineMarketMaps(
 		combined.Markets[ticker] = market
 	}
 
-	// append remove markets that are in generated, but NOT actual, unless it is enabled
+	// append remove markets that are in actual, but NOT generated, unless the market is enabled
 	removals := make([]string, 0)
 	for ticker, market := range actual.Markets {
 		if _, found := generated.Markets[ticker]; !found {

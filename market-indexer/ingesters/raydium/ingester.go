@@ -7,11 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	connectraydium "github.com/dydxprotocol/slinky/providers/apis/defi/raydium"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	connectraydium "github.com/skip-mev/connect/v2/providers/apis/defi/raydium"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
@@ -245,6 +245,10 @@ func getTargets(pair PairData, symbolMap map[string]string) (base, quote string,
 // chunkedRequests runs GetMultipleAccounts requests chunked and in parallel.  One GetMultipleAccounts request
 // is limited to the chunkSize.
 func (ig *Ingester) chunkedRequests(ctx context.Context, pairs Pairs, chunkSize int) ([]*rpc.Account, error) {
+	if err := ig.client.ValidateClientConfiguration(); err != nil {
+		return nil, fmt.Errorf("error validating raydium client: %w", err)
+	}
+
 	totalAccounts := len(pairs)
 	respAccounts := make([]*rpc.Account, totalAccounts)
 

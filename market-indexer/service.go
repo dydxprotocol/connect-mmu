@@ -56,7 +56,7 @@ func NewIndexer(cfg config.MarketConfig, logger *zap.Logger, writer provider.Sto
 	}
 
 	svc := Indexer{
-		logger:                   logger.With(zap.String("service", "indexer")),
+		logger:                   logger.With(zap.String("mmu-service", "indexer")),
 		providerStore:            writer,
 		cmcIndexer:               coinmarketcap.New(logger, cfg.CoinMarketCapConfig.APIKey),
 		config:                   cfg,
@@ -118,18 +118,17 @@ func (idx *Indexer) Index(ctx context.Context) error {
 
 		ingesterMarkets, err := ingester.GetProviderMarkets(ctx)
 		if err != nil {
-			idx.logger.Error("error getting markets", zap.String("ingester", ingester.Name()), zap.Error(err))
+			idx.logger.Error("error getting markets", zap.Bool("mmu_datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
 			return err
 		}
 
 		idx.logger.Info("associating coin market cap for provider", zap.String("ingester", ingester.Name()))
 		transformed, err := idx.AssociateAggregator(ctx, ingesterMarkets, cmcMarketPairs)
 		if err != nil {
-			idx.logger.Error("error associating aggregators", zap.String("ingester", ingester.Name()), zap.Error(err))
+			idx.logger.Error("error associating aggregators", zap.Bool("mmu_datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
 			return err
 		}
-		idx.logger.Info("associated coin market cap for provider", zap.String("ingester", ingester.Name()),
-			zap.Int("markets", len(transformed)))
+		idx.logger.Info("associated coin market cap for provider", zap.String("ingester", ingester.Name()), zap.Int("markets", len(transformed)))
 
 		for _, pm := range transformed {
 			if _, err := idx.providerStore.AddProviderMarket(ctx, pm.Create); err != nil {

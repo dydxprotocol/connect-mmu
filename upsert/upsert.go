@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/skip-mev/connect/v2/x/marketmap/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types"
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"

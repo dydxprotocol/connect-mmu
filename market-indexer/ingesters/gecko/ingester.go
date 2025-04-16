@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/skip-mev/connect/v2/providers/apis/defi/uniswapv3"
+	"github.com/dydxprotocol/slinky/providers/apis/defi/uniswapv3"
 	"go.uber.org/zap"
 	"gopkg.in/typ.v4/maps"
 

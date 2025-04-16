@@ -14,8 +14,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	mmtypes "github.com/skip-mev/connect/v2/x/marketmap/types"
-	slinkymmtypes "github.com/skip-mev/slinky/x/marketmap/types"
+	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
@@ -94,21 +93,27 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				txs = append(txs, updateTxs...)
+				if updateTxs != nil {
+					txs = append(txs, updateTxs...)
+				}
 			}
 			if hasAdditions {
 				additionTxs, err := generateAdditionTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.additionsPath)
 				if err != nil {
 					return err
 				}
-				txs = append(txs, additionTxs...)
+				if additionTxs != nil {
+					txs = append(txs, additionTxs...)
+				}
 			}
 			if hasRemovals {
 				removalTxs, err := generateRemovalTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.removalsPath)
 				if err != nil {
 					return err
 				}
-				txs = append(txs, removalTxs...)
+				if removalTxs != nil {
+					txs = append(txs, removalTxs...)
+				}
 			}
 
 			decodedTxs, err := decodeTxs(txs)
@@ -151,6 +156,10 @@ func generateUpdateTransactions(
 		return nil, fmt.Errorf("failed to read updates file: %w", err)
 	}
 
+	if len(updates) == 0 {
+		return nil, nil
+	}
+
 	updateMsgs, err := generator.ConvertUpdatesToMessages(
 		logger,
 		cfg.Dispatch.TxConfig,
@@ -183,6 +192,10 @@ func generateAdditionTransactions(
 		return nil, fmt.Errorf("failed to read additions file: %w", err)
 	}
 
+	if len(additions) == 0 {
+		return nil, nil
+	}
+
 	additionMsgs, err := generator.ConvertAdditionsToMessages(
 		logger,
 		cfg.Dispatch.TxConfig,
@@ -191,7 +204,7 @@ func generateAdditionTransactions(
 		additions,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert removals to messages: %w", err)
+		return nil, fmt.Errorf("failed to convert additions to messages: %w", err)
 	}
 
 	txs, err := dp.GenerateTransactions(ctx, additionMsgs)
@@ -213,6 +226,10 @@ func generateRemovalTransactions(
 	removals, err := file.ReadJSONFromFile[[]string](removalsPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read marketmap removals file: %w", err)
+	}
+
+	if len(removals) == 0 {
+		return nil, nil
 	}
 
 	removalMsgs, err := generator.ConvertRemovalsToMessages(
@@ -244,7 +261,7 @@ func decodeTxs(txs []cmttypes.Tx) ([]DecodedTx, error) {
 	cdc := codec.NewProtoCodec(registry)
 	decoder := auth.DefaultTxDecoder(cdc)
 	jsonEncoder := auth.DefaultJSONTxEncoder(cdc)
-	slinkymmtypes.RegisterInterfaces(registry)
+	mmtypes.RegisterInterfaces(registry)
 
 	decodedTxs := make([]DecodedTx, len(txs))
 

@@ -5,8 +5,8 @@ import (
 	"math"
 	"strings"
 
-	connecttypes "github.com/skip-mev/connect/v2/pkg/types"
-	"github.com/skip-mev/connect/v2/x/marketmap/types"
+	connecttypes "github.com/dydxprotocol/slinky/pkg/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types"
 )
 
 // ValidateProviderName checks if the name is valid.
@@ -145,6 +145,11 @@ type GenerateConfig struct {
 	// We require this value to be LTE the highest MinProviderCount for any Market in order to avoid producing markets
 	// which would be unable to post prices ever.
 	MinProviderCountOverride uint64 `json:"min_provider_count_override" mapstructure:"min_provider_count_override"`
+
+	// RelaxedMinVolumeAndLiquidityFactor is the factor (<1) by which to multiply min volume and liquidity thresholds for markets that already exist on chain
+	// This is used to avoid "thrashy" Market Map updates, where MMU repeatedly adds then removes a market that is hovering right around the min vol/liq thresholds
+	// Range: 0 <= RelaxedMinVolumeAndLiquidityFactor <= 1 (i.e. relaxed min vol / liq thresholds should always be less than or equal to the original thresholds)
+	RelaxedMinVolumeAndLiquidityFactor float64 `json:"relaxed_min_volume_and_liquidity_factor" mapstructure:"relaxed_min_volume_and_liquidity_factor"`
 }
 
 var defaultProviders = map[string]ProviderConfig{
@@ -267,6 +272,10 @@ func (cfg *GenerateConfig) Validate() error {
 
 	if cfg.MinProviderCountOverride > cfg.MinCexProviderCount || cfg.MinProviderCountOverride > cfg.MinDexProviderCount {
 		return fmt.Errorf("invalid MinProviderCountOverride: must be less than %d, got %d", int(math.Min(float64(cfg.MinCexProviderCount), float64(cfg.MinDexProviderCount))), cfg.MinProviderCountOverride)
+	}
+
+	if cfg.RelaxedMinVolumeAndLiquidityFactor > 1 {
+		return fmt.Errorf("invalid RelaxedMinVolumeAndLiquidityFactor: must be between 0 and 1, got %f", cfg.RelaxedMinVolumeAndLiquidityFactor)
 	}
 
 	return nil

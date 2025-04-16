@@ -1,0 +1,30 @@
+name: Add Deploy Button After Approval
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  add-deploy-comment:
+    runs-on: ubuntu-latest
+    if: github.event.review.state == 'approved'
+    steps:
+      - name: Add deploy comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const commentBody = `## ✅ PR Approved - Ready for Staging
+            
+            👉 [Deploy to Staging](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/workflows/deploy-mmu-staging.yml)
+            
+            *When clicking "Run workflow", select the \`${context.payload.pull_request.head.ref}\` branch to deploy to staging.*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/skip-mev/connect/v2/pkg/types"
+	"github.com/dydxprotocol/slinky/pkg/types"
 )
 
 // MarketPairToCurrencyPair converts a base and quote pair from MarketPrice format (for example BTC-ETH)
