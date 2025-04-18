@@ -276,6 +276,7 @@ func (i *Indexer) GetProviderMarketsPairs(ctx context.Context, cfg config.Market
 		}
 
 		i.logger.Info("fetched cmc market data", zap.String("exchange", name), zap.Int("num markets", markets.Data.NumMarketPairs))
+		duplicateKeys := make([]string, 0)
 		for _, pair := range markets.Data.MarketPairs {
 			cmcBaseSymbol, err := symbols.ToTickerString(pair.MarketPairBase.CurrencySymbol)
 			if err != nil {
@@ -313,12 +314,19 @@ func (i *Indexer) GetProviderMarketsPairs(ctx context.Context, cfg config.Market
 				LiquidityInfo:  liquidityInfo,
 			}
 
-			if existing, exists := pmps.Data[key]; exists {
-				i.logger.Error("key already exists in pmps.Data", zap.String("key", key), zap.Any("existing", existing), zap.Any("new", newMarketData))
+			if _, exists := pmps.Data[key]; exists {
+				duplicateKeys = append(duplicateKeys, key)
 				continue
 			}
 
 			pmps.Data[key] = newMarketData
+		}
+
+		if len(duplicateKeys) > 0 {
+			i.logger.Error("duplicate keys found in pmps.Data",
+				zap.Strings("keys", duplicateKeys),
+				zap.String("exchange", name),
+			)
 		}
 	}
 
