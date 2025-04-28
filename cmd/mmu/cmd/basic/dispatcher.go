@@ -218,7 +218,11 @@ func generateAdditionTransactions(
 
 	addedTickers := make([]string, len(additions))
 	for _, addition := range additions {
-		addedTickers = append(addedTickers, addition.Ticker.CurrencyPair.Base)
+		tickerStr := addition.Ticker.CurrencyPair.Base
+		if tickerStr == "" {
+			continue
+		}
+		addedTickers = append(addedTickers, tickerStr)
 	}
 
 	return txs, addedTickers, nil
@@ -256,7 +260,12 @@ func generateRemovalTransactions(
 		return nil, nil, err
 	}
 
-	return txs, removals, nil
+	removedTickers := make([]string, len(removals))
+	for _, removal := range removals {
+		removedTickers = append(removedTickers, strings.Split(removal, "/")[0])
+	}
+
+	return txs, removedTickers, nil
 }
 
 type DecodedTx struct {
