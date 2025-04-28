@@ -216,7 +216,7 @@ func generateAdditionTransactions(
 		return nil, nil, err
 	}
 
-	var addedTickers []string
+	addedTickers := []string{}
 	for _, addition := range additions {
 		tickerStr := addition.Ticker.CurrencyPair.Base
 		if tickerStr == "" {
@@ -260,7 +260,7 @@ func generateRemovalTransactions(
 		return nil, nil, err
 	}
 
-	removedTickers := make([]string, len(removals))
+	removedTickers := []string{}
 	for _, removal := range removals {
 		removedTickers = append(removedTickers, strings.Split(removal, "/")[0])
 	}
