@@ -216,7 +216,7 @@ func generateAdditionTransactions(
 		return nil, nil, err
 	}
 
-	var addedTickers []string
+	addedTickers := make([]string, len(additions))
 	for _, addition := range additions {
 		addedTickers = append(addedTickers, addition.Ticker.CurrencyPair.Base)
 	}
