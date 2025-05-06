@@ -19,7 +19,7 @@ import (
 )
 
 // Override overrides a marketmap given the MarketMapOverride impl.
-func Override(ctx context.Context, logger *zap.Logger, mmo MarketMapOverride, actual, generated mmtypes.MarketMap, options update.Options) (mmtypes.MarketMap, []string, error) {
+func Override(ctx context.Context, logger *zap.Logger, mmo MarketMapOverride, actual, generated mmtypes.MarketMap, crossLaunch []string, options update.Options) (mmtypes.MarketMap, []string, error) {
 	if !options.DisableDeFiMarketMerging {
 		var err error
 		generated, err = ConsolidateDeFiMarkets(logger, generated, actual)
@@ -28,7 +28,7 @@ func Override(ctx context.Context, logger *zap.Logger, mmo MarketMapOverride, ac
 		}
 		logger.Debug("successfully consolidated DeFi markets")
 	}
-	return mmo.OverrideGeneratedMarkets(ctx, logger, actual, generated, options)
+	return mmo.OverrideGeneratedMarkets(ctx, logger, actual, generated, crossLaunch, options)
 }
 
 // MarketMapOverride is an interface for overriding a generated marketmap with what is on-chain according to specific rules.
@@ -39,6 +39,7 @@ type MarketMapOverride interface {
 		ctx context.Context,
 		logger *zap.Logger,
 		actual, generated mmtypes.MarketMap,
+		crossLaunch []string,
 		options update.Options,
 	) (mmtypes.MarketMap, []string, error)
 }
@@ -58,10 +59,12 @@ func (o *CoreOverride) OverrideGeneratedMarkets(
 	_ context.Context,
 	logger *zap.Logger,
 	actual, generated mmtypes.MarketMap,
+	crossLaunch []string,
 	options update.Options,
 ) (mmtypes.MarketMap, []string, error) {
 	logger.Info("overriding markets", zap.Any("options", options))
 
+	// TODO
 	appendedMarketMap, removals, err := update.CombineMarketMaps(logger, actual, generated, options, nil)
 	if err != nil {
 		logger.Error("failed to update to market map", zap.Error(err))
@@ -95,6 +98,7 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	ctx context.Context,
 	logger *zap.Logger,
 	actual, generated mmtypes.MarketMap,
+	crossLaunch []string,
 	options update.Options,
 ) (mmtypes.MarketMap, []string, error) {
 	logger.Info("overriding markets for dydx", zap.Any("options", options))
@@ -120,7 +124,8 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	logger.Info("combined actual and generated market maps", zap.Int("markets", len(combinedMarketMap.Markets)))
 
 	// Add cross_launch=true field to market map metadata JSON for allowlisted CMC IDs
-	if len(options.CrossLaunchIDs) > 0 {
+	// TODO: Bundle cross-launch-list.json file into the deployed image
+	if len(crossLaunch) > 0 {
 		for _, market := range combinedMarketMap.Markets {
 			metadataJSON, err := tickermetadata.DyDxFromJSONString(market.Ticker.Metadata_JSON)
 			if err != nil {
@@ -128,13 +133,17 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 			}
 			aggregateIDs := metadataJSON.AggregateIDs
 			for _, aggregateID := range aggregateIDs {
-				if aggregateID.Venue == "cmc" && slices.Contains(options.CrossLaunchIDs, aggregateID.ID) {
-					// TODO Add cross_launch=true flag and update combinedMarketMap
-					// This will require you to pull in the new version of Connect (that you just merged) first
+				if aggregateID.Venue == "cmc" && slices.Contains(crossLaunch, aggregateID.ID) {
+					metadataJSON.CrossLaunch = true
+					metadataJSONBytes, err := tickermetadata.MarshalDyDx(metadataJSON)
+					if err != nil {
+						return mmtypes.MarketMap{}, []string{}, err
+					}
+					market.Ticker.Metadata_JSON = string(metadataJSONBytes)
 				}
 			}
 		}
-		logger.Info("added cross_launch=true field to market map metadata JSON for allowlisted CMC IDs", zap.Strings("crossLaunchIDs", options.CrossLaunchIDs))
+		logger.Info("added cross_launch=true field to market map metadata JSON for allowlisted CMC IDs", zap.Strings("crossLaunch", crossLaunch))
 	}
 
 	perpetualIDToClobPair, err := o.client.GetPerpetualIDToClobPair(ctx)

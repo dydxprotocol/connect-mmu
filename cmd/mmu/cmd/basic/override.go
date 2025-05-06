@@ -28,7 +28,7 @@ func OverrideCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "override",
 		Short:   "override all markets using an on-chain market map",
-		Example: "mmu override --config config.json --market-map market-map.json --update-enabled false --overwrite-providers false --existing-only false",
+		Example: "mmu override --config config.json --market-map market-map.json --cross-launch-list cross-launch-list.json --update-enabled false --overwrite-providers false --existing-only false",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
@@ -54,16 +54,24 @@ func OverrideCmd() *cobra.Command {
 
 			logger.Info("successfully read marketmap", zap.String("path", flags.marketMapPath), zap.Int("num markets", len(fileMarketMap.Markets)))
 
+			crossLaunchList, err := file.ReadJSONFromFile[[]string](flags.crossLaunchListPath)
+			if err != nil {
+				logger.Error("failed to read cross launch list", zap.Error(err))
+				return err
+			}
+
+			logger.Info("successfully read cross launch list", zap.String("path", flags.crossLaunchListPath), zap.Strings("crossLaunch", crossLaunchList))
+
 			overriddenMarketMap, removals, err := OverrideMarketsFromConfig(
 				ctx,
 				logger,
 				*cfg.Chain,
 				fileMarketMap,
+				crossLaunchList,
 				flags.updateEnabled,
 				flags.overwriteProviders,
 				flags.existingOnly,
 				flags.disableDeFiMarketMerging,
-				flags.crossLaunchIDs,
 			)
 			if err != nil {
 				return err
@@ -109,23 +117,23 @@ func OverrideCmd() *cobra.Command {
 type overrideCmdFlags struct {
 	configPath               string
 	marketMapPath            string
+	crossLaunchListPath      string
 	marketMapOutPath         string
 	marketMapRemovalsOutPath string
 	updateEnabled            bool
 	overwriteProviders       bool
 	existingOnly             bool
 	disableDeFiMarketMerging bool
-	crossLaunchIDs           []string
 }
 
 func overrideCmdConfigureFlags(cmd *cobra.Command, flags *overrideCmdFlags) {
 	cmd.Flags().StringVar(&flags.configPath, ConfigPathFlag, ConfigPathDefault, ConfigPathDescription)
 	cmd.Flags().StringVar(&flags.marketMapPath, MarketMapGeneratedFlag, MarketMapGeneratedDefault, MarketMapGeneratedDescription)
+	cmd.Flags().StringVar(&flags.crossLaunchListPath, CrossLaunchListPathFlag, CrossLaunchListPathDefault, CrossLaunchListPathDescription)
 	cmd.Flags().BoolVar(&flags.updateEnabled, UpdateEnabledFlag, UpdateEnabledDefault, UpdateEnabledDescription)
 	cmd.Flags().BoolVar(&flags.overwriteProviders, OverwriteProvidersFlag, OverwriteProvidersDefault, OverwriteProvidersDescription)
 	cmd.Flags().BoolVar(&flags.existingOnly, ExistingOnlyFlag, ExistingOnlyDefault, ExistingOnlyDescription)
 	cmd.Flags().BoolVar(&flags.disableDeFiMarketMerging, DisableDeFiMarketMerging, DisableDeFiMarketMergingDefault, DisableDeFiMarketMergingDescription)
-	cmd.Flags().StringSliceVar(&flags.crossLaunchIDs, CrossLaunchIDs, CrossLaunchIDsDefault, CrossLaunchIDsDescription)
 
 	cmd.Flags().StringVar(&flags.marketMapOutPath, MarketMapOutPathOverrideFlag, MarketMapOutPathOverrideDefault, MarketMapOutPathOverrideDescription)
 	cmd.Flags().StringVar(&flags.marketMapRemovalsOutPath, MarketMapRemovalsOutPathFlag, MarketMapRemovalsOutPathDefault, MarketMapRemovalsOutPathDescription)
@@ -136,7 +144,8 @@ func OverrideMarketsFromConfig(
 	logger *zap.Logger,
 	cfg config.ChainConfig,
 	generated mmtypes.MarketMap,
-	updateEnabled, overwriteProviders, existingOnly, disableDeFiMarketMerging bool, crossLaunchIDs []string,
+	crossLaunch []string,
+	updateEnabled, overwriteProviders, existingOnly, disableDeFiMarketMerging bool,
 ) (mmtypes.MarketMap, []string, error) {
 	// create client based on config
 	mmClient, err := marketmapclient.NewClientFromChainConfig(logger, cfg)
@@ -169,12 +178,12 @@ func OverrideMarketsFromConfig(
 		marketOverride,
 		onChainMarketMap,
 		generated,
+		crossLaunch,
 		update.Options{
 			UpdateEnabled:            updateEnabled,
 			OverwriteProviders:       overwriteProviders,
 			ExistingOnly:             existingOnly,
 			DisableDeFiMarketMerging: disableDeFiMarketMerging,
-			CrossLaunchIDs:           crossLaunchIDs,
 		},
 	)
 	if err != nil {

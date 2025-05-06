@@ -17,6 +17,10 @@ const (
 	MarketMapGeneratedDefault     = "./tmp/generated-market-map.json"
 	MarketMapGeneratedDescription = "path to market map"
 
+	CrossLaunchListPathFlag        = "cross-launch-list"
+	CrossLaunchListPathDefault     = "./local/cross-launch-list.json"
+	CrossLaunchListPathDescription = "path to list of cross launch markets"
+
 	UpdateEnabledFlag        = "update-enabled"
 	UpdateEnabledDefault     = false
 	UpdateEnabledDescription = "should update providers on enabled markets"
@@ -32,10 +36,6 @@ const (
 	DisableDeFiMarketMerging            = "disable-defi-market-merging"
 	DisableDeFiMarketMergingDefault     = false
 	DisableDeFiMarketMergingDescription = "disables the merging of DeFi markets into markets that have the same CMC ID"
-
-	CrossLaunchIDs            = "cross-launch-ids"
-	CrossLaunchIDsDefault     = nil
-	CrossLaunchIDsDescription = "list of CoinMarketCap IDs of markets that should be marked as cross-margin launchable in market map"
 
 	// upserts
 	MarketMapOverrideFlag        = "market-map"

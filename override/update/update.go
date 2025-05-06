@@ -16,7 +16,6 @@ type Options struct {
 	OverwriteProviders       bool
 	ExistingOnly             bool
 	DisableDeFiMarketMerging bool
-	CrossLaunchIDs           []string
 }
 
 // CombineMarketMaps adds the given generated markets to the actual market.
