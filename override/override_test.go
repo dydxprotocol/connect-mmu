@@ -229,7 +229,7 @@ func TestOverride(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			out, removals, err := Override(ctx, logger, mmo, tc.actual, tc.generated, tc.options)
+			out, removals, err := Override(ctx, logger, mmo, tc.actual, tc.generated, []string{}, tc.options)
 
 			require.NoError(t, err)
 			require.Equal(t, tc.expected, out, "unexpected output: %v", out)
@@ -2546,6 +2546,7 @@ func TestOverrideMarketMap(t *testing.T) {
 				zaptest.NewLogger(t),
 				tt.actual,
 				tt.generated,
+				[]string{},
 				update.Options{
 					UpdateEnabled:      tt.updateEnabled,
 					OverwriteProviders: false,
@@ -4477,6 +4478,7 @@ func TestOverrideMarketMapOverwriteProviders(t *testing.T) {
 				zaptest.NewLogger(t),
 				tt.actual,
 				tt.generated,
+				[]string{},
 				update.Options{
 					UpdateEnabled:      tt.updateEnabled,
 					OverwriteProviders: true,

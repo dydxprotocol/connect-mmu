@@ -13,7 +13,6 @@ const (
 	VenueCoinMarketcap = "coinmarketcap"
 )
 
-// TODO Have to update this to also accept CrossLaunch? OR nah, okay to just override it probably
 // ToTickerMetadataJSON creates a JSON string from the given database row based on the chain
 // type of this generation run.
 func ToTickerMetadataJSON(feed Feed, referencePrice *big.Float, totalLiquidity float64) (string, error) {
@@ -22,6 +21,7 @@ func ToTickerMetadataJSON(feed Feed, referencePrice *big.Float, totalLiquidity f
 		ReferencePrice: types.ScalePriceToUint64(referencePrice),
 		Liquidity:      uint64(totalLiquidity),
 		AggregateIDs:   make([]tickermetadata.AggregatorID, 0),
+		CrossLaunch:    false,
 	}
 
 	// Base Asset

@@ -59,12 +59,11 @@ func (o *CoreOverride) OverrideGeneratedMarkets(
 	_ context.Context,
 	logger *zap.Logger,
 	actual, generated mmtypes.MarketMap,
-	crossLaunch []string,
+	_ []string,
 	options update.Options,
 ) (mmtypes.MarketMap, []string, error) {
 	logger.Info("overriding markets", zap.Any("options", options))
 
-	// TODO
 	appendedMarketMap, removals, err := update.CombineMarketMaps(logger, actual, generated, options, nil)
 	if err != nil {
 		logger.Error("failed to update to market map", zap.Error(err))
