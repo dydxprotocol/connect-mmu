@@ -124,7 +124,7 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 
 	// Add cross_launch=true field to market map metadata JSON for allowlisted CMC IDs
 	if len(crossLaunch) > 0 {
-		for _, market := range combinedMarketMap.Markets {
+		for idx, market := range combinedMarketMap.Markets {
 			metadataJSON, err := tickermetadata.DyDxFromJSONString(market.Ticker.Metadata_JSON)
 			if err != nil {
 				return mmtypes.MarketMap{}, []string{}, err
@@ -138,12 +138,15 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 						return mmtypes.MarketMap{}, []string{}, err
 					}
 					market.Ticker.Metadata_JSON = string(metadataJSONBytes)
+					combinedMarketMap.Markets[idx] = market
 					logger.Info("added cross_launch=true field to metadata JSON for market", zap.String("ID", aggregateID.ID), zap.String("ticker", market.Ticker.CurrencyPair.Base))
 					break
 				}
 			}
 		}
 	}
+
+	logger.Info("updated cross launch MM", zap.Any("marketMap", combinedMarketMap))
 
 	perpetualIDToClobPair, err := o.client.GetPerpetualIDToClobPair(ctx)
 	if err != nil {
