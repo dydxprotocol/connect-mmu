@@ -132,19 +132,17 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 			aggregateIDs := metadataJSON.AggregateIDs
 			for _, aggregateID := range aggregateIDs {
 				if aggregateID.Venue == "coinmarketcap" && slices.Contains(crossLaunch, aggregateID.ID) {
-					logger.Info("found match for market %s, updating metadata JSON", zap.String("ID", aggregateID.ID))
 					metadataJSON.CrossLaunch = true
 					metadataJSONBytes, err := tickermetadata.MarshalDyDx(metadataJSON)
 					if err != nil {
 						return mmtypes.MarketMap{}, []string{}, err
 					}
 					market.Ticker.Metadata_JSON = string(metadataJSONBytes)
-					logger.Info("updated metadata JSON", zap.String("jsonString", string(metadataJSONBytes)), zap.Any("market", market))
+					logger.Info("added cross_launch=true field to metadata JSON for market", zap.String("ID", aggregateID.ID), zap.String("ticker", market.Ticker.CurrencyPair.Base))
+					break
 				}
 			}
-			logger.Info("failed to find CMC ID match")
 		}
-		logger.Info("added cross_launch=true field to market map metadata JSON for allowlisted CMC IDs", zap.Strings("crossLaunch", crossLaunch))
 	}
 
 	perpetualIDToClobPair, err := o.client.GetPerpetualIDToClobPair(ctx)
