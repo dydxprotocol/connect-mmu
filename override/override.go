@@ -124,7 +124,6 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 	logger.Info("combined actual and generated market maps", zap.Int("markets", len(combinedMarketMap.Markets)))
 
 	// Add cross_launch=true field to market map metadata JSON for allowlisted CMC IDs
-	// TODO: Bundle cross-launch-list.json file into the deployed image
 	if len(crossLaunch) > 0 {
 		for _, market := range combinedMarketMap.Markets {
 			metadataJSON, err := tickermetadata.DyDxFromJSONString(market.Ticker.Metadata_JSON)
