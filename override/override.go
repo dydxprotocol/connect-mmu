@@ -146,8 +146,6 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 		}
 	}
 
-	logger.Info("updated cross launch MM", zap.Any("marketMap", combinedMarketMap))
-
 	perpetualIDToClobPair, err := o.client.GetPerpetualIDToClobPair(ctx)
 	if err != nil {
 		return mmtypes.MarketMap{}, []string{}, err
