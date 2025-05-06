@@ -97,23 +97,27 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 					txs = append(txs, updateTxs...)
 				}
 			}
+			var addedTickers []string
 			if hasAdditions {
-				additionTxs, err := generateAdditionTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.additionsPath)
+				additionTxs, additionTickers, err := generateAdditionTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.additionsPath)
 				if err != nil {
 					return err
 				}
 				if additionTxs != nil {
 					txs = append(txs, additionTxs...)
 				}
+				addedTickers = append(addedTickers, additionTickers...)
 			}
+			var removedTickers []string
 			if hasRemovals {
-				removalTxs, err := generateRemovalTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.removalsPath)
+				removalTxs, removalTickers, err := generateRemovalTransactions(cmd.Context(), logger, dp, &cfg, signerAddress, flags.removalsPath)
 				if err != nil {
 					return err
 				}
 				if removalTxs != nil {
 					txs = append(txs, removalTxs...)
 				}
+				removedTickers = append(removedTickers, removalTickers...)
 			}
 
 			decodedTxs, err := decodeTxs(txs)
@@ -131,7 +135,7 @@ func DispatchCmd(signingRegistry *signing.Registry) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				return notifySlack()
+				return notifySlack(addedTickers, removedTickers)
 			}
 
 			return nil
@@ -186,14 +190,14 @@ func generateAdditionTransactions(
 	cfg *config.Config,
 	signerAddress string,
 	additionsPath string,
-) ([]cmttypes.Tx, error) {
+) ([]cmttypes.Tx, []string, error) {
 	additions, err := file.ReadJSONFromFile[[]mmtypes.Market](additionsPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read additions file: %w", err)
+		return nil, nil, fmt.Errorf("failed to read additions file: %w", err)
 	}
 
 	if len(additions) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	additionMsgs, err := generator.ConvertAdditionsToMessages(
@@ -204,15 +208,24 @@ func generateAdditionTransactions(
 		additions,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert additions to messages: %w", err)
+		return nil, nil, fmt.Errorf("failed to convert additions to messages: %w", err)
 	}
 
 	txs, err := dp.GenerateTransactions(ctx, additionMsgs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return txs, nil
+	addedTickers := []string{}
+	for _, addition := range additions {
+		tickerStr := addition.Ticker.CurrencyPair.Base
+		if tickerStr == "" {
+			continue
+		}
+		addedTickers = append(addedTickers, tickerStr)
+	}
+
+	return txs, addedTickers, nil
 }
 
 func generateRemovalTransactions(
@@ -222,14 +235,14 @@ func generateRemovalTransactions(
 	cfg *config.Config,
 	signerAddress string,
 	removalsPath string,
-) ([]cmttypes.Tx, error) {
+) ([]cmttypes.Tx, []string, error) {
 	removals, err := file.ReadJSONFromFile[[]string](removalsPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read marketmap removals file: %w", err)
+		return nil, nil, fmt.Errorf("failed to read marketmap removals file: %w", err)
 	}
 
 	if len(removals) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	removalMsgs, err := generator.ConvertRemovalsToMessages(
@@ -239,15 +252,20 @@ func generateRemovalTransactions(
 		removals,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert removals to messages: %w", err)
+		return nil, nil, fmt.Errorf("failed to convert removals to messages: %w", err)
 	}
 
 	txs, err := dp.GenerateTransactions(ctx, removalMsgs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return txs, nil
+	removedTickers := []string{}
+	for _, removal := range removals {
+		removedTickers = append(removedTickers, strings.Split(removal, "/")[0])
+	}
+
+	return txs, removedTickers, nil
 }
 
 type DecodedTx struct {
@@ -324,7 +342,7 @@ func writeLatestTransactions(decodedTxs []DecodedTx) error {
 }
 
 // Send a Slack message with links to latest transaction + pipeline data
-func notifySlack() error {
+func notifySlack(addedTickers []string, removedTickers []string) error {
 	// Get current env of the MMU itself
 	mmuEnv := os.Getenv("ENVIRONMENT")
 
@@ -344,9 +362,10 @@ func notifySlack() error {
 	}
 	slackWebhookURLSecretName := fmt.Sprintf("%s-market-map-updater-%s-slack-webhook-url", mmuEnv, slackWebhookURLSecretNameModifier)
 
-	slackMsg := fmt.Sprintf("New Market Map TX available for `%s`:", strings.ToUpper(network))
-	slackMsg += fmt.Sprintf("\n- Transactions: %s", constructSlackTextLink(apiURLBase, "tx", network, "TXs"))
-	slackMsg += fmt.Sprintf("\n- Markets: %s, %s, %s", constructSlackTextLink(apiURLBase, "new-markets", network, "New"), constructSlackTextLink(apiURLBase, "removed-markets", network, "Removed"), constructSlackTextLink(apiURLBase, "updated-markets", network, "Updated"))
+	slackMsg := fmt.Sprintf("New Market Map TXs available for `%s`: %s", network, constructSlackTextLink(apiURLBase, "tx", network, "TXs"))
+	slackMsg += fmt.Sprintf("\n- %s %s", constructSlackTextLink(apiURLBase, "new-markets", network, "Added:"), strings.Join(addedTickers, ", "))
+	slackMsg += fmt.Sprintf("\n- %s %s", constructSlackTextLink(apiURLBase, "removed-markets", network, "Removed:"), strings.Join(removedTickers, ", "))
+	slackMsg += fmt.Sprintf("\n- %s", constructSlackTextLink(apiURLBase, "updated-markets", network, "Updated"))
 	slackMsg += fmt.Sprintf("\n- Validation: %s, %s", constructSlackTextLink(apiURLBase, "validation-errors", network, "Errors"), constructSlackTextLink(apiURLBase, "health-reports", network, "Reports"))
 
 	// Send notif to Slack
