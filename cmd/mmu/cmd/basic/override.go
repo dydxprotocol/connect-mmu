@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -54,7 +55,13 @@ func OverrideCmd() *cobra.Command {
 
 			logger.Info("successfully read marketmap", zap.String("path", flags.marketMapPath), zap.Int("num markets", len(fileMarketMap.Markets)))
 
-			crossLaunchList, err := file.ReadJSONFromFile[[]string](flags.crossLaunchListPath)
+			bz, err := os.ReadFile(flags.crossLaunchListPath)
+			if err != nil {
+				logger.Error("failed to read cross launch list", zap.Error(err))
+				return err
+			}
+			var crossLaunchList []string
+			err = json.Unmarshal(bz, &crossLaunchList)
 			if err != nil {
 				logger.Error("failed to read cross launch list", zap.Error(err))
 				return err
