@@ -27,9 +27,9 @@ func (_m *MarketMapOverride) EXPECT() *MarketMapOverride_Expecter {
 	return &MarketMapOverride_Expecter{mock: &_m.Mock}
 }
 
-// OverrideGeneratedMarkets provides a mock function with given fields: ctx, logger, actual, generated, options
-func (_m *MarketMapOverride) OverrideGeneratedMarkets(ctx context.Context, logger *zap.Logger, actual types.MarketMap, generated types.MarketMap, options update.Options) (types.MarketMap, []string, error) {
-	ret := _m.Called(ctx, logger, actual, generated, options)
+// OverrideGeneratedMarkets provides a mock function with given fields: ctx, logger, actual, generated, crossLaunch, options
+func (_m *MarketMapOverride) OverrideGeneratedMarkets(ctx context.Context, logger *zap.Logger, actual types.MarketMap, generated types.MarketMap, crossLaunch []string, options update.Options) (types.MarketMap, []string, error) {
+	ret := _m.Called(ctx, logger, actual, generated, crossLaunch, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for OverrideGeneratedMarkets")
@@ -38,25 +38,25 @@ func (_m *MarketMapOverride) OverrideGeneratedMarkets(ctx context.Context, logge
 	var r0 types.MarketMap
 	var r1 []string
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, update.Options) (types.MarketMap, []string, error)); ok {
-		return rf(ctx, logger, actual, generated, options)
+	if rf, ok := ret.Get(0).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, []string, update.Options) (types.MarketMap, []string, error)); ok {
+		return rf(ctx, logger, actual, generated, crossLaunch, options)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, update.Options) types.MarketMap); ok {
-		r0 = rf(ctx, logger, actual, generated, options)
+	if rf, ok := ret.Get(0).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, []string, update.Options) types.MarketMap); ok {
+		r0 = rf(ctx, logger, actual, generated, crossLaunch, options)
 	} else {
 		r0 = ret.Get(0).(types.MarketMap)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, update.Options) []string); ok {
-		r1 = rf(ctx, logger, actual, generated, options)
+	if rf, ok := ret.Get(1).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, []string, update.Options) []string); ok {
+		r1 = rf(ctx, logger, actual, generated, crossLaunch, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, update.Options) error); ok {
-		r2 = rf(ctx, logger, actual, generated, options)
+	if rf, ok := ret.Get(2).(func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, []string, update.Options) error); ok {
+		r2 = rf(ctx, logger, actual, generated, crossLaunch, options)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -74,14 +74,15 @@ type MarketMapOverride_OverrideGeneratedMarkets_Call struct {
 //   - logger *zap.Logger
 //   - actual types.MarketMap
 //   - generated types.MarketMap
+//   - crossLaunch []string
 //   - options update.Options
-func (_e *MarketMapOverride_Expecter) OverrideGeneratedMarkets(ctx interface{}, logger interface{}, actual interface{}, generated interface{}, options interface{}) *MarketMapOverride_OverrideGeneratedMarkets_Call {
-	return &MarketMapOverride_OverrideGeneratedMarkets_Call{Call: _e.mock.On("OverrideGeneratedMarkets", ctx, logger, actual, generated, options)}
+func (_e *MarketMapOverride_Expecter) OverrideGeneratedMarkets(ctx interface{}, logger interface{}, actual interface{}, generated interface{}, crossLaunch interface{}, options interface{}) *MarketMapOverride_OverrideGeneratedMarkets_Call {
+	return &MarketMapOverride_OverrideGeneratedMarkets_Call{Call: _e.mock.On("OverrideGeneratedMarkets", ctx, logger, actual, generated, crossLaunch, options)}
 }
 
-func (_c *MarketMapOverride_OverrideGeneratedMarkets_Call) Run(run func(ctx context.Context, logger *zap.Logger, actual types.MarketMap, generated types.MarketMap, options update.Options)) *MarketMapOverride_OverrideGeneratedMarkets_Call {
+func (_c *MarketMapOverride_OverrideGeneratedMarkets_Call) Run(run func(ctx context.Context, logger *zap.Logger, actual types.MarketMap, generated types.MarketMap, crossLaunch []string, options update.Options)) *MarketMapOverride_OverrideGeneratedMarkets_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*zap.Logger), args[2].(types.MarketMap), args[3].(types.MarketMap), args[4].(update.Options))
+		run(args[0].(context.Context), args[1].(*zap.Logger), args[2].(types.MarketMap), args[3].(types.MarketMap), args[4].([]string), args[5].(update.Options))
 	})
 	return _c
 }
@@ -91,7 +92,7 @@ func (_c *MarketMapOverride_OverrideGeneratedMarkets_Call) Return(_a0 types.Mark
 	return _c
 }
 
-func (_c *MarketMapOverride_OverrideGeneratedMarkets_Call) RunAndReturn(run func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, update.Options) (types.MarketMap, []string, error)) *MarketMapOverride_OverrideGeneratedMarkets_Call {
+func (_c *MarketMapOverride_OverrideGeneratedMarkets_Call) RunAndReturn(run func(context.Context, *zap.Logger, types.MarketMap, types.MarketMap, []string, update.Options) (types.MarketMap, []string, error)) *MarketMapOverride_OverrideGeneratedMarkets_Call {
 	_c.Call.Return(run)
 	return _c
 }
