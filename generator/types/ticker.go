@@ -21,6 +21,7 @@ func ToTickerMetadataJSON(feed Feed, referencePrice *big.Float, totalLiquidity f
 		ReferencePrice: types.ScalePriceToUint64(referencePrice),
 		Liquidity:      uint64(totalLiquidity),
 		AggregateIDs:   make([]tickermetadata.AggregatorID, 0),
+		CrossLaunch:    false,
 	}
 
 	// Base Asset

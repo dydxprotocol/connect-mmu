@@ -36,6 +36,7 @@ func GenerateUpsertsCmd() *cobra.Command {
 type generateUpsertsFlags struct {
 	configPath               string
 	providerDataPath         string
+	crossLaunchListPath      string
 	updateEnabled            bool
 	overwriteProviders       bool
 	existingOnly             bool
@@ -55,6 +56,7 @@ type generateUpsertsFlags struct {
 func generateUpsertsConfigureFlags(cmd *cobra.Command, flags *generateUpsertsFlags) {
 	cmd.Flags().StringVar(&flags.configPath, basic.ConfigPathFlag, basic.ConfigPathDefault, basic.ConfigPathDescription)
 	cmd.Flags().StringVar(&flags.providerDataPath, basic.ProviderDataPathFlag, basic.ProviderDataPathDefault, basic.ProviderDataPathDescription)
+	cmd.Flags().StringVar(&flags.crossLaunchListPath, basic.CrossLaunchListPathFlag, basic.CrossLaunchListPathDefault, basic.CrossLaunchListPathDescription)
 	cmd.Flags().BoolVar(&flags.updateEnabled, basic.UpdateEnabledFlag, basic.UpdateEnabledDefault, basic.UpdateEnabledDescription)
 	cmd.Flags().BoolVar(&flags.overwriteProviders, basic.OverwriteProvidersFlag, basic.OverwriteProvidersDefault, basic.OverwriteProvidersDescription)
 	cmd.Flags().BoolVar(&flags.existingOnly, basic.ExistingOnlyFlag, basic.ExistingOnlyDefault, basic.ExistingOnlyDescription)
@@ -81,6 +83,14 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 	}
 
 	logger.Info("successfully read config", zap.String("path", flags.configPath))
+
+	crossLaunchList, err := file.ReadJSONFromFile[[]string](flags.crossLaunchListPath)
+	if err != nil {
+		logger.Error("failed to read cross launch list", zap.Error(err))
+		return err
+	}
+
+	logger.Info("successfully read cross launch list", zap.String("path", flags.crossLaunchListPath), zap.Strings("crossLaunch", crossLaunchList))
 
 	// GENERATE
 	if cfg.Generate == nil {
@@ -115,6 +125,7 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 		logger,
 		*cfg.Chain,
 		generated,
+		crossLaunchList,
 		flags.updateEnabled,
 		flags.overwriteProviders,
 		flags.existingOnly,

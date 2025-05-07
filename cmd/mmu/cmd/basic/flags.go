@@ -17,6 +17,10 @@ const (
 	MarketMapGeneratedDefault     = "./tmp/generated-market-map.json"
 	MarketMapGeneratedDescription = "path to market map"
 
+	CrossLaunchListPathFlag        = "cross-launch-list"
+	CrossLaunchListPathDefault     = "./local/cross-launch-list.json"
+	CrossLaunchListPathDescription = "path to list of cross launch markets"
+
 	UpdateEnabledFlag        = "update-enabled"
 	UpdateEnabledDefault     = false
 	UpdateEnabledDescription = "should update providers on enabled markets"

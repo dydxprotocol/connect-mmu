@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -28,7 +29,7 @@ func OverrideCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "override",
 		Short:   "override all markets using an on-chain market map",
-		Example: "mmu override --config config.json --market-map market-map.json --update-enabled false --overwrite-providers false --existing-only false",
+		Example: "mmu override --config config.json --market-map market-map.json --cross-launch-list cross-launch-list.json --update-enabled false --overwrite-providers false --existing-only false",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
@@ -54,11 +55,26 @@ func OverrideCmd() *cobra.Command {
 
 			logger.Info("successfully read marketmap", zap.String("path", flags.marketMapPath), zap.Int("num markets", len(fileMarketMap.Markets)))
 
+			bz, err := os.ReadFile(flags.crossLaunchListPath)
+			if err != nil {
+				logger.Error("failed to read cross launch list", zap.Error(err))
+				return err
+			}
+			var crossLaunchList []string
+			err = json.Unmarshal(bz, &crossLaunchList)
+			if err != nil {
+				logger.Error("failed to read cross launch list", zap.Error(err))
+				return err
+			}
+
+			logger.Info("successfully read cross launch list", zap.String("path", flags.crossLaunchListPath), zap.Strings("crossLaunch", crossLaunchList))
+
 			overriddenMarketMap, removals, err := OverrideMarketsFromConfig(
 				ctx,
 				logger,
 				*cfg.Chain,
 				fileMarketMap,
+				crossLaunchList,
 				flags.updateEnabled,
 				flags.overwriteProviders,
 				flags.existingOnly,
@@ -108,6 +124,7 @@ func OverrideCmd() *cobra.Command {
 type overrideCmdFlags struct {
 	configPath               string
 	marketMapPath            string
+	crossLaunchListPath      string
 	marketMapOutPath         string
 	marketMapRemovalsOutPath string
 	updateEnabled            bool
@@ -119,6 +136,7 @@ type overrideCmdFlags struct {
 func overrideCmdConfigureFlags(cmd *cobra.Command, flags *overrideCmdFlags) {
 	cmd.Flags().StringVar(&flags.configPath, ConfigPathFlag, ConfigPathDefault, ConfigPathDescription)
 	cmd.Flags().StringVar(&flags.marketMapPath, MarketMapGeneratedFlag, MarketMapGeneratedDefault, MarketMapGeneratedDescription)
+	cmd.Flags().StringVar(&flags.crossLaunchListPath, CrossLaunchListPathFlag, CrossLaunchListPathDefault, CrossLaunchListPathDescription)
 	cmd.Flags().BoolVar(&flags.updateEnabled, UpdateEnabledFlag, UpdateEnabledDefault, UpdateEnabledDescription)
 	cmd.Flags().BoolVar(&flags.overwriteProviders, OverwriteProvidersFlag, OverwriteProvidersDefault, OverwriteProvidersDescription)
 	cmd.Flags().BoolVar(&flags.existingOnly, ExistingOnlyFlag, ExistingOnlyDefault, ExistingOnlyDescription)
@@ -133,6 +151,7 @@ func OverrideMarketsFromConfig(
 	logger *zap.Logger,
 	cfg config.ChainConfig,
 	generated mmtypes.MarketMap,
+	crossLaunch []string,
 	updateEnabled, overwriteProviders, existingOnly, disableDeFiMarketMerging bool,
 ) (mmtypes.MarketMap, []string, error) {
 	// create client based on config
@@ -166,6 +185,7 @@ func OverrideMarketsFromConfig(
 		marketOverride,
 		onChainMarketMap,
 		generated,
+		crossLaunch,
 		update.Options{
 			UpdateEnabled:            updateEnabled,
 			OverwriteProviders:       overwriteProviders,
