@@ -427,7 +427,7 @@
   },
   "chain": {
     "rpc_address": "https://dydx-rpc-testnet.enigma-validator.com",
-    "grpc_address": "test-dydx-grpc.kingnodes.com:443",
+    "grpc_address": "3.22.142.107:9090",
     "rest_address": "https://dydx-lcd-testnet.enigma-validator.com",
     "dydx": true,
     "chain_id": "dydx-testnet-4",
