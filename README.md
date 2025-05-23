@@ -79,13 +79,17 @@ The AWS pipeline consists of 3 components:
 To deploy a new version of the MMU Lambda, Step Function, or API Lambda: 
 
 1. Merge a PR to `main`.
-    * To test before merging, temporarily enable the `deploy-staging` workflows on your PR.
+    * To test before merging, get your PR approved and use the `deploy-staging` workflow button that appears after approval.
 2. Wait for the `deploy` workflows to finish running in GitHub Actions. 
     * The `deploy-mmu` workflows build and push the latest MMU Lambda source code image to ECR. 
     * The `deploy-api` workflows build and push the latest API Lambda source code `.zip` to S3 (`market-map-updater-source` bucket). 
-3. To deploy `staging`: Run `terraform apply` from [the `market_map_updater` subdir in `v4-terraform` repo](https://github.com/dydxprotocol/v4-terraform/tree/main/market_map_updater). 
+3. To deploy `staging`: Run `terraform apply` from [the `market_map_updater` subdir in `v4-terraform` repo](https://github.com/dydxprotocol/v4-terraform/tree/main/market_map_updater), or use the HCP Terraform web UI to kick off a new apply on [the `market-map-updater-staging` workspace.](https://app.terraform.io/app/dydxprotocol/workspaces/market-map-updater-staging)
     * You will have to authenticate in AWS CLI w/ your user credentials for the `staging` AWS account.
 4. To deploy `mainnet`: Use the HCP Terraform web UI to kick off a new apply on [the `market-map-updater-mainnet` workspace.](https://app.terraform.io/app/dydxprotocol/workspaces/market-map-updater-mainnet)
+
+### API Keys
+
+* When running in AWS, MMU requires a CMC API key in AWS Secrets Manager, with the name `{env}-market-map-updater-cmc-api-key`. See 1Password for the CMC login credentials.
 
 ---
 
@@ -182,3 +186,13 @@ go run ./cmd/mmu override --config ./local/config-dydx-mainnet.json
 go run ./cmd/mmu upserts --config ./local/config-dydx-mainnet.json
 go run ./cmd/mmu dispatch --config ./local/config-dydx-mainnet.json
 ```
+
+---
+
+## Cross Launch Markets
+
+To designate a market as being launchable with cross-margin:
+* Add that market's CMC ID to the `cross-launch-list.json` config file
+* Submit a PR and merge to main
+* Redeploy the MMU via Terraform (`market_map_updater` module)
+This will add a `cross_launch=true` flag to that market's `metadata_json` string in Market Map. 
