@@ -122,15 +122,18 @@ func (ig *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePr
 			}
 			metaDataBz, err := json.Marshal(metaData)
 			if err != nil {
-				return nil, fmt.Errorf("gecko client: failed to marshal metadata: %w", err)
+				ig.logger.Debug("gecko client: failed to marshal metadata for pool", zap.String("pool", pool.ID), zap.Error(err))
+				continue
 			}
 			refPrice, err := pool.ReferencePrice()
 			if err != nil {
-				return nil, err
+				ig.logger.Debug("gecko client: failed to get reference price for pool", zap.String("pool", pool.ID), zap.Error(err))
+				continue
 			}
 			liquidity, err := pool.Liquidity()
 			if err != nil {
-				return nil, err
+				ig.logger.Debug("gecko client: failed to get liquidity for pool", zap.String("pool", pool.ID), zap.Error(err))
+				continue
 			}
 
 			targetBase, err := pool.Base()
