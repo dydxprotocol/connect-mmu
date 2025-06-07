@@ -2,7 +2,7 @@ name: Deploy Mainnet MMU
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "tq/patch-eos-deploy-mainnet" ]
 
 permissions:
   contents: read
