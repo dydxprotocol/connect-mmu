@@ -98,6 +98,12 @@ func getCMCIDMapping(mm mmtypes.MarketMap) (map[string]int64, error) {
 			}
 			return nil, err
 		}
+		// EOS (CMC ID 1765) has rebranded to Vaulta (CMC ID 36462).
+		// Patch fix here to use the new ID.
+		// TODO: remove this once market map is updated.
+		if ticker == "EOS/USD" && id == 1765 {
+			id = 36462
+		}
 		cmcMapping[ticker] = int64(id)
 	}
 	return cmcMapping, nil
