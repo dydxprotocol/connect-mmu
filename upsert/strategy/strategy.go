@@ -78,6 +78,9 @@ func GetMarketMapUpserts(
 		return nil, nil, fmt.Errorf("updated market-map is invalid: %w", err)
 	}
 
+	// TODO: (urgent) unpause additions to market map
+	logger.Info("pausing additions to market map", zap.Any("would-be additions", additions))
+	additions = []mmtypes.Market{}
 	return updates, additions, nil
 }
 
