@@ -79,7 +79,7 @@ func GetMarketMapUpserts(
 	}
 
 	// TODO: (urgent) unpause additions to market map
-	logger.Info("pausing additions to market map", zap.Any("would-be additions", additions))
+	logger.Info("temporarily pausing additions to market map", zap.Any("would-be additions", additions))
 	additions = []mmtypes.Market{}
 	return updates, additions, nil
 }
