@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	TokenSnifferApiKeyLocation = "%s-market-map-updater-token-sniffer-api-key"
+	TokenSnifferApiKeyLocation = "%s-market-map-updater-token-sniffer-apiKey"
 	TokenSnifferApiUrl         = "https://tokensniffer.com/api/v2/tokens/%s/%s?api_key=%s&include_metrics=true"
 )
 
