@@ -17,6 +17,7 @@ type Transformer struct {
 	feedTransforms  []TransformFeed
 	mmTransforms    []TransformMarketMap
 	assetTransforms []TransformAsset
+	sniffTransforms []TransformSniff
 }
 
 // New creates a new Transformer.
@@ -42,6 +43,9 @@ func New(logger *zap.Logger) Transformer {
 		},
 		assetTransforms: []TransformAsset{ // Separate from feed transforms because these require extra metadata from asset infos
 			FilterOutCMCTags(),
+		},
+		sniffTransforms: []TransformSniff{
+			SniffOutScamTokens(),
 		},
 		mmTransforms: []TransformMarketMap{
 			PruneMarkets(),
@@ -81,6 +85,22 @@ func (d *Transformer) TransformAssets(ctx context.Context, cfg config.GenerateCo
 			return nil, nil, err
 		}
 		feeds = transformAssets
+		dropped.Merge(transformDrops)
+	}
+
+	return feeds, dropped, nil
+}
+
+// TransformSniff runs all sniff transformers that are assigned to the Transformer.
+func (d *Transformer) TransformSniff(ctx context.Context, cfg config.GenerateConfig, feeds types.Feeds, cmcIDToAssetInfo map[int64]provider.AssetInfo, sniffClient SniffClient) (types.Feeds, types.ExclusionReasons, error) {
+	dropped := types.NewExclusionReasons()
+
+	for _, t := range d.sniffTransforms {
+		transformSniff, transformDrops, err := t(ctx, d.logger, cfg, feeds, cmcIDToAssetInfo, sniffClient)
+		if err != nil {
+			return nil, nil, err
+		}
+		feeds = transformSniff
 		dropped.Merge(transformDrops)
 	}
 

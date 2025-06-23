@@ -65,6 +65,14 @@ func (g *Generator) GenerateMarketMap(
 	}
 	dropped.Merge(droppedMarkets)
 
+	sniffClient := transformer.NewSniffClient(ctx)
+	transformed, droppedMarkets, err = g.t.TransformSniff(ctx, cfg, transformed, cmcIDToAssetInfo, sniffClient)
+	if err != nil {
+		g.logger.Error("Unable to transform assets in market map", zap.Error(err))
+		return mmtypes.MarketMap{}, nil, err
+	}
+	dropped.Merge(droppedMarkets)
+
 	// Transform Market Map
 	mm, err := transformed.ToMarketMap()
 	if err != nil {
