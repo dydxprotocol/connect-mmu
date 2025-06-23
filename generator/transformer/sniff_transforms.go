@@ -20,7 +20,7 @@ func SniffOutScamTokens() TransformSniff {
 		exclusions := types.NewExclusionReasons()
 		for _, feed := range feeds {
 			assetInfo := cmcIDToAssetInfo[feed.CMCInfo.BaseID]
-
+			scam := false
 			for _, multiAddress := range assetInfo.MultiAddresses {
 				chain := multiAddress[0]
 				contractAddress := multiAddress[1]
@@ -34,13 +34,16 @@ func SniffOutScamTokens() TransformSniff {
 				if isScam {
 					logger.Info("filtering out scam token", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
 					exclusions.AddExclusionReasonFromFeed(feed, feed.ProviderConfig.Name, fmt.Sprintf("Filtering out scam token: ID: %d | Address: %s | Symbol: %s", feed.CMCInfo.BaseID, contractAddress, assetInfo.Symbol))
-					continue
+					scam = true
+					break
 				}
+			}
+			if !scam {
 				out = append(out, feed)
 			}
 		}
 
-		logger.Info("filtered %d scam tokens", zap.Int("count", len(feeds)-len(out)))
+		logger.Info("filtered scam tokens", zap.Int("feeds length", len(feeds)), zap.Int("out length", len(out)))
 		return out, exclusions, nil
 	}
 }
