@@ -29,6 +29,18 @@ type sniffClient struct {
 	client *http.Client
 }
 
+var ChainToIDMap = map[string]string{
+	"Ethereum": "1",
+	"Solana":    "101",
+	"Base":     "8453",
+	"BNB Smart Chain (BEP20)": "56",
+	"Polygon":  "137",
+	"Arbitrum": "42161",
+	"Optimism": "10",
+	"Avalanche": "43114",
+	"Fantom":    "250",
+}
+
 func NewSniffClient(ctx context.Context) SniffClient {
 	env := os.Getenv("ENVIRONMENT")
 	apiKey, err := aws.GetSecret(ctx, fmt.Sprintf(TokenSnifferApiKeyLocation, env))
@@ -43,7 +55,12 @@ func NewSniffClient(ctx context.Context) SniffClient {
 }
 
 func (c *sniffClient) IsTokenAScam(ctx context.Context, chain string, contractAddress string) (bool, error) {
-	url := fmt.Sprintf(TokenSnifferApiUrl, chain, contractAddress, c.apiKey)
+	chainID := ChainToIDMap[chain]
+	if chainID == "" {
+		return false, fmt.Errorf("chain not supported")
+	}
+
+	url := fmt.Sprintf(TokenSnifferApiUrl, chainID, contractAddress, c.apiKey)
 	resp, err := c.client.GetWithContext(ctx, url)
 	if err != nil {
 		return false, err

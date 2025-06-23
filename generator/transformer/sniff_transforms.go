@@ -35,8 +35,9 @@ func SniffOutScamTokens() TransformSniff {
 					logger.Info("filtering out scam token", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
 					exclusions.AddExclusionReasonFromFeed(feed, feed.ProviderConfig.Name, fmt.Sprintf("Filtering out scam token: ID: %d | Address: %s | Symbol: %s", feed.CMCInfo.BaseID, contractAddress, assetInfo.Symbol))
 					scam = true
-					break
 				}
+
+				break // Execute scam check for just one chain
 			}
 			if !scam {
 				out = append(out, feed)
