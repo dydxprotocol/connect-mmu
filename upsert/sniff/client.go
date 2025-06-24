@@ -70,7 +70,7 @@ func (c *sniffClient) IsTokenAScam(chain string, contractAddress string) (bool, 
 	}
 
 	url := fmt.Sprintf(TokenSnifferApiUrl, chainID, contractAddress, c.apiKey)
-	resp, err := c.client.GetWithContext(c.ctx, url)
+	resp, err := c.client.GetWithContextRetryOnce(c.ctx, url)
 	if err != nil {
 		return false, err
 	}

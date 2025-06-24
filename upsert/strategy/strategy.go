@@ -120,7 +120,7 @@ func sniffToken(
 				for _, multiAddress := range assetInfo.MultiAddresses {
 					chain := multiAddress[0]
 					contractAddress := multiAddress[1]
-	
+					logger.Info("checking if token is a scam", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
 					isScam, err := sniffClient.IsTokenAScam(chain, contractAddress)
 					if err != nil {
 						logger.Error("failed to check if token is a scam", zap.Error(err), zap.String("chain", chain), zap.String("address", contractAddress))
@@ -140,7 +140,7 @@ func sniffToken(
 			}
 		}
 	}
-	
+
 	logger.Info("Unable to query token asset info for scam check", zap.String("market", market.Ticker.String()), zap.String("metadata", string(market.Ticker.Metadata_JSON)))
 	return false, nil
 }
