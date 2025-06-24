@@ -140,7 +140,8 @@ func sniffToken(
 			}
 		}
 	}
-
+	
+	logger.Info("Unable to query token asset info for scam check", zap.String("market", market.Ticker.String()), zap.String("metadata", string(market.Ticker.Metadata_JSON)))
 	return false, nil
 }
 
