@@ -17,7 +17,9 @@ import (
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/file"
+	"github.com/skip-mev/connect-mmu/store/provider"
 	"github.com/skip-mev/connect-mmu/upsert"
+	"github.com/skip-mev/connect-mmu/upsert/sniff"
 )
 
 func UpsertsCmd() *cobra.Command {
@@ -58,6 +60,7 @@ func UpsertsCmd() *cobra.Command {
 				*cfg.Chain,
 				*cfg.Upsert,
 				flags.warnOnInvalidMarketMap,
+				flags.providerDataPath,
 			)
 			if err != nil {
 				return fmt.Errorf("failed to read upsert config at %s: %w", flags.configPath, err)
@@ -107,6 +110,7 @@ type upsertsCmdFlags struct {
 	marketMapPath          string
 	updatesOutPath         string
 	additionsOutPath       string
+	providerDataPath       string
 	warnOnInvalidMarketMap bool
 }
 
@@ -114,6 +118,7 @@ func upsertsCmdConfigureFlags(cmd *cobra.Command, flags *upsertsCmdFlags) {
 	cmd.Flags().StringVar(&flags.configPath, ConfigPathFlag, ConfigPathDefault, ConfigPathDescription)
 	cmd.Flags().StringVar(&flags.marketMapPath, MarketMapOverrideFlag, MarketMapOverrideDefault, MarketMapOverrideDescription)
 	cmd.Flags().BoolVar(&flags.warnOnInvalidMarketMap, WarnOnInvalidMarketMapFlag, WarnOnInvalidMarketMapDefault, WarnOnInvalidMarketMapDescription)
+	cmd.Flags().StringVar(&flags.providerDataPath, ProviderDataPathFlag, ProviderDataPathDefault, ProviderDataPathDescription)
 
 	cmd.Flags().StringVar(&flags.updatesOutPath, UpdatesOutPathFlag, UpdatesOutPathDefault, UpdatesOutPathDescription)
 	cmd.Flags().StringVar(&flags.additionsOutPath, AdditionsOutPathFlag, AdditionsOutPathDefault, AdditionsOutPathDescription)
@@ -126,6 +131,7 @@ func UpsertsFromConfigs(
 	chainCfg config.ChainConfig,
 	cfg config.UpsertConfig,
 	warnOnInvalidMarketMap bool,
+	providerDataPath string,
 ) (updates []mmtypes.Market, additions []mmtypes.Market, err error) {
 	mmClient, err := marketmap.NewClientFromChainConfig(logger, chainCfg)
 	if err != nil {
@@ -155,7 +161,15 @@ func UpsertsFromConfigs(
 
 	logger.Info("successfully retrieved current market map", zap.Int("markets", len(onChainMarketMap.Markets)))
 
-	gen, err := upsert.New(logger, cfg, generatedMarketMap, onChainMarketMap)
+	providerStore, err := provider.NewMemoryStoreFromFile(providerDataPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create provider store: %w", err)
+	}
+
+	cmcIDMap := providerStore.GetCMCIDToAssetInfo(ctx)
+	sniffClient := sniff.NewSniffClient(ctx)
+
+	gen, err := upsert.New(logger, cfg, generatedMarketMap, onChainMarketMap, cmcIDMap, sniffClient)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create upsert generator: %w", err)
 	}

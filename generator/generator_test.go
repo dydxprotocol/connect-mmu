@@ -14,8 +14,6 @@ import (
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/generator"
-	"github.com/stretchr/testify/mock"
-	"github.com/skip-mev/connect-mmu/generator/transformer/mocks"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/store/provider"
 )
@@ -33,9 +31,7 @@ func TestGenerationDeterminisimFromIndexedFile(t *testing.T) {
 	providerStore, err := provider.NewMemoryStoreFromFile(localIndexedMarketsFile)
 	require.NoError(t, err)
 
-	sniffClient := mocks.NewSniffClient(t)
-	gen := generator.New(logger, providerStore, sniffClient)
-	sniffClient.On("IsTokenAScam", context.Background(), mock.Anything, mock.Anything).Return(false, nil)
+	gen := generator.New(logger, providerStore)
 
 	bz, err := os.ReadFile(dydxTestnetGenerationConfig)
 	require.NoError(t, err)

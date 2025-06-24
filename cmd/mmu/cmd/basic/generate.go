@@ -18,7 +18,6 @@ import (
 	"github.com/skip-mev/connect-mmu/generator/types"
 	"github.com/skip-mev/connect-mmu/lib/file"
 	"github.com/skip-mev/connect-mmu/store/provider"
-	"github.com/skip-mev/connect-mmu/generator/transformer"
 )
 
 func GenerateCmd() *cobra.Command {
@@ -117,8 +116,7 @@ func GenerateFromConfig(
 
 	logger.Info("successfully got on chain marketmap", zap.Int("num markets", len(onChainMarketMap.Markets)))
 
-	sniffClient := transformer.NewSniffClient(ctx)
-	g := generator.New(logger, providerStore, sniffClient)
+	g := generator.New(logger, providerStore)
 
 	mm, exclusionReasons, err := g.GenerateMarketMap(ctx, cfg, onChainMarketMap)
 	if err != nil {

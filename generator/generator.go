@@ -18,15 +18,13 @@ type Generator struct {
 
 	q querier.Querier
 	t transformer.Transformer
-	sniffClient transformer.SniffClient
 }
 
-func New(logger *zap.Logger, providerStore provider.Store, sniffClient transformer.SniffClient) Generator {
+func New(logger *zap.Logger, providerStore provider.Store) Generator {
 	return Generator{
 		logger: logger.With(zap.String("mmu-service", "generator")),
 		q:      querier.New(logger, providerStore),
 		t:      transformer.New(logger),
-		sniffClient: sniffClient,
 	}
 }
 
@@ -61,13 +59,6 @@ func (g *Generator) GenerateMarketMap(
 	}
 
 	transformed, droppedMarkets, err := g.t.TransformAssets(ctx, cfg, transformed, cmcIDToAssetInfo)
-	if err != nil {
-		g.logger.Error("Unable to transform assets in market map", zap.Error(err))
-		return mmtypes.MarketMap{}, nil, err
-	}
-	dropped.Merge(droppedMarkets)
-
-	transformed, droppedMarkets, err = g.t.TransformSniff(ctx, cfg, transformed, cmcIDToAssetInfo, g.sniffClient)
 	if err != nil {
 		g.logger.Error("Unable to transform assets in market map", zap.Error(err))
 		return mmtypes.MarketMap{}, nil, err

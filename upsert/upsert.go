@@ -9,7 +9,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/connect-mmu/config"
+	"github.com/skip-mev/connect-mmu/store/provider"
 	"github.com/skip-mev/connect-mmu/upsert/strategy"
+	"github.com/skip-mev/connect-mmu/upsert/sniff"
 )
 
 // Generator is a type that facilitates generating market upserts.
@@ -18,6 +20,8 @@ type Generator struct {
 	cfg         config.UpsertConfig
 	generatedMM types.MarketMap
 	currentMM   types.MarketMap
+	cmcIDMap    map[int64]provider.AssetInfo
+	sniffClient sniff.SniffClient
 }
 
 // New returns a new upsert generator.
@@ -25,6 +29,8 @@ func New(
 	logger *zap.Logger,
 	cfg config.UpsertConfig,
 	generated, current types.MarketMap,
+	cmcIDMap map[int64]provider.AssetInfo,
+	sniffClient sniff.SniffClient,
 ) (*Generator, error) {
 	var err error
 	current, err = current.GetValidSubset()
@@ -42,12 +48,14 @@ func New(
 		cfg:         cfg,
 		generatedMM: generated,
 		currentMM:   current,
+		cmcIDMap:    cmcIDMap,
+		sniffClient: sniffClient,
 	}, nil
 }
 
 // GenerateUpserts generates a slice of market upserts.
 func (d *Generator) GenerateUpserts() (updates []types.Market, additions []types.Market, err error) {
-	updates, additions, err = strategy.GetMarketMapUpserts(d.logger, d.currentMM, d.generatedMM)
+	updates, additions, err = strategy.GetMarketMapUpserts(d.logger, d.currentMM, d.generatedMM, d.cmcIDMap, d.sniffClient)
 	if err != nil {
 		d.logger.Error("failed to get marketmap updates and additions", zap.Error(err))
 		return nil, nil, err
