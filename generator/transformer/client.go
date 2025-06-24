@@ -12,7 +12,7 @@ import (
 
 const (
 	TokenSnifferApiKeyLocation = "%s-market-map-updater-token-sniffer-apiKey"
-	TokenSnifferApiUrl         = "https://tokensniffer.com/api/v2/tokens/%s/%s?api_key=%s&include_metrics=true"
+	TokenSnifferApiUrl         = "https://tokensniffer.com/api/v2/tokens/%s/%s?apikey=%s&include_metrics=true"
 )
 
 var _ SniffClient = &sniffClient{}
@@ -29,6 +29,8 @@ type sniffClient struct {
 	client *http.Client
 }
 
+// Chains supported by TokenSniffer
+// https://tokensniffer.readme.io/reference/supported-networks
 var ChainToIDMap = map[string]string{
 	"Ethereum": "1",
 	"Solana":    "101",
@@ -37,8 +39,13 @@ var ChainToIDMap = map[string]string{
 	"Polygon":  "137",
 	"Arbitrum": "42161",
 	"Optimism": "10",
-	"Avalanche": "43114",
+	"Avalanche C-Chain": "43114",
 	"Fantom":    "250",
+	"Gnosis Chain": "100",
+	"Harmony": "1666600000",
+	"KCC": "321",
+	"Cronos": "25",
+	"Oasis Network": "42262",
 }
 
 func NewSniffClient(ctx context.Context) SniffClient {
