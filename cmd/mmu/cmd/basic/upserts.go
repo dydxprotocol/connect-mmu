@@ -167,7 +167,7 @@ func UpsertsFromConfigs(
 	}
 
 	cmcIDMap := providerStore.GetCMCIDToAssetInfo(ctx)
-	sniffClient := sniff.NewSniffClient(ctx)
+	sniffClient := sniff.NewClient(ctx)
 
 	gen, err := upsert.New(logger, cfg, generatedMarketMap, onChainMarketMap, cmcIDMap, sniffClient)
 	if err != nil {

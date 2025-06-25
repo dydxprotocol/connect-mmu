@@ -10,8 +10,8 @@ import (
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/store/provider"
-	"github.com/skip-mev/connect-mmu/upsert/strategy"
 	"github.com/skip-mev/connect-mmu/upsert/sniff"
+	"github.com/skip-mev/connect-mmu/upsert/strategy"
 )
 
 // Generator is a type that facilitates generating market upserts.
@@ -21,7 +21,7 @@ type Generator struct {
 	generatedMM types.MarketMap
 	currentMM   types.MarketMap
 	cmcIDMap    map[int64]provider.AssetInfo
-	sniffClient sniff.SniffClient
+	sniffClient sniff.Client
 }
 
 // New returns a new upsert generator.
@@ -30,7 +30,7 @@ func New(
 	cfg config.UpsertConfig,
 	generated, current types.MarketMap,
 	cmcIDMap map[int64]provider.AssetInfo,
-	sniffClient sniff.SniffClient,
+	sniffClient sniff.Client,
 ) (*Generator, error) {
 	var err error
 	current, err = current.GetValidSubset()

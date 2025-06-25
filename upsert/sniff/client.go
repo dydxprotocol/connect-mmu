@@ -11,20 +11,18 @@ import (
 )
 
 const (
-	TokenSnifferApiKeyLocation = "%s-market-map-updater-token-sniffer-apiKey"
-	TokenSnifferApiUrl         = "https://tokensniffer.com/api/v2/tokens/%s/%s?apikey=%s&include_metrics=true"
+	TokenSnifferKeyLocation = "%s-market-map-updater-token-sniffer-apiKey"                                  // #nosec G101
+	TokenSnifferURL         = "https://tokensniffer.com/api/v2/tokens/%s/%s?apikey=%s&include_metrics=true" // #nosec G101
 )
 
-var _ SniffClient = &sniffClient{}
+var _ Client = &client{}
 
-// SniffClient is an interface for checking if tokens are scams using the TokenSniffer API.
-//
-//go:generate mockery --name SniffClient --filename mock_sniff_client.go
-type SniffClient interface {
+// Client is an interface for checking if tokens are scams using the TokenSniffer API.
+type Client interface {
 	IsTokenAScam(chain string, contractAddress string) (bool, error)
 }
 
-type sniffClient struct {
+type client struct {
 	ctx    context.Context
 	apiKey string
 	client *http.Client
@@ -49,27 +47,27 @@ var ChainToIDMap = map[string]string{
 	"Oasis Network":           "42262",
 }
 
-func NewSniffClient(ctx context.Context) SniffClient {
+func NewClient(ctx context.Context) Client {
 	env := os.Getenv("ENVIRONMENT")
-	apiKey, err := aws.GetSecret(ctx, fmt.Sprintf(TokenSnifferApiKeyLocation, env))
+	apiKey, err := aws.GetSecret(ctx, fmt.Sprintf(TokenSnifferKeyLocation, env))
 	if err != nil {
 		panic(err)
 	}
 
-	return &sniffClient{
+	return &client{
 		apiKey: apiKey,
 		client: http.NewClient(),
 		ctx:    ctx,
 	}
 }
 
-func (c *sniffClient) IsTokenAScam(chain string, contractAddress string) (bool, error) {
+func (c *client) IsTokenAScam(chain string, contractAddress string) (bool, error) {
 	chainID := ChainToIDMap[chain]
 	if chainID == "" {
 		return false, fmt.Errorf("chain not supported")
 	}
 
-	url := fmt.Sprintf(TokenSnifferApiUrl, chainID, contractAddress, c.apiKey)
+	url := fmt.Sprintf(TokenSnifferURL, chainID, contractAddress, c.apiKey)
 	resp, err := c.client.GetWithContextRetryOnce(c.ctx, url)
 	if err != nil {
 		return false, err
@@ -84,12 +82,12 @@ func (c *sniffClient) IsTokenAScam(chain string, contractAddress string) (bool, 
 		return false, err
 	}
 
-	is_flagged, ok := data["is_flagged"].(bool)
+	isFlagged, ok := data["is_flagged"].(bool)
 	if !ok {
 		return false, fmt.Errorf("missing or invalid is_flagged field in response")
 	}
 
-	is_suspect, ok := data["is_suspect"].(bool)
+	isSuspect, ok := data["is_suspect"].(bool)
 	if !ok {
 		return false, fmt.Errorf("missing or invalid is_suspect field in response")
 	}
@@ -99,20 +97,20 @@ func (c *sniffClient) IsTokenAScam(chain string, contractAddress string) (bool, 
 		return false, fmt.Errorf("missing or invalid score field in response")
 	}
 
-	swap_simulation, ok := data["swap_simulation"].(map[string]interface{})
+	swapSimulation, ok := data["swap_simulation"].(map[string]interface{})
 	if !ok {
 		return false, fmt.Errorf("missing or invalid swap_simulation field in response")
 	}
 
-	is_sellable_raw, exists := swap_simulation["is_sellable"]
-	is_sellable := true // default to true (not a scam) if field is missing/nil
-	if exists && is_sellable_raw != nil {
-		if sellable, ok := is_sellable_raw.(bool); ok {
-			is_sellable = sellable
+	isSellableRaw, exists := swapSimulation["is_sellable"]
+	isSellable := true // default to true (not a scam) if field is missing/nil
+	if exists && isSellableRaw != nil {
+		if sellable, ok := isSellableRaw.(bool); ok {
+			isSellable = sellable
 		}
 	}
 
-	if is_flagged || is_suspect || score < 30 || !is_sellable {
+	if isFlagged || isSuspect || score < 30 || !isSellable {
 		return true, nil
 	}
 

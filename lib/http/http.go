@@ -74,7 +74,7 @@ func (c *Client) GetWithContext(ctx context.Context, url string, opts ...GetOpti
 	return resp, checkResponseCode(resp)
 }
 
-func (c *Client) GetWithContextRetryOnce(ctx context.Context, url string,  opts ...GetOptions) (*http.Response, error) {
+func (c *Client) GetWithContextRetryOnce(ctx context.Context, url string, opts ...GetOptions) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

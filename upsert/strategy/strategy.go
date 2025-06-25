@@ -22,7 +22,7 @@ func GetMarketMapUpserts(
 	actual,
 	generated mmtypes.MarketMap,
 	cmcIDMap map[int64]provider.AssetInfo,
-	sniffClient sniff.SniffClient,
+	sniffClient sniff.Client,
 ) (updates []mmtypes.Market, additions []mmtypes.Market, err error) {
 	// we need to make a copy of actual, since we'll be modifying it
 	actualCopy := mmtypes.MarketMap{
@@ -58,7 +58,7 @@ func GetMarketMapUpserts(
 					continue
 				}
 			}
-			
+
 			additions = append(additions, market)
 			continue
 		}
@@ -102,7 +102,7 @@ func sniffToken(
 	logger *zap.Logger,
 	cmcIDMap map[int64]provider.AssetInfo,
 	market mmtypes.Market,
-	sniffClient sniff.SniffClient,
+	sniffClient sniff.Client,
 ) (bool, error) {
 	var md tickermetadata.CoreMetadata
 	if err := json.Unmarshal([]byte(market.Ticker.Metadata_JSON), &md); err != nil {
@@ -126,7 +126,7 @@ func sniffToken(
 						logger.Error("failed to check if token is a scam", zap.Error(err), zap.String("chain", chain), zap.String("address", contractAddress))
 						continue
 					}
-	
+
 					if isScam {
 						logger.Info("filtering out scam token", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
 						return true, nil
