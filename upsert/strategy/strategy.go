@@ -7,11 +7,12 @@ import (
 
 	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
 	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
+	"go.uber.org/zap"
+	"golang.org/x/exp/maps"
+
 	"github.com/skip-mev/connect-mmu/generator/types"
 	"github.com/skip-mev/connect-mmu/store/provider"
 	"github.com/skip-mev/connect-mmu/upsert/sniff"
-	"go.uber.org/zap"
-	"golang.org/x/exp/maps"
 )
 
 // GetMarketMapUpserts returns the sequence of market-map updates required to translate actual (on chain) to generated.
