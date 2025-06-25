@@ -118,7 +118,6 @@ func sniffToken(
 				for _, multiAddress := range assetInfo.MultiAddresses {
 					chain := multiAddress[0]
 					contractAddress := multiAddress[1]
-					logger.Info("checking if token is a scam", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
 					isScam, err := sniffClient.IsTokenAScam(chain, contractAddress)
 					if err != nil {
 						logger.Error("failed to check if token is a scam", zap.Error(err), zap.String("chain", chain), zap.String("address", contractAddress))
@@ -131,8 +130,8 @@ func sniffToken(
 					}
 
 					// One pass is sufficient
-					// TODO: analyze if we should be ranking chains for performance
 					// TODO: cache results to avoid re-querying the same token - even between runs
+					logger.Info("token passed scam check", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
 					return false, nil
 				}
 			}
