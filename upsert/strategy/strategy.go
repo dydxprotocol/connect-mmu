@@ -1,11 +1,18 @@
 package strategy
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	mmtypes "github.com/dydxprotocol/slinky/x/marketmap/types"
+	"github.com/dydxprotocol/slinky/x/marketmap/types/tickermetadata"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
+
+	"github.com/skip-mev/connect-mmu/generator/types"
+	"github.com/skip-mev/connect-mmu/store/provider"
+	"github.com/skip-mev/connect-mmu/upsert/sniff"
 )
 
 // GetMarketMapUpserts returns the sequence of market-map updates required to translate actual (on chain) to generated.
@@ -15,6 +22,8 @@ func GetMarketMapUpserts(
 	logger *zap.Logger,
 	actual,
 	generated mmtypes.MarketMap,
+	cmcIDMap map[int64]provider.AssetInfo,
+	sniffClient sniff.Client,
 ) (updates []mmtypes.Market, additions []mmtypes.Market, err error) {
 	// we need to make a copy of actual, since we'll be modifying it
 	actualCopy := mmtypes.MarketMap{
@@ -42,6 +51,12 @@ func GetMarketMapUpserts(
 				continue
 			}
 		} else {
+			isScam, err := sniffToken(logger, cmcIDMap, market, sniffClient)
+			if err == nil && isScam {
+				logger.Info("TokenSniffer detected a scam", zap.String("market", market.Ticker.String()))
+				continue
+			}
+
 			additions = append(additions, market)
 			continue
 		}
@@ -78,10 +93,53 @@ func GetMarketMapUpserts(
 		return nil, nil, fmt.Errorf("updated market-map is invalid: %w", err)
 	}
 
-	// TODO: (urgent) unpause additions to market map
-	logger.Info("temporarily pausing additions to market map", zap.Any("would-be additions", additions))
-	additions = []mmtypes.Market{}
 	return updates, additions, nil
+}
+
+func sniffToken(
+	logger *zap.Logger,
+	cmcIDMap map[int64]provider.AssetInfo,
+	market mmtypes.Market,
+	sniffClient sniff.Client,
+) (bool, error) {
+	var md tickermetadata.CoreMetadata
+	if err := json.Unmarshal([]byte(market.Ticker.Metadata_JSON), &md); err != nil {
+		return false, fmt.Errorf("failed to unmarshal market metadata for %q: %w", market.Ticker.String(), err)
+	}
+	for _, aggID := range md.AggregateIDs {
+		if aggID.Venue == types.VenueCoinMarketcap {
+			cmcID, err := strconv.ParseInt(aggID.ID, 10, 64)
+			if err != nil {
+				logger.Error("failed to parse CMC ID", zap.String("id", aggID.ID), zap.Error(err))
+				continue
+			}
+			assetInfo, ok := cmcIDMap[cmcID]
+			if ok {
+				for _, multiAddress := range assetInfo.MultiAddresses {
+					chain := multiAddress[0]
+					contractAddress := multiAddress[1]
+					isScam, err := sniffClient.IsTokenAScam(chain, contractAddress)
+					if err != nil {
+						logger.Error("failed to check if token is a scam", zap.Error(err), zap.String("chain", chain), zap.String("address", contractAddress))
+						continue
+					}
+
+					if isScam {
+						logger.Info("filtering out scam token", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
+						return true, nil
+					}
+
+					// One pass is sufficient
+					// TODO: cache results to avoid re-querying the same token - even between runs
+					logger.Info("token passed scam check", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
+					return false, nil
+				}
+			}
+		}
+	}
+
+	logger.Info("Unable to query token asset info for scam check", zap.String("market", market.Ticker.String()), zap.String("metadata", string(market.Ticker.Metadata_JSON)))
+	return false, nil
 }
 
 // PruneNormalizeByPairs removes any provider configs for enabled markets with providers with disabled normalized pairs from markets.

@@ -74,6 +74,35 @@ func (c *Client) GetWithContext(ctx context.Context, url string, opts ...GetOpti
 	return resp, checkResponseCode(resp)
 }
 
+func (c *Client) GetWithContextRetryOnce(ctx context.Context, url string, opts ...GetOptions) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, opt := range opts {
+		opt(req)
+	}
+
+	resp, err := retry.DoWithData(func() (*http.Response, error) {
+		resp, err := c.internal.Do(req)
+		if err != nil {
+			return nil, retry.Unrecoverable(err)
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			return nil, checkResponseCode(resp)
+		}
+
+		return resp, nil
+	}, retry.Attempts(1), retry.Delay(1*time.Second))
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, checkResponseCode(resp)
+}
+
 // checkResponseCode parses the http.Response status code and returns
 // populated errors based on the code.
 func checkResponseCode(resp *http.Response) error {

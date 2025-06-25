@@ -164,6 +164,7 @@ func generateUpserts(ctx context.Context, flags generateUpsertsFlags) error {
 		*cfg.Chain,
 		*cfg.Upsert,
 		flags.warnOnInvalidMarketMap,
+		flags.providerDataPath,
 	)
 	if err != nil {
 		return err
