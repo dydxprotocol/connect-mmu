@@ -106,4 +106,8 @@ const (
 	AdditionsOutPathFlag        = "additions-out"
 	AdditionsOutPathDefault     = "./tmp/market-map-additions.json"
 	AdditionsOutPathDescription = "path to output markets to be added"
+
+	TokenSnifferWhitelistPathFlag        = "token-sniffer-whitelist"
+	TokenSnifferWhitelistPathDefault     = "./local/token-sniffer-whitelist.json"
+	TokenSnifferWhitelistPathDescription = "path of the token sniffer whitelist"
 )

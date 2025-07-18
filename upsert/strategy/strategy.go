@@ -108,6 +108,11 @@ func sniffToken(
 	}
 	for _, aggID := range md.AggregateIDs {
 		if aggID.Venue == types.VenueCoinMarketcap {
+			if sniffClient.IsTokenInWhitelisted(aggID.ID) {
+				logger.Info("token is whitelisted", zap.String("cmcID", aggID.ID))
+				return false, nil
+			}
+
 			cmcID, err := strconv.ParseInt(aggID.ID, 10, 64)
 			if err != nil {
 				logger.Error("failed to parse CMC ID", zap.String("id", aggID.ID), zap.Error(err))
