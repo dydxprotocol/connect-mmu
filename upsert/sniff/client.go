@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+
 	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/http"
 )
@@ -24,9 +25,9 @@ type Client interface {
 }
 
 type client struct {
-	ctx                  context.Context
-	apiKey               string
-	client               *http.Client
+	ctx                   context.Context
+	apiKey                string
+	client                *http.Client
 	tokenSnifferWhitelist []string
 }
 
@@ -57,9 +58,9 @@ func NewClient(ctx context.Context, tokenSnifferWhitelist []string) Client {
 	}
 
 	return &client{
-		apiKey: apiKey,
-		client: http.NewClient(),
-		ctx:    ctx,
+		apiKey:                apiKey,
+		client:                http.NewClient(),
+		ctx:                   ctx,
 		tokenSnifferWhitelist: tokenSnifferWhitelist,
 	}
 }

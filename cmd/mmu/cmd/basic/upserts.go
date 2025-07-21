@@ -108,12 +108,12 @@ func UpsertsCmd() *cobra.Command {
 }
 
 type upsertsCmdFlags struct {
-	configPath             string
-	marketMapPath          string
-	updatesOutPath         string
-	additionsOutPath       string
-	providerDataPath       string
-	warnOnInvalidMarketMap bool
+	configPath                string
+	marketMapPath             string
+	updatesOutPath            string
+	additionsOutPath          string
+	providerDataPath          string
+	warnOnInvalidMarketMap    bool
 	tokenSnifferWhitelistPath string
 }
 

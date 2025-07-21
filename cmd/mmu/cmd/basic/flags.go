@@ -108,6 +108,6 @@ const (
 	AdditionsOutPathDescription = "path to output markets to be added"
 
 	TokenSnifferWhitelistPathFlag        = "token-sniffer-whitelist"
-	TokenSnifferWhitelistPathDefault     = "./local/token-sniffer-whitelist.json"
+	TokenSnifferWhitelistPathDefault     = "./local/token-sniffer-whitelist.json" // #nosec G101
 	TokenSnifferWhitelistPathDescription = "path of the token sniffer whitelist"
 )
