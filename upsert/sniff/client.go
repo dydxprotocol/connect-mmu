@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/skip-mev/connect-mmu/lib/aws"
 	"github.com/skip-mev/connect-mmu/lib/http"
@@ -20,12 +21,14 @@ var _ Client = &client{}
 // Client is an interface for checking if tokens are scams using the TokenSniffer API.
 type Client interface {
 	IsTokenAScam(chain string, contractAddress string) (bool, error)
+	IsTokenInWhitelisted(contractAddress string) bool
 }
 
 type client struct {
-	ctx    context.Context
-	apiKey string
-	client *http.Client
+	ctx                   context.Context
+	apiKey                string
+	client                *http.Client
+	tokenSnifferWhitelist []string
 }
 
 // Chains supported by TokenSniffer
@@ -47,7 +50,7 @@ var ChainToIDMap = map[string]string{
 	"Oasis Network":           "42262",
 }
 
-func NewClient(ctx context.Context) Client {
+func NewClient(ctx context.Context, tokenSnifferWhitelist []string) Client {
 	env := os.Getenv("ENVIRONMENT")
 	apiKey, err := aws.GetSecret(ctx, fmt.Sprintf(TokenSnifferKeyLocation, env))
 	if err != nil {
@@ -55,10 +58,15 @@ func NewClient(ctx context.Context) Client {
 	}
 
 	return &client{
-		apiKey: apiKey,
-		client: http.NewClient(),
-		ctx:    ctx,
+		apiKey:                apiKey,
+		client:                http.NewClient(),
+		ctx:                   ctx,
+		tokenSnifferWhitelist: tokenSnifferWhitelist,
 	}
+}
+
+func (c *client) IsTokenInWhitelisted(cmcID string) bool {
+	return slices.Contains(c.tokenSnifferWhitelist, cmcID)
 }
 
 func (c *client) IsTokenAScam(chain string, contractAddress string) (bool, error) {

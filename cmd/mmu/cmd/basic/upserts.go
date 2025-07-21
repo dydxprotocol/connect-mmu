@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -61,6 +62,7 @@ func UpsertsCmd() *cobra.Command {
 				*cfg.Upsert,
 				flags.warnOnInvalidMarketMap,
 				flags.providerDataPath,
+				flags.tokenSnifferWhitelistPath,
 			)
 			if err != nil {
 				return fmt.Errorf("failed to read upsert config at %s: %w", flags.configPath, err)
@@ -106,12 +108,13 @@ func UpsertsCmd() *cobra.Command {
 }
 
 type upsertsCmdFlags struct {
-	configPath             string
-	marketMapPath          string
-	updatesOutPath         string
-	additionsOutPath       string
-	providerDataPath       string
-	warnOnInvalidMarketMap bool
+	configPath                string
+	marketMapPath             string
+	updatesOutPath            string
+	additionsOutPath          string
+	providerDataPath          string
+	warnOnInvalidMarketMap    bool
+	tokenSnifferWhitelistPath string
 }
 
 func upsertsCmdConfigureFlags(cmd *cobra.Command, flags *upsertsCmdFlags) {
@@ -122,6 +125,7 @@ func upsertsCmdConfigureFlags(cmd *cobra.Command, flags *upsertsCmdFlags) {
 
 	cmd.Flags().StringVar(&flags.updatesOutPath, UpdatesOutPathFlag, UpdatesOutPathDefault, UpdatesOutPathDescription)
 	cmd.Flags().StringVar(&flags.additionsOutPath, AdditionsOutPathFlag, AdditionsOutPathDefault, AdditionsOutPathDescription)
+	cmd.Flags().StringVar(&flags.tokenSnifferWhitelistPath, TokenSnifferWhitelistPathFlag, TokenSnifferWhitelistPathDefault, TokenSnifferWhitelistPathDescription)
 }
 
 func UpsertsFromConfigs(
@@ -132,6 +136,7 @@ func UpsertsFromConfigs(
 	cfg config.UpsertConfig,
 	warnOnInvalidMarketMap bool,
 	providerDataPath string,
+	tokenSnifferWhitelistPath string,
 ) (updates []mmtypes.Market, additions []mmtypes.Market, err error) {
 	mmClient, err := marketmap.NewClientFromChainConfig(logger, chainCfg)
 	if err != nil {
@@ -167,7 +172,21 @@ func UpsertsFromConfigs(
 	}
 
 	cmcIDMap := providerStore.GetCMCIDToAssetInfo(ctx)
-	sniffClient := sniff.NewClient(ctx)
+
+	bz, err := os.ReadFile(tokenSnifferWhitelistPath)
+	if err != nil {
+		logger.Error("failed to read token sniffer whitelist", zap.Error(err))
+		return nil, nil, err
+	}
+	var tokenSnifferWhitelist []string
+	err = json.Unmarshal(bz, &tokenSnifferWhitelist)
+	if err != nil {
+		logger.Error("failed to read token sniffer whitelist", zap.Error(err))
+		return nil, nil, err
+	}
+
+	logger.Info("successfully read token sniffer whitelist", zap.String("path", tokenSnifferWhitelistPath), zap.Strings("whitelist", tokenSnifferWhitelist))
+	sniffClient := sniff.NewClient(ctx, tokenSnifferWhitelist)
 
 	gen, err := upsert.New(logger, cfg, generatedMarketMap, onChainMarketMap, cmcIDMap, sniffClient)
 	if err != nil {
