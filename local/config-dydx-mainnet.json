@@ -196,6 +196,7 @@
     },
     "min_cex_provider_count": 2,
     "min_dex_provider_count": 1,
+    "exclude_cmc_ids": ["29035"],
     "exclude_cmc_tags": ["wrapped-tokens", "algorithmic-stablecoin"],
     "disable_providers": {
       "IOTX/USD": ["coinbase_ws"]

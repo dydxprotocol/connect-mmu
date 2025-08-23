@@ -42,6 +42,7 @@ func New(logger *zap.Logger) Transformer {
 		},
 		assetTransforms: []TransformAsset{ // Separate from feed transforms because these require extra metadata from asset infos
 			FilterOutCMCTags(),
+			FilterOutCMCIDs(),
 		},
 		mmTransforms: []TransformMarketMap{
 			PruneMarkets(),
