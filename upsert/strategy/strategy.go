@@ -93,9 +93,6 @@ func GetMarketMapUpserts(
 		return nil, nil, fmt.Errorf("updated market-map is invalid: %w", err)
 	}
 
-	logger.Info("temporarily pausing additions to market map", zap.Any("would-be additions", additions))
-	additions = []mmtypes.Market{}
-
 	return updates, additions, nil
 }
 
@@ -123,31 +120,30 @@ func sniffToken(
 			}
 			assetInfo, ok := cmcIDMap[cmcID]
 			if ok {
+				var chain, contractAddress string
 				for _, multiAddress := range assetInfo.MultiAddresses {
-					chain := multiAddress[0]
-					contractAddress := multiAddress[1]
+					chain = multiAddress[0]
+					contractAddress = multiAddress[1]
 					isScam, err := sniffClient.IsTokenAScam(chain, contractAddress)
-					if err != nil {
-						logger.Error("failed to check if token is a scam", zap.Error(err), zap.String("chain", chain), zap.String("address", contractAddress))
-						continue
+					if err != nil || isScam {
+						var errorMsg string
+						if err != nil {
+							errorMsg = fmt.Sprintf("filtering out scam token because of error: %s", err.Error())
+						} else {
+							errorMsg = "filtering out confirmed scam token"
+						}
+						logger.Error(errorMsg, zap.String("symbol", assetInfo.Symbol), zap.String("chain", chain), zap.String("address", contractAddress))
+						return true, err
 					}
-
-					if isScam {
-						logger.Info("filtering out scam token", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
-						return true, nil
-					}
-
-					// One pass is sufficient
-					// TODO: cache results to avoid re-querying the same token - even between runs
-					logger.Info("token passed scam check", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
-					return false, nil
 				}
+				logger.Info("token passed scam check", zap.String("chain", chain), zap.String("address", contractAddress), zap.String("symbol", assetInfo.Symbol))
+				return false, nil
 			}
 		}
 	}
 
 	logger.Info("Unable to query token asset info for scam check", zap.String("market", market.Ticker.String()), zap.String("metadata", string(market.Ticker.Metadata_JSON)))
-	return false, nil
+	return true, nil
 }
 
 // PruneNormalizeByPairs removes any provider configs for enabled markets with providers with disabled normalized pairs from markets.
