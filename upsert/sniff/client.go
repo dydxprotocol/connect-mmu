@@ -82,7 +82,7 @@ func (c *client) IsTokenAScam(chain string, contractAddress string) (bool, error
 	}
 
 	if resp.StatusCode != 200 {
-		return false, fmt.Errorf("failed to check if token is a scam: %s", resp.Status)
+		return false, fmt.Errorf("TokenSniffer API returned error with status: %s", resp.Status)
 	}
 
 	var data map[string]interface{}
