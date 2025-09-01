@@ -123,6 +123,9 @@ type GenerateConfig struct {
 	// You must have MinProviderCountOverride <= MinDexProviderCount.
 	MinDexProviderCount uint64 `json:"min_dex_provider_count" mapstructure:"min_dex_provider_count"`
 
+	// ExcludeCMCIDs specifies a list of CMC IDs of markets that should be excluded.
+	ExcludeCMCIDs []string `json:"exclude_cmc_ids" mapstructure:"exclude_cmc_ids"`
+
 	// ExcludeCMCTags specifies a list of CMC tags of markets that should be excluded.
 	ExcludeCMCTags []string `json:"exclude_cmc_tags" mapstructure:"exclude_cmc_tags"`
 	// DisableProviders specifies a list of providers that should not be allowed to provide for a market.

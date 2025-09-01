@@ -2,7 +2,9 @@ package transformer
 
 import (
 	"context"
+	"slices"
 	"strings"
+	"strconv"
 
 	"go.uber.org/zap"
 
@@ -35,6 +37,28 @@ func FilterOutCMCTags() TransformAsset {
 		}
 
 		logger.Info("filtered out cmc tags", zap.Int("feeds remaining", len(out)))
+		return out, exclusions, nil
+	}
+}
+
+func FilterOutCMCIDs() TransformAsset {
+	return func(_ context.Context, logger *zap.Logger, cfg config.GenerateConfig, feeds types.Feeds, cmcIDToAssetInfo map[int64]provider.AssetInfo) (types.Feeds, types.ExclusionReasons, error) {
+		idsToExclude := cfg.ExcludeCMCIDs
+		logger.Info("filtering out cmc ids", zap.Int("feeds", len(feeds)), zap.Strings("ids", idsToExclude))
+		out := make([]types.Feed, 0, len(feeds))
+		exclusions := types.NewExclusionReasons()
+
+		for _, feed := range feeds {
+			baseAssetCMCID := feed.CMCInfo.BaseID
+			if slices.Contains(idsToExclude, strconv.FormatInt(baseAssetCMCID, 10)) {
+				logger.Info("dropping feed because it has excluded CMC ids", zap.Any("feed", feed))
+				exclusions.AddExclusionReasonFromFeed(feed, feed.ProviderConfig.Name, "FilterOutCMCID: has cmc id to exclude")
+				continue
+			}
+			out = append(out, feed)
+		}
+
+		logger.Info("filtering out cmc ids", zap.Int("feeds remaining", len(out)))
 		return out, exclusions, nil
 	}
 }
