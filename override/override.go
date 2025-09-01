@@ -127,7 +127,12 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 		for idx, market := range combinedMarketMap.Markets {
 			metadataJSON, err := tickermetadata.DyDxFromJSONString(market.Ticker.Metadata_JSON)
 			if err != nil {
-				return mmtypes.MarketMap{}, []string{}, err
+				logger.Error("error unmarshalling metadata JSON", 
+					zap.String("ticker", market.Ticker.CurrencyPair.Base), 
+					zap.Error(err), 
+					zap.String("metadata", market.Ticker.Metadata_JSON),
+				)
+				continue
 			}
 			aggregateIDs := metadataJSON.AggregateIDs
 			for _, aggregateID := range aggregateIDs {
