@@ -140,6 +140,11 @@ func (o *DyDxOverride) OverrideGeneratedMarkets(
 					metadataJSON.CrossLaunch = true
 					metadataJSONBytes, err := tickermetadata.MarshalDyDx(metadataJSON)
 					if err != nil {
+						logger.Error("error marshalling metadata JSON", 
+							zap.String("ticker", market.Ticker.CurrencyPair.Base), 
+							zap.Error(err), 
+							zap.String("metadata", market.Ticker.Metadata_JSON),
+						)
 						return mmtypes.MarketMap{}, []string{}, err
 					}
 					market.Ticker.Metadata_JSON = string(metadataJSONBytes)
