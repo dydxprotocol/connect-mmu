@@ -53,7 +53,7 @@ func GetMarketMapUpserts(
 		} else {
 			isScam, err := sniffToken(logger, cmcIDMap, market, sniffClient)
 			if err != nil || isScam {
-				logger.Info("TokenSniffer either detected a scam encountered an error", zap.String("market", market.Ticker.String()), zap.Error(err))
+				logger.Info("TokenSniffer either detected a scam or encountered an error", zap.String("market", market.Ticker.String()), zap.Error(err))
 				continue
 			}
 
