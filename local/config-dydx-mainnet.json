@@ -328,6 +328,20 @@
             }
           ]
         },
+        "DODGERSWIN/USD": {
+          "ticker": {
+            "currency_pair": { "Base": "DODGERSWIN", "Quote": "USD" },
+            "decimals": 4,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":10000,\"liquidity\":0,\"aggregate_ids\":[]}"
+          },
+          "provider_configs": [
+            {
+              "name": "polymarket_api",
+              "off_chain_ticker": "0x1073cc3483263763397b853cb095ac8451f7e26b5a94231b5973c14bf6e7a95a/50056291296373013403053264672448796961558656386670931029485176637893947669174"
+            }
+          ]
+        },
         "TRY/USD": {
           "ticker": {
             "currency_pair": { "Base": "TRY", "Quote": "USD" },
