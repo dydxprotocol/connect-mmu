@@ -195,4 +195,19 @@ To designate a market as being launchable with cross-margin:
 * Add that market's CMC ID to the `cross-launch-list.json` config file
 * Submit a PR and merge to main
 * Redeploy the MMU via Terraform (`market_map_updater` module)
-This will add a `cross_launch=true` flag to that market's `metadata_json` string in Market Map. 
+This will add a `cross_launch=true` flag to that market's `metadata_json` string in Market Map.
+
+
+## Attribution; Modification.
+
+This module incorporates code from the Cosmos Labs /connect-mmu module, which is subject to this License https://github.com/skip-mev/connect-mmu?tab=Apache-2.0-1-ov-file and has been modified by us.
+ 
+Copyright for connect-mmu public infrastructure attributed to 2025 Cosmos Labs.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
