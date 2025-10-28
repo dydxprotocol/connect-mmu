@@ -102,6 +102,10 @@ func sniffToken(
 	market mmtypes.Market,
 	sniffClient sniff.Client,
 ) (bool, error) {
+	if isPredictionMarket(market) {
+		return false, nil
+	}
+
 	var md tickermetadata.CoreMetadata
 	if err := json.Unmarshal([]byte(market.Ticker.Metadata_JSON), &md); err != nil {
 		return false, fmt.Errorf("failed to unmarshal market metadata for %q: %w", market.Ticker.String(), err)
@@ -144,6 +148,16 @@ func sniffToken(
 
 	logger.Info("Unable to query token asset info for scam check", zap.String("market", market.Ticker.String()), zap.String("metadata", string(market.Ticker.Metadata_JSON)))
 	return true, nil
+}
+
+func isPredictionMarket(market mmtypes.Market) bool {
+	for _, config := range market.ProviderConfigs {
+		if config.Name == "polymarket_api" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // PruneNormalizeByPairs removes any provider configs for enabled markets with providers with disabled normalized pairs from markets.
