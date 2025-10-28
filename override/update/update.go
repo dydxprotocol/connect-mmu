@@ -157,6 +157,11 @@ func newMarketHasDifferentCMCID(logger *zap.Logger, ticker string, actualMarket,
 			return false, err
 		}
 
+		if actualMarket.ProviderConfigs[0].Name == "polymarket_api" {
+			logger.Warn("accepting generated polymarket_api market", zap.Any("actual", actualMarket), zap.Any("generated", newMarket))
+			return false, nil
+		}
+
 		if generatedMetadata.AggregateIDs[0].ID != actualMetadata.AggregateIDs[0].ID {
 			logger.Warn("not adding market because the generated market has a different CMC ID than the actual market",
 				zap.String("ticker", ticker),
