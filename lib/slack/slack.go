@@ -23,6 +23,7 @@ func SendNotification(message string, webhookURLSecretName string) error {
 
 	slackMessage := slackMessage{Text: message}
 	slackBody, _ := json.Marshal(slackMessage)
+	fmt.Printf("Sending Slack notification to %s with message with message: %s", webhookURL, message)
 	req, err := http.NewRequest(http.MethodPost, webhookURL, bytes.NewBuffer(slackBody))
 	if err != nil {
 		fmt.Printf("Error creating Slack request: %v", err)
