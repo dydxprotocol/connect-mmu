@@ -353,7 +353,7 @@ func notifySlack(addedTickers []string, removedTickers []string) error {
 	// and construct name of the secret in Secrets Manager that contains the correct Slack Webhook URL for this env + network
 	var apiURLBase string
 	var slackWebhookURLSecretNameModifier string
-	if mmuEnv == "staging" {
+	if mmuEnv == "staging" || true { // TODO: do not default to prod slack
 		apiURLBase = consts.StagingAPIURL
 		slackWebhookURLSecretNameModifier = "internal"
 	} else if mmuEnv == "mainnet" {
