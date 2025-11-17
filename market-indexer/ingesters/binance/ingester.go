@@ -71,7 +71,8 @@ func (i *Ingester) GetProviderMarkets(ctx context.Context) ([]provider.CreatePro
 
 		pm, err := ticker.toProviderMarket()
 		if err != nil {
-			return nil, err
+			i.logger.Error("failed to convert ticker to providerMarket", zap.Error(err), zap.String("ingester", Name), zap.Any("ticker", ticker))
+			continue
 		}
 
 		pms = append(pms, pm)
