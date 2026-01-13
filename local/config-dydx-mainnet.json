@@ -260,6 +260,21 @@
             }
           ]
         },
+        "LIT/USD": {
+          "ticker": {
+            "currency_pair": { "Base": "LIT", "Quote": "USD" },
+            "decimals": 9,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":2079567082,\"liquidity\":79946,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"39125\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "LIT_USDT",
+              "normalize_by_pair": { "Base": "USDT", "Quote": "USD" }
+            }
+          ]
+        },
         "CHIEFSWINSB/USD": {
           "ticker": {
             "currency_pair": { "Base": "CHIEFSWINSB", "Quote": "USD" },
