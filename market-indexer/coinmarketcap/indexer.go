@@ -358,7 +358,7 @@ func (i *Indexer) getIngesterMapping(ctx context.Context, cfg config.MarketConfi
 			ingesterNameToID[ingesterName] = id
 		} else {
 			i.logger.Error("could not find an ingester", zap.String("ingester", ingesterName), zap.Any("items", exchangeNameToID))
-			return fmt.Errorf("could not find an ingester named %s", ingesterName)
+			return fmt.Errorf("could not find an ingester named %s | %s", ingesterName, cmcName)
 		}
 
 		return nil
@@ -396,7 +396,7 @@ func resolveIngesterNameAliases(ingesterName string) string {
 	case crypto_com.Name:
 		return "crypto-com-exchange"
 	case gate.Name:
-		return "gate-io"
+		return "gate"
 	case huobi.Name:
 		return "htx"
 	case "uniswap_v3":

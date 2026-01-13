@@ -13,7 +13,8 @@
       { "name": "okx" },
       { "name": "mexc" },
       { "name": "gecko" },
-      { "name": "raydium" }
+      { "name": "raydium" },
+      { "name": "gate" }
     ],
     "coinmarketcap": { "api_key": "" },
     "raydium": [
@@ -256,6 +257,21 @@
               "normalize_by_pair": { "Base": "SOL", "Quote": "USD" },
               "invert": true,
               "metadata_JSON": "{\"base_token_vault\":{\"token_vault_address\":\"CLTdpsLAs7JTmN1r6AfVSjBTgqpJAtKEWvGbenYrxMYT\",\"token_decimals\":9},\"quote_token_vault\":{\"token_vault_address\":\"EmyzSTZrb9NCBz8bK8Sfy8iaBT7Bkh1wpjiiKKQhjMxG\",\"token_decimals\":6},\"amm_info_address\":\"8WwcNqdZjCY5Pt7AkhupAFknV2txca9sq6YBkGzLbvdt\",\"open_orders_address\":\"CTweAnaHqDxevH2k9H9SmTRC3DEVhb3DkXDxVHiEW6kW\"}"
+            }
+          ]
+        },
+        "LIT/USD": {
+          "ticker": {
+            "currency_pair": { "Base": "LIT", "Quote": "USD" },
+            "decimals": 9,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":2079567082,\"liquidity\":79946,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"39125\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "LIT_USDT",
+              "normalize_by_pair": { "Base": "USDT", "Quote": "USD" }
             }
           ]
         },
