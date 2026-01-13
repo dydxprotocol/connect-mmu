@@ -13,7 +13,8 @@
       { "name": "okx" },
       { "name": "mexc" },
       { "name": "gecko" },
-      { "name": "raydium" }
+      { "name": "raydium" },
+      { "name": "gate" }
     ],
     "coinmarketcap": { "api_key": "" },
     "raydium": [
