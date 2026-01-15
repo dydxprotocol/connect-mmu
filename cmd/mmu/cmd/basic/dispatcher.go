@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -268,6 +269,11 @@ func generateRemovalTransactions(
 	return txs, removedTickers, nil
 }
 
+type LatestTransactionsPayload struct {
+	Timestamp    string      `json:"timestamp"`
+	Transactions []DecodedTx `json:"transactions"`
+}
+
 type DecodedTx struct {
 	Body       *codectypes.Any `json:"body"`
 	AuthInfo   *codectypes.Any `json:"auth_info"`
@@ -322,17 +328,32 @@ func getSignerAddress(ctx context.Context, signer signing.SigningAgent) (string,
 
 // Write latest-transactions.json to S3 for the MM Operator
 func writeLatestTransactions(decodedTxs []DecodedTx) error {
-	// Check if new transactions differ from the existing "latest-transactions.json" in S3
-	newLatestTransactionsJSON, err := json.MarshalIndent(decodedTxs, "", "  ")
+	// Wrap transactions with timestamp
+	payload := LatestTransactionsPayload{
+		Timestamp:    time.Now().UTC().Format(time.RFC3339),
+		Transactions: decodedTxs,
+	}
+
+	newLatestTransactionsJSON, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return err
 	}
-	existingLatestTransactionsJSON, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
-	if err == nil && bytes.Equal(newLatestTransactionsJSON, existingLatestTransactionsJSON) {
-		return nil
+
+	existingJSON, err := aws.ReadFromS3(consts.LatestTransactionsFilename, false)
+	if err == nil {
+		var existingPayload LatestTransactionsPayload
+		// Only skip upload if we can parse the new format AND transactions match
+		// If Transactions is nil/empty, it's likely the old format - push update anyway
+		if json.Unmarshal(existingJSON, &existingPayload) == nil && len(existingPayload.Transactions) > 0 {
+			existingTxsJSON, _ := json.Marshal(existingPayload.Transactions)
+			newTxsJSON, _ := json.Marshal(decodedTxs)
+			if bytes.Equal(existingTxsJSON, newTxsJSON) {
+				return nil
+			}
+		}
 	}
 
-	// If we have new transactions, write them to "latest-transactions.json"
+	// Write new payload with updated timestamp to "latest-transactions.json"
 	err = aws.WriteToS3(consts.LatestTransactionsFilename, newLatestTransactionsJSON, false)
 	if err != nil {
 		return err
