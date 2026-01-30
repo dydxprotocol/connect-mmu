@@ -275,6 +275,85 @@
             }
           ]
         },
+        "XU3O8/USD": {
+          "ticker": {
+            "currency_pair": {
+              "Base": "XU3O8",
+              "Quote": "USD"
+            },
+            "decimals": 9,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":5751707624,\"liquidity\":146650,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"35597\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "XU3O8_USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            },
+            {
+              "name": "kucoin_ws",
+              "off_chain_ticker": "XU3O8-USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            }
+          ]
+        },
+        "SLVON/USD": {
+          "ticker": {
+            "currency_pair": {
+              "Base": "SLVON",
+              "Quote": "USD"
+            },
+            "decimals": 8,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":9427550176,\"liquidity\":614847,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"38057\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "SLVON_USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            },
+            {
+              "name": "mexc_ws",
+              "off_chain_ticker": "SLVONUSDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            }
+          ]
+        },
+        "QQQX/USD": {
+          "ticker": {
+            "currency_pair": {
+              "Base": "QQQX",
+              "Quote": "USD"
+            },
+            "decimals": 7,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":6264788152,\"liquidity\":2697514,\"aggregate_ids\":[{\"venue\":\"coinmarketcap\",\"ID\":\"37057\"}]}"
+          },
+          "provider_configs": [
+            {
+              "name": "gate_ws",
+              "off_chain_ticker": "QQQX_USDT",
+              "normalize_by_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              }
+            }
+          ]
+        },
         "CHIEFSWINSB/USD": {
           "ticker": {
             "currency_pair": { "Base": "CHIEFSWINSB", "Quote": "USD" },
