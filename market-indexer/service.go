@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/skip-mev/connect-mmu/config"
 	"github.com/skip-mev/connect-mmu/market-indexer/coinmarketcap"
@@ -104,7 +105,7 @@ func NewIndexer(cfg config.MarketConfig, logger *zap.Logger, writer provider.Sto
 }
 
 // Index collects market data for each ingester and returns the combined data.
-// TODO: parallelize and optimize.
+// Ingester fetches run in parallel, then association and store writes run sequentially.
 func (idx *Indexer) Index(ctx context.Context) error {
 	cmcMarketPairs, err := idx.SetupAssets(ctx)
 	if err != nil {
@@ -112,23 +113,48 @@ func (idx *Indexer) Index(ctx context.Context) error {
 		return err
 	}
 
+	type ingesterResult struct {
+		name    string
+		markets []provider.CreateProviderMarket
+	}
+	results := make([]ingesterResult, len(idx.igs))
+
+	// Phase 1: fetch all ingester markets in parallel.
+	// Each ingester hits its own independent exchange API, so there is no shared
+	// mutable state during this phase.
+	g, gCtx := errgroup.WithContext(ctx)
+	for i, ingester := range idx.igs {
+		g.Go(func() error {
+			idx.logger.Info("starting fetch", zap.String("ingester", ingester.Name()))
+
+			markets, err := ingester.GetProviderMarkets(gCtx)
+			if err != nil {
+				idx.logger.Error("error getting markets", zap.Bool("mmu_datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
+				return fmt.Errorf("ingester %s: %w", ingester.Name(), err)
+			}
+
+			results[i] = ingesterResult{name: ingester.Name(), markets: markets}
+			idx.logger.Info("finished fetch", zap.String("ingester", ingester.Name()), zap.Int("markets", len(markets)))
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	// Phase 2: associate aggregator data and write to store sequentially.
+	// This phase reads/writes knownAssets and cmcIndexer state that is not
+	// safe for concurrent access.
 	count := 0
-	for _, ingester := range idx.igs {
-		idx.logger.Info("starting", zap.String("ingester", ingester.Name()))
-
-		ingesterMarkets, err := ingester.GetProviderMarkets(ctx)
+	for _, result := range results {
+		idx.logger.Info("associating coin market cap for provider", zap.String("ingester", result.name))
+		transformed, err := idx.AssociateAggregator(ctx, result.markets, cmcMarketPairs)
 		if err != nil {
-			idx.logger.Error("error getting markets", zap.Bool("mmu_datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
+			idx.logger.Error("error associating aggregators", zap.Bool("mmu_datadog", true), zap.String("ingester", result.name), zap.Error(err))
 			return err
 		}
-
-		idx.logger.Info("associating coin market cap for provider", zap.String("ingester", ingester.Name()))
-		transformed, err := idx.AssociateAggregator(ctx, ingesterMarkets, cmcMarketPairs)
-		if err != nil {
-			idx.logger.Error("error associating aggregators", zap.Bool("mmu_datadog", true), zap.String("ingester", ingester.Name()), zap.Error(err))
-			return err
-		}
-		idx.logger.Info("associated coin market cap for provider", zap.String("ingester", ingester.Name()), zap.Int("markets", len(transformed)))
+		idx.logger.Info("associated coin market cap for provider", zap.String("ingester", result.name), zap.Int("markets", len(transformed)))
 
 		for _, pm := range transformed {
 			if _, err := idx.providerStore.AddProviderMarket(ctx, pm.Create); err != nil {
@@ -137,7 +163,7 @@ func (idx *Indexer) Index(ctx context.Context) error {
 		}
 
 		count += len(transformed)
-		idx.logger.Info("finished", zap.String("ingester", ingester.Name()), zap.Int("num markets", len(transformed)))
+		idx.logger.Info("finished", zap.String("ingester", result.name), zap.Int("num markets", len(transformed)))
 	}
 
 	idx.logger.Info("committing provider markets tx to store...", zap.Int("total markets", count))
