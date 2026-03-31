@@ -520,6 +520,20 @@
             },
             { "name": "crypto_dot_com_ws", "off_chain_ticker": "USDT_USD" }
           ]
+        },
+        "VINE/USD": {
+          "ticker": {
+            "currency_pair": { "Base": "VINE", "Quote": "USD" },
+            "decimals": 9,
+            "min_provider_count": 1,
+            "metadata_JSON": "{\"reference_price\":16700000,\"liquidity\":0,\"aggregate_ids\":[]}"
+          },
+          "provider_configs": [
+            {
+              "name": "stork_api",
+              "off_chain_ticker": "VINEUSD"
+            }
+          ]
         }
       }
     },
